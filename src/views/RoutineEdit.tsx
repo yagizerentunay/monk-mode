@@ -4,6 +4,7 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { isUnilateralName } from '../lib/exercises.ts'
+import { MAX_DROPS, MAX_WARMUPS } from '../lib/intensity.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
@@ -114,6 +115,23 @@ export function RoutineEdit() {
             />
             <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
           </label>
+
+          <div className="grid3">
+            <label className="field">
+              <span className="sub">Isınma seti</span>
+              <NumberField
+                value={cfg.warmups ?? 0}
+                onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
+              />
+            </label>
+            <label className="field">
+              <span className="sub">Son sete drop</span>
+              <NumberField
+                value={cfg.drops ?? 0}
+                onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
+              />
+            </label>
+          </div>
 
           <label className="field">
             <span className="sub">İlerleme</span>
