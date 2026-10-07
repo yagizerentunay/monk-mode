@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
 import {
@@ -9,6 +10,7 @@ import {
   type Routine,
   type SetEntry,
   type Settings,
+  type SideSet,
   type State,
   type Workout,
 } from './schema.ts'
@@ -39,6 +41,8 @@ export interface Actions {
   assignDay(day: number, routineId: string | null): void
   startWorkout(routineId: string): void
   updateSet(entry: number, set: number, patch: Partial<SetEntry>): void
+  updateSide(entry: number, set: number, side: Side, patch: Partial<SideSet>): void
+  toggleUnilateral(entry: number): void
   addSet(entry: number): void
   removeSet(entry: number, set: number): void
   addExerciseToActive(exId: string, cfg?: Partial<ExCfg>): void
@@ -98,7 +102,38 @@ export const useStore = create<Store>((set, get) => ({
     withActive(set, (w) => ({
       ...w,
       entries: w.entries.map((e, i) =>
-        i !== entry ? e : { ...e, sets: e.sets.map((x, j) => (j === setIdx ? { ...x, ...patch } : x)) },
+        i !== entry
+          ? e
+          : { ...e, sets: e.sets.map((x, j) => (j === setIdx ? deriveSet({ ...x, ...patch }) : x)) },
+      ),
+    })),
+
+  updateSide: (entry, setIdx, side, patch) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) =>
+        i !== entry
+          ? e
+          : {
+              ...e,
+              sets: e.sets.map((x, j) =>
+                j !== setIdx || !x.sides
+                  ? x
+                  : deriveSet({ ...x, sides: { ...x.sides, [side]: { ...x.sides[side], ...patch } } }),
+              ),
+            },
+      ),
+    })),
+
+  toggleUnilateral: (entry) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) =>
+        i !== entry
+          ? e
+          : e.unilateral
+            ? { ...e, unilateral: false, sets: toBilateral(e.sets) }
+            : { ...e, unilateral: true, sets: toUnilateral(e.sets) },
       ),
     })),
 
@@ -108,7 +143,12 @@ export const useStore = create<Store>((set, get) => ({
       entries: w.entries.map((e, i) => {
         if (i !== entry) return e
         const last = e.sets[e.sets.length - 1]
-        return { ...e, sets: [...e.sets, { w: last?.w ?? 0, r: last?.r ?? 0, done: false }] }
+        const base: SetEntry = { w: last?.w ?? 0, r: last?.r ?? 0, done: false }
+        // Yeni set, son setin tekrar hedeflerini her iki tarafa da taşır; tamamlanma sıfırlanır.
+        const next: SetEntry = last?.sides
+          ? deriveSet({ ...base, sides: { L: { r: last.sides.L.r, done: false }, R: { r: last.sides.R.r, done: false } } })
+          : base
+        return { ...e, sets: [...e.sets, next] }
       }),
     })),
 
@@ -125,14 +165,14 @@ export const useStore = create<Store>((set, get) => ({
       ...w,
       entries: [
         ...w.entries,
-        {
-          exId,
-          sets: Array.from({ length: cfg?.sets ?? 3 }, () => ({
+        (() => {
+          const sets = Array.from({ length: cfg?.sets ?? 3 }, () => ({
             w: cfg?.weight ?? 0,
             r: cfg?.reps ?? 8,
             done: false,
-          })),
-        },
+          }))
+          return cfg?.side ? { exId, unilateral: true, sets: toUnilateral(sets) } : { exId, sets }
+        })(),
       ],
     })),
 
