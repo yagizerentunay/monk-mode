@@ -1,3 +1,4 @@
+import type { SetKind } from '../lib/intensity.ts'
 import { SIDES, type Side } from '../lib/sets.ts'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import type { SetEntry, SideSet } from '../store/schema.ts'
@@ -7,12 +8,19 @@ const RIR_CHOICES = [0, 1, 2, 3, 4]
 const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
 
 interface Props {
-  index: number
+  /** Erişilebilir ad ve alan etiketlerinin öneki: "Set 1", "Isınma 1", "Drop 1". */
+  name: string
+  /** Satırın solundaki kısa işaret: set numarası, "Is" (ısınma) veya "↓" (drop). */
+  badge: string
+  kind: SetKind
   set: SetEntry
   unilateral: boolean
   unit: Unit
+  /** "↓ Drop" düğmesi gösterilsin mi (yalnız tamamlanmış ve zincirin son setinde). */
+  canDrop: boolean
   onChange: (patch: Partial<SetEntry>) => void
   onSide: (side: Side, patch: Partial<SideSet>) => void
+  onDrop: () => void
   onRemove: () => void
   /** Set tamamen bittiğinde (tek taraflıda ikinci taraf da işaretlenince) çağrılır. */
   onCompleted: () => void
@@ -26,14 +34,27 @@ function CheckButton({ on, label, onClick }: { on: boolean; label: string; onCli
   )
 }
 
-export function SetRow({ index, set, unilateral, unit, onChange, onSide, onRemove, onCompleted }: Props) {
-  const n = index + 1
+export function SetRow({
+  name,
+  badge,
+  kind,
+  set,
+  unilateral,
+  unit,
+  canDrop,
+  onChange,
+  onSide,
+  onDrop,
+  onRemove,
+  onCompleted,
+}: Props) {
+  // Isınma setleri her zaman tek satırdır; sol/sağ yalnız `sides` olan setlerde gösterilir.
   const sides = unilateral ? set.sides : undefined
 
   const weight = (
     <NumberField
       className="grow"
-      label={`Set ${n} ağırlık`}
+      label={`${name} ağırlık`}
       value={set.w}
       toDisplay={(v) => kgToUnit(v, unit)}
       fromDisplay={(v) => unitToKg(v, unit)}
@@ -43,11 +64,11 @@ export function SetRow({ index, set, unilateral, unit, onChange, onSide, onRemov
   )
 
   return (
-    <div className={`set${set.done ? ' done' : ''}`}>
+    <div className={`set${set.done ? ' done' : ''}${kind === 'work' ? '' : ` ${kind}`}`}>
       {sides ? (
         <>
           <div className="setrow">
-            <span className="setno">{n}</span>
+            <span className="setno">{badge}</span>
             {weight}
             <span className="sub">{unit} / taraf</span>
           </div>
@@ -59,7 +80,7 @@ export function SetRow({ index, set, unilateral, unit, onChange, onSide, onRemov
                 <span className="sidelabel">{SIDE_LABEL[side]}</span>
                 <NumberField
                   className="grow"
-                  label={`Set ${n} ${SIDE_LABEL[side]} tekrar`}
+                  label={`${name} ${SIDE_LABEL[side]} tekrar`}
                   value={s.r}
                   onChange={(v) => onSide(side, { r: Math.round(v) })}
                 />
@@ -78,12 +99,12 @@ export function SetRow({ index, set, unilateral, unit, onChange, onSide, onRemov
         </>
       ) : (
         <div className="setrow">
-          <span className="setno">{n}</span>
+          <span className="setno">{badge}</span>
           {weight}
           <span className="sub">{unit}</span>
           <NumberField
             className="grow"
-            label={`Set ${n} tekrar`}
+            label={`${name} tekrar`}
             value={set.r}
             onChange={(v) => onChange({ r: Math.round(v) })}
           />
@@ -99,19 +120,34 @@ export function SetRow({ index, set, unilateral, unit, onChange, onSide, onRemov
         </div>
       )}
 
-      {set.done && (
+      {/*
+        Çalışma setinde tamamlanınca RIR, drop ve sil; ısınma ve dropta RIR yok. Isınma/dropu yalnız
+        henüz yapılmamışken silmek anlamlıdır, tamamlanınca satırı sade tut.
+      */}
+      {(set.done || (kind !== 'work' && !set.done)) && (
         <div className="rirrow">
-          <span className="sub">RIR</span>
-          {RIR_CHOICES.map((r) => (
-            <button
-              key={r}
-              className={`chip${set.rir === r ? ' on' : ''}`}
-              onClick={() => onChange({ rir: set.rir === r ? undefined : r })}
-            >
-              {r === 4 ? '4+' : r}
+          {kind === 'work' && set.done && (
+            <>
+              <span className="sub">RIR</span>
+              {RIR_CHOICES.map((r) => (
+                <button
+                  key={r}
+                  className={`chip${set.rir === r ? ' on' : ''}`}
+                  onClick={() => onChange({ rir: set.rir === r ? undefined : r })}
+                >
+                  {r === 4 ? '4+' : r}
+                </button>
+              ))}
+            </>
+          )}
+          {set.done && canDrop && (
+            <button className="chip" onClick={onDrop} aria-label={`${name} sonrası dropset ekle`}>
+              ↓ Drop
             </button>
-          ))}
-          <button className="chip" onClick={onRemove} aria-label="Seti sil">Sil</button>
+          )}
+          {(kind === 'work' ? set.done : !set.done) && (
+            <button className="chip" onClick={onRemove} aria-label={`${name} sil`}>Sil</button>
+          )}
         </div>
       )}
     </div>

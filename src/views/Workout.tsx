@@ -7,6 +7,7 @@ import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
+import { describeSets, MAX_WARMUPS, restAfterSec } from '../lib/intensity.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -56,8 +57,18 @@ export function Workout() {
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
   const restSec = useStore((s) => s.settings.restSec)
-  const { updateSet, updateSide, toggleUnilateral, addSet, removeSet, addExerciseToActive, finishWorkout, discardWorkout } =
-    useStore.getState()
+  const {
+    updateSet,
+    updateSide,
+    toggleUnilateral,
+    addSet,
+    addWarmup,
+    addDrop,
+    removeSet,
+    addExerciseToActive,
+    finishWorkout,
+    discardWorkout,
+  } = useStore.getState()
   const { byId } = useExercises()
   const navigate = useNavigate()
 
@@ -129,7 +140,7 @@ export function Workout() {
       {active.entries.map((entry, ei) => {
         const ex = byId.get(entry.exId)
         const last = lastEntryFor(workouts, entry.exId)
-        const lastTop = last?.sets.filter((s) => s.done && !s.warmup).sort((a, b) => b.w - a.w)[0]
+        const lastTop = last?.sets.filter((s) => s.done && !s.warmup && !s.drop).sort((a, b) => b.w - a.w)[0]
         return (
           <div key={ei} className="card stack">
             <div className="row">
@@ -142,22 +153,39 @@ export function Workout() {
               </div>
             </div>
 
-            {entry.sets.map((set, si) => (
-              <SetRow
-                key={si}
-                index={si}
-                set={set}
-                unilateral={!!entry.unilateral}
-                unit={unit}
-                onChange={(patch) => updateSet(ei, si, patch)}
-                onSide={(side, patch) => updateSide(ei, si, side, patch)}
-                onRemove={() => removeSet(ei, si)}
-                onCompleted={() => setRestEnds(Date.now() + restSec * 1000)}
-              />
-            ))}
+            {(() => {
+              const meta = describeSets(entry.sets)
+              return entry.sets.map((set, si) => (
+                <SetRow
+                  key={si}
+                  name={meta[si].name}
+                  badge={meta[si].badge}
+                  kind={meta[si].kind}
+                  canDrop={meta[si].canDrop}
+                  set={set}
+                  unilateral={!!entry.unilateral}
+                  unit={unit}
+                  onChange={(patch) => updateSet(ei, si, patch)}
+                  onSide={(side, patch) => updateSide(ei, si, side, patch)}
+                  onDrop={() => addDrop(ei, si)}
+                  onRemove={() => removeSet(ei, si)}
+                  onCompleted={() => {
+                    const rest = restAfterSec(entry.sets, si, restSec)
+                    if (rest !== null) setRestEnds(Date.now() + rest * 1000)
+                  }}
+                />
+              ))
+            })()}
 
-            <div className="row">
+            <div className="row wrap">
               <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
+              <button
+                className="btn small"
+                disabled={entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
+                onClick={() => addWarmup(ei)}
+              >
+                + Isınma
+              </button>
               <button
                 className={`chip${entry.unilateral ? ' on' : ''}`}
                 aria-pressed={!!entry.unilateral}

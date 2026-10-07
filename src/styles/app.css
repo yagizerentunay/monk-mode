@@ -141,3 +141,10 @@ select.input { appearance: none; }
 /* tek taraflı set */
 .siderow { padding-left: 26px; margin-top: 6px; }
 .sidelabel { width: 34px; font-size: 14px; font-weight: 600; color: var(--accent); flex: none; }
+
+/* ısınma ve dropset */
+.row.wrap { flex-wrap: wrap; }
+.rirrow { flex-wrap: wrap; }
+.set.warmup .setno, .set.drop .setno { color: var(--warn); font-size: 12px; font-weight: 700; }
+.set.warmup, .set.drop { border-left: 3px solid var(--warn); padding-left: 8px; }
+.set.drop { margin-left: 14px; }
