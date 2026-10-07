@@ -39,6 +39,44 @@ export function dropSet(prev: SetEntry): SetEntry {
   })
 }
 
+export type SetKind = 'work' | 'warmup' | 'drop'
+
+export interface SetMeta {
+  kind: SetKind
+  /** Erişilebilir ad ve alan etiketi öneki: "Set 2", "Isınma 1", "Drop 1". */
+  name: string
+  /** Satırın solundaki kısa işaret. */
+  badge: string
+  /** "↓ Drop" eklenebilir mi: drop zincirinin son halkası ve zincir sınırının altında. */
+  canDrop: boolean
+}
+
+/** Sıralı setleri çalışma / ısınma / drop olarak numaralandırır ve drop eklenebilirliğini belirler. */
+export function describeSets(sets: SetEntry[]): SetMeta[] {
+  let work = 0
+  let warm = 0
+  let drop = 0
+  let chain = 0 // ardışık drop sayısı (zincirin uzunluğu)
+  return sets.map((s, i) => {
+    const kind: SetKind = s.warmup ? 'warmup' : s.drop ? 'drop' : 'work'
+    chain = kind === 'drop' ? chain + 1 : 0
+    const isChainEnd = !sets[i + 1]?.drop
+    const canDrop = kind !== 'warmup' && isChainEnd && chain < MAX_DROPS
+    if (kind === 'work') return { kind, name: `Set ${++work}`, badge: String(work), canDrop }
+    if (kind === 'warmup') return { kind, name: `Isınma ${++warm}`, badge: 'Is', canDrop }
+    return { kind, name: `Drop ${++drop}`, badge: '↓', canDrop }
+  })
+}
+
+/**
+ * `index`'inci set bitince kaç saniye dinlenilecek; null = sayaç başlatma.
+ * Ardından dropset geliyorsa dinlenmeden devam edilir; ısınma sonrası dinlenme kısadır.
+ */
+export function restAfterSec(sets: SetEntry[], index: number, restSec: number): number | null {
+  if (sets[index + 1]?.drop) return null
+  return sets[index]?.warmup ? Math.min(restSec, WARMUP_REST_SEC) : restSec
+}
+
 /** `last` setinden başlayarak `count` dropset zinciri (her biri bir öncekinin %80'i). */
 export function dropChain(last: SetEntry, count: number): SetEntry[] {
   const out: SetEntry[] = []

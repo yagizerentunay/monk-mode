@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry } from '../store/schema.ts'
-import { dropChain, dropSet, roundLoad, warmupSet, warmupSets } from './intensity.ts'
+import { describeSets, dropChain, dropSet, restAfterSec, roundLoad, warmupSet, warmupSets } from './intensity.ts'
 
 describe('yük yuvarlama', () => {
   it('ağır yüklerde 2,5 kg adıma yuvarlar', () => {
@@ -40,6 +40,52 @@ describe('ısınma rampası', () => {
 
   it('ağırlık 0 ise ısınma ağırlığı da 0', () => {
     expect(warmupSet(0, 0).w).toBe(0)
+  })
+})
+
+describe('set numaralandırma', () => {
+  const w = (): SetEntry => ({ w: 8, r: 8, done: false, warmup: true })
+  const s = (): SetEntry => ({ w: 100, r: 5, done: false })
+  const d = (): SetEntry => ({ w: 80, r: 5, done: false, drop: true })
+
+  it('çalışma, ısınma ve drop setlerini ayrı sayar', () => {
+    const meta = describeSets([w(), w(), s(), s(), d(), d()])
+    expect(meta.map((m) => m.name)).toEqual(['Isınma 1', 'Isınma 2', 'Set 1', 'Set 2', 'Drop 1', 'Drop 2'])
+    expect(meta.map((m) => m.badge)).toEqual(['Is', 'Is', '1', '2', '↓', '↓'])
+  })
+
+  it('drop yalnız zincirin son halkasında ve ısınmada değil eklenebilir', () => {
+    const meta = describeSets([w(), s(), d(), s()])
+    expect(meta.map((m) => m.canDrop)).toEqual([false, false, true, true])
+  })
+
+  it('zincir sınırına ulaşınca drop eklenemez', () => {
+    const meta = describeSets([s(), d(), d(), d()])
+    expect(meta[3].canDrop).toBe(false)
+    expect(meta[0].canDrop).toBe(false) // zincirin ortasında değil: ardında drop var
+  })
+})
+
+describe('dinlenme süresi', () => {
+  const s = (): SetEntry => ({ w: 100, r: 5, done: true })
+  const w = (): SetEntry => ({ w: 40, r: 8, done: true, warmup: true })
+  const d = (): SetEntry => ({ w: 80, r: 5, done: true, drop: true })
+
+  it('normal sette ayarlı süre kadar dinlenir', () => {
+    expect(restAfterSec([s(), s()], 0, 120)).toBe(120)
+  })
+
+  it('ardından drop geliyorsa sayaç başlamaz', () => {
+    expect(restAfterSec([s(), d()], 0, 120)).toBeNull()
+  })
+
+  it('son dropdan sonra normal dinlenir', () => {
+    expect(restAfterSec([s(), d()], 1, 120)).toBe(120)
+  })
+
+  it('ısınmadan sonra kısa dinlenir ama ayardan uzun olmaz', () => {
+    expect(restAfterSec([w(), s()], 0, 120)).toBe(45)
+    expect(restAfterSec([w(), s()], 0, 30)).toBe(30)
   })
 })
 
