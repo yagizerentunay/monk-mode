@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
+import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, exerciseHistory, workoutVolume } from '../lib/workout.ts'
@@ -29,7 +30,7 @@ function WorkoutDetail({ workout, onClose }: { workout: Workout; onClose: () => 
           <div className="sub">
             {e.sets
               .filter((s) => !s.warmup)
-              .map((s) => `${formatWeight(s.w, unit)}×${s.r}${s.rir !== undefined ? ` @${s.rir}` : ''}`)
+              .map((s) => formatSet(s, formatWeight(s.w, unit)))
               .join(' · ')}
           </div>
         </div>
