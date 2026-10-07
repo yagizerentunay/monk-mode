@@ -13,6 +13,10 @@ export interface ExCfg {
   prog: ProgressionMode
   /** Tek taraflı egzersiz: sol ve sağ taraf ayrı kaydedilir, ağırlık taraf başınadır. */
   side?: boolean
+  /** Seans başında otomatik eklenecek ısınma seti sayısı (0-4). */
+  warmups?: number
+  /** Son çalışma setinin ardından eklenecek dropset sayısı (0-3). */
+  drops?: number
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -39,7 +43,13 @@ export interface SetEntry {
   rir?: number
   /** Tek taraflı sette iki taraf da tamamlanmışsa true. */
   done: boolean
+  /** Isınma seti: hacim, ilerleme ve PR hesabına girmez, RIR tutulmaz. */
   warmup?: boolean
+  /**
+   * Dropset: önceki setin hemen ardından daha hafif ağırlıkla yapılan devam seti. Hacme ve geçmişe
+   * girer ama ilerleme hesabında yok sayılır (hafif ve az tekrarlı olduğu için hedefi tutmaz).
+   */
+  drop?: boolean
   /** Tek taraflı setlerde gerçek kaynak; `r` ve `done` buradan türetilir (bkz. lib/sets.ts). */
   sides?: { L: SideSet; R: SideSet }
 }
