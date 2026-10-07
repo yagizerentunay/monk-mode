@@ -2,18 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
-import { NumberField } from '../components/NumberField.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
+import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { imageUrl } from '../lib/exercises.ts'
-import { formatWeight, kgToUnit, unitToKg } from '../lib/units.ts'
+import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
+import { formatSet } from '../lib/sets.ts'
+import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, isPR, lastEntryFor, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
-
-const RIR_CHOICES = [0, 1, 2, 3, 4]
 
 interface Summary {
   workout: WorkoutT
@@ -57,7 +56,8 @@ export function Workout() {
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
   const restSec = useStore((s) => s.settings.restSec)
-  const { updateSet, addSet, removeSet, addExerciseToActive, finishWorkout, discardWorkout } = useStore.getState()
+  const { updateSet, updateSide, toggleUnilateral, addSet, removeSet, addExerciseToActive, finishWorkout, discardWorkout } =
+    useStore.getState()
   const { byId } = useExercises()
   const navigate = useNavigate()
 
@@ -137,62 +137,35 @@ export function Workout() {
               <div className="grow">
                 <div className="exname">{ex?.name ?? entry.exId}</div>
                 <div className="sub">
-                  {lastTop ? `Geçen sefer: ${formatWeight(lastTop.w, unit)} ${unit} × ${lastTop.r}` : 'İlk kez'}
+                  {lastTop ? `Geçen sefer: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
                 </div>
               </div>
             </div>
 
             {entry.sets.map((set, si) => (
-              <div key={si} className={`set${set.done ? ' done' : ''}`}>
-                <div className="setrow">
-                  <span className="setno">{si + 1}</span>
-                  <NumberField
-                    className="grow"
-                    label={`Set ${si + 1} ağırlık`}
-                    value={set.w}
-                    toDisplay={(v) => kgToUnit(v, unit)}
-                    fromDisplay={(v) => unitToKg(v, unit)}
-                    step={0.5}
-                    onChange={(v) => updateSet(ei, si, { w: v })}
-                  />
-                  <span className="sub">{unit}</span>
-                  <NumberField
-                    className="grow"
-                    label={`Set ${si + 1} tekrar`}
-                    value={set.r}
-                    onChange={(v) => updateSet(ei, si, { r: Math.round(v) })}
-                  />
-                  <span className="sub">tkr</span>
-                  <button
-                    className={`check${set.done ? ' on' : ''}`}
-                    aria-label={set.done ? 'Seti geri al' : 'Seti tamamla'}
-                    onClick={() => {
-                      updateSet(ei, si, { done: !set.done })
-                      if (!set.done) setRestEnds(Date.now() + restSec * 1000)
-                    }}
-                  >
-                    ✓
-                  </button>
-                </div>
-                {set.done && (
-                  <div className="rirrow">
-                    <span className="sub">RIR</span>
-                    {RIR_CHOICES.map((r) => (
-                      <button
-                        key={r}
-                        className={`chip${set.rir === r ? ' on' : ''}`}
-                        onClick={() => updateSet(ei, si, { rir: set.rir === r ? undefined : r })}
-                      >
-                        {r === 4 ? '4+' : r}
-                      </button>
-                    ))}
-                    <button className="chip" onClick={() => removeSet(ei, si)} aria-label="Seti sil">Sil</button>
-                  </div>
-                )}
-              </div>
+              <SetRow
+                key={si}
+                index={si}
+                set={set}
+                unilateral={!!entry.unilateral}
+                unit={unit}
+                onChange={(patch) => updateSet(ei, si, patch)}
+                onSide={(side, patch) => updateSide(ei, si, side, patch)}
+                onRemove={() => removeSet(ei, si)}
+                onCompleted={() => setRestEnds(Date.now() + restSec * 1000)}
+              />
             ))}
 
-            <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
+            <div className="row">
+              <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
+              <button
+                className={`chip${entry.unilateral ? ' on' : ''}`}
+                aria-pressed={!!entry.unilateral}
+                onClick={() => toggleUnilateral(ei)}
+              >
+                Tek taraflı (sol/sağ)
+              </button>
+            </div>
           </div>
         )
       })}
@@ -205,7 +178,7 @@ export function Workout() {
         <ExerciseBrowser
           actionLabel="Ekle"
           onSelect={(ex) => {
-            addExerciseToActive(ex.id)
+            addExerciseToActive(ex.id, { side: isUnilateralName(ex.name) })
             setPicking(false)
           }}
         />

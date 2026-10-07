@@ -137,3 +137,7 @@ select.input { appearance: none; }
   position: sticky; top: 0; z-index: 25; padding: 6px 12px; text-align: center; font-size: 13px;
   background: var(--warn); color: #1c1100;
 }
+
+/* tek taraflı set */
+.siderow { padding-left: 26px; margin-top: 6px; }
+.sidelabel { width: 34px; font-size: 14px; font-weight: 600; color: var(--accent); flex: none; }
