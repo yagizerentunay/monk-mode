@@ -6,6 +6,15 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 
 [openGym](https://github.com/DuarteSantos8/openGym) projesinden ürün fikri olarak esinlenir; kodu sıfırdan yazılmıştır ve openGym kodu içermez.
 
+## Özellikler
+
+- 876 egzersizlik kütüphane (arama, kas ve ekipman filtreleri, özel egzersiz)
+- Rutin oluşturucu ve haftalık program
+- Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
+- Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
+- Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
+- Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
+
 ## Çalıştırma
 
 Node.js 22 veya üstü gerekir.
