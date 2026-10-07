@@ -37,9 +37,12 @@ export function Home() {
 
   return (
     <div className="stack">
-      <div>
-        <h1>monk-mode</h1>
-        <div className="sub">{DAY_NAMES[today.getDay()]}, {today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
+      <div className="row between">
+        <div>
+          <h1>monk-mode</h1>
+          <div className="sub">{DAY_NAMES[today.getDay()]}, {today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
+        </div>
+        <Link to="/settings" className="btn small" aria-label="Ayarlar">⚙</Link>
       </div>
 
       <div className="weekstrip">
