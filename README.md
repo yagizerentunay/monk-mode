@@ -14,6 +14,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
 - Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
+- Çevrimdışı çalışma: uygulama kabuğu, egzersiz verisi ve gezilen görseller önbelleğe alınır; ana ekrana eklenebilir (PWA)
 
 ## Çalıştırma
 
@@ -25,6 +26,17 @@ npm run dev
 ```
 
 Uygulama `http://localhost:5173` adresinde açılır. Telefondan yerel ağ üzerinden denemek için `npm run dev -- --host`.
+
+### Çevrimdışı mod
+
+Service worker yalnızca üretim derlemesinde çalışır (geliştirme sunucusunda önbellek HMR'yi bozar):
+
+```bash
+npm run build
+npm run preview
+```
+
+`http://localhost:4173` adresini bir kez aç; sonrasında sunucu kapalıyken de açılır. Egzersiz görselleri yalnızca daha önce gördüklerin için çevrimdışı gelir. Önbellek şemasını değiştirirsen `public/sw.js` içindeki `VERSION` değerini artır.
 
 ## Komutlar
 
