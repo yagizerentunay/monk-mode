@@ -1,5 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { TabBar } from './components/TabBar.tsx'
+import { useOnline } from './lib/useOnline.ts'
 import { Home } from './views/Home.tsx'
 import { Library } from './views/Library.tsx'
 import { Plan } from './views/Plan.tsx'
@@ -9,8 +10,14 @@ import { Stats } from './views/Stats.tsx'
 import { Workout } from './views/Workout.tsx'
 
 export default function App() {
+  const online = useOnline()
   return (
     <HashRouter>
+      {!online && (
+        <div className="offline" role="status">
+          Çevrimdışı · veriler cihazında güvende, görseller yalnız daha önce gezdiklerin
+        </div>
+      )}
       <main className="app">
         <Routes>
           <Route path="/" element={<Home />} />
