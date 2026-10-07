@@ -1,4 +1,5 @@
 import type { Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import { dropChain, warmupSets } from './intensity.ts'
 import { estimate1RM } from './onerm.ts'
 import { nextPrescription } from './progression.ts'
 import { setReps, toUnilateral } from './sets.ts'
@@ -38,14 +39,16 @@ export function buildWorkout(routine: Routine, history: Workout[], now: number):
     name: routine.name,
     entries: routine.ex.map((cfg) => {
       const p = nextPrescription(cfg, lastEntryFor(history, cfg.exId))
-      const entry: WorkoutEntry = {
-        exId: cfg.exId,
-        sets: Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false })),
-      }
+      const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
+      const warmups = warmupSets(p.w, cfg.warmups ?? 0)
+      const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
       if (cfg.side) {
         entry.unilateral = true
         entry.sets = toUnilateral(entry.sets)
       }
+      // Dropsetler son çalışma setinden zincirlenir (tek taraflıysa sol/sağ hedefleri de taşınır).
+      const lastWork = entry.sets[entry.sets.length - 1]
+      if (lastWork && cfg.drops) entry.sets = [...entry.sets, ...dropChain(lastWork, cfg.drops)]
       return entry
     }),
   }
@@ -67,7 +70,7 @@ export function doneSetCount(workout: Workout): { done: number; total: number } 
   let total = 0
   for (const e of workout.entries) {
     for (const s of e.sets) {
-      if (s.warmup) continue
+      if (s.warmup || s.drop) continue
       total++
       if (s.done) done++
     }

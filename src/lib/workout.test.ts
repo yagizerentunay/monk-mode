@@ -76,6 +76,58 @@ describe('workout yardımcıları', () => {
   })
 })
 
+describe('ısınma ve dropset', () => {
+  const heavy: Routine = {
+    id: 'r3',
+    name: 'İtiş',
+    ex: [{ exId: 'bench', sets: 2, reps: 5, weight: 100, prog: 'linear', inc: 2.5, repsMax: 5, warmups: 3, drops: 2 }],
+  }
+
+  it('sırayla ısınma, çalışma ve drop setlerini kurar', () => {
+    const [e] = buildWorkout(heavy, [], Date.UTC(2026, 9, 8, 12)).entries
+    expect(e.sets.map((s) => (s.warmup ? 'W' : s.drop ? 'D' : 'S')).join('')).toBe('WWWSSDD')
+    expect(e.sets.slice(0, 3).map((s) => s.w)).toEqual([40, 60, 80])
+    expect(e.sets.slice(3, 5).map((s) => s.w)).toEqual([100, 100])
+    expect(e.sets.slice(5).map((s) => s.w)).toEqual([80, 65])
+  })
+
+  it('ısınma ağırlığı progression önerisinden hesaplanır', () => {
+    const history = [wk('2026-10-01', 'bench', [done(100, 5), done(100, 5)])]
+    const [e] = buildWorkout(heavy, history, Date.UTC(2026, 9, 8, 12)).entries
+    expect(e.sets[3].w).toBe(102.5)
+    expect(e.sets[2].w).toBe(82.5) // 102,5 × 0,8 = 82 → 2,5 adıma yuvarlanır
+  })
+
+  it('ısınma/drop yoksa eski davranışı korur', () => {
+    const plain: Routine = { id: 'p', name: 'x', ex: [{ ...heavy.ex[0], warmups: undefined, drops: undefined }] }
+    expect(buildWorkout(plain, [], 1).entries[0].sets).toHaveLength(2)
+  })
+
+  it('tek taraflıda ısınma tek satırlı, çalışma ve drop setleri sol/sağlı olur', () => {
+    const uni: Routine = { id: 'u', name: 'x', ex: [{ ...heavy.ex[0], weight: 20, side: true, warmups: 1, drops: 1 }] }
+    const sets = buildWorkout(uni, [], 1).entries[0].sets
+    expect(sets[0].warmup).toBe(true)
+    expect(sets[0].sides).toBeUndefined()
+    expect(sets[1].sides).toBeDefined()
+    expect(sets[sets.length - 1]).toMatchObject({ drop: true })
+    expect(sets[sets.length - 1].sides).toBeDefined()
+  })
+
+  it('ilerleme sayacı ısınma ve dropsetleri saymaz', () => {
+    const w = buildWorkout(heavy, [], 1)
+    expect(doneSetCount(w)).toEqual({ done: 0, total: 2 })
+  })
+
+  it('hacim dropsetleri içerir, ısınmayı içermez', () => {
+    const w = wk('2026-10-08', 'bench', [
+      { w: 40, r: 8, done: true, warmup: true },
+      done(100, 5),
+      { w: 80, r: 6, done: true, drop: true },
+    ])
+    expect(workoutVolume(w)).toBe(100 * 5 + 80 * 6)
+  })
+})
+
 describe('tek taraflı egzersizler', () => {
   const unilateralRoutine: Routine = {
     id: 'r2',
