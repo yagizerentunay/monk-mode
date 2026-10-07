@@ -12,6 +12,8 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
 - Tek taraflı egzersizler: sol ve sağ ayrı kaydedilir, ağırlık taraf başınadır. Hacim iki tarafın toplamıdır; 1RM ve ilerleme zayıf tarafın tekrarına göre hesaplanır
+- Isınma setleri: rutinde sayısı ayarlanır (%40 → %60 → %80 rampası) veya seansta tek dokunuşla eklenir; hacim, ilerleme ve PR'a girmez, kısa dinlenme verir
+- Dropset: rutinde son sete otomatik, seansta her sete tek dokunuşla eklenir (önceki setin %80'i, zincirlenebilir); hacme ve geçmişe girer, ilerleme hesabında yok sayılır
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
 - Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
