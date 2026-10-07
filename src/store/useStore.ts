@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { dropSet, MAX_DROPS, MAX_WARMUPS, warmupSet } from '../lib/intensity.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
@@ -44,6 +45,8 @@ export interface Actions {
   updateSide(entry: number, set: number, side: Side, patch: Partial<SideSet>): void
   toggleUnilateral(entry: number): void
   addSet(entry: number): void
+  addWarmup(entry: number): void
+  addDrop(entry: number, set: number): void
   removeSet(entry: number, set: number): void
   addExerciseToActive(exId: string, cfg?: Partial<ExCfg>): void
   finishWorkout(): Workout | null
@@ -142,13 +145,44 @@ export const useStore = create<Store>((set, get) => ({
       ...w,
       entries: w.entries.map((e, i) => {
         if (i !== entry) return e
-        const last = e.sets[e.sets.length - 1]
+        // Yeni set, son asıl çalışma setini örnek alır (ısınma ve dropsetlerin hafif ağırlığını değil).
+        const last = [...e.sets].reverse().find((s) => !s.warmup && !s.drop)
         const base: SetEntry = { w: last?.w ?? 0, r: last?.r ?? 0, done: false }
         // Yeni set, son setin tekrar hedeflerini her iki tarafa da taşır; tamamlanma sıfırlanır.
         const next: SetEntry = last?.sides
           ? deriveSet({ ...base, sides: { L: { r: last.sides.L.r, done: false }, R: { r: last.sides.R.r, done: false } } })
           : base
         return { ...e, sets: [...e.sets, next] }
+      }),
+    })),
+
+  addWarmup: (entry) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) => {
+        if (i !== entry) return e
+        const k = e.sets.filter((s) => s.warmup).length
+        if (k >= MAX_WARMUPS) return e
+        // Rampa, ilk çalışma setinin ağırlığından hesaplanır; yeni ısınma mevcut ısınmaların ardına girer.
+        const work = e.sets.find((s) => !s.warmup && !s.drop)
+        const sets = [...e.sets]
+        sets.splice(k, 0, warmupSet(work?.w ?? 0, k))
+        return { ...e, sets }
+      }),
+    })),
+
+  addDrop: (entry, setIdx) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) => {
+        if (i !== entry || !e.sets[setIdx] || e.sets[setIdx].warmup) return e
+        // Zincir: aynı setin ardındaki dropların sonuna eklenir ve sonuncusundan hesaplanır.
+        let at = setIdx + 1
+        while (e.sets[at]?.drop) at++
+        if (at - setIdx - 1 >= MAX_DROPS) return e
+        const sets = [...e.sets]
+        sets.splice(at, 0, dropSet(e.sets[at - 1]))
+        return { ...e, sets }
       }),
     })),
 
@@ -179,10 +213,10 @@ export const useStore = create<Store>((set, get) => ({
   finishWorkout: () => {
     const { active } = get()
     if (!active) return null
-    // Hiç set tamamlanmadıysa kayıt oluşturma.
+    // Yalnız tamamlanan setler kaydedilir; yalnız ısınması yapılmış egzersiz kayda girmez.
     const entries = active.entries
-      .map((e) => ({ ...e, sets: e.sets.filter((x) => x.done || x.warmup) }))
-      .filter((e) => e.sets.some((x) => x.done))
+      .map((e) => ({ ...e, sets: e.sets.filter((x) => x.done) }))
+      .filter((e) => e.sets.some((x) => !x.warmup))
     if (entries.length === 0) {
       set(() => ({ active: null }))
       return null

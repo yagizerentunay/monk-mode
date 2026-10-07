@@ -125,6 +125,68 @@ describe('store akışı', () => {
     expect(e.sets[0].sides?.L.r).toBe(10)
   })
 
+  it('ısınma seti çalışma ağırlığından hesaplanır ve ısınma bloğunun sonuna girer', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100 }] })
+    s.startWorkout('r1')
+    useStore.getState().addWarmup(0)
+    useStore.getState().addWarmup(0)
+    const sets = useStore.getState().active!.entries[0].sets
+    expect(sets.map((x) => [x.warmup ?? false, x.w])).toEqual([[true, 40], [true, 60], [false, 100], [false, 100]])
+  })
+
+  it('ısınma sayısını sınırlar', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100 }] })
+    s.startWorkout('r1')
+    for (let i = 0; i < 8; i++) useStore.getState().addWarmup(0)
+    expect(useStore.getState().active!.entries[0].sets.filter((x) => x.warmup)).toHaveLength(4)
+  })
+
+  it('dropset ilgili setin hemen ardına girer ve zincirlenir', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100 }] })
+    s.startWorkout('r1')
+    useStore.getState().addDrop(0, 0)
+    useStore.getState().addDrop(0, 0)
+    const sets = useStore.getState().active!.entries[0].sets
+    expect(sets.map((x) => [x.drop ?? false, x.w])).toEqual([[false, 100], [true, 80], [true, 65], [false, 100]])
+  })
+
+  it('dropset zincirini 3 ile sınırlar ve ısınmaya drop eklemez', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100, warmups: 1 }] })
+    s.startWorkout('r1')
+    useStore.getState().addDrop(0, 0) // ısınma seti: yok sayılır
+    expect(useStore.getState().active!.entries[0].sets.some((x) => x.drop)).toBe(false)
+    for (let i = 0; i < 6; i++) useStore.getState().addDrop(0, 1)
+    expect(useStore.getState().active!.entries[0].sets.filter((x) => x.drop)).toHaveLength(3)
+  })
+
+  it('yeni set son dropun değil son çalışma setinin ağırlığını alır', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100, drops: 1 }] })
+    s.startWorkout('r1')
+    useStore.getState().addSet(0)
+    const sets = useStore.getState().active!.entries[0].sets
+    expect(sets[sets.length - 1]).toMatchObject({ w: 100, done: false })
+    expect(sets[sets.length - 1].drop).toBeUndefined()
+  })
+
+  it('yalnız ısınması yapılmış egzersiz kayda girmez; tamamlanmamış ısınma kaydedilmez', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight: 100, warmups: 2 }] })
+    s.startWorkout('r1')
+    useStore.getState().updateSet(0, 0, { done: true })
+    expect(useStore.getState().finishWorkout()).toBeNull()
+
+    useStore.getState().startWorkout('r1')
+    useStore.getState().updateSet(0, 0, { done: true })
+    useStore.getState().updateSet(0, 2, { done: true }) // ilk çalışma seti
+    const finished = useStore.getState().finishWorkout()
+    expect(finished?.entries[0].sets.map((x) => !!x.warmup)).toEqual([true, false])
+  })
+
   it('snapshot eylemleri içermez', () => {
     expect(Object.keys(snapshot(useStore.getState())).sort()).toEqual(Object.keys(defaultState()).sort())
   })
