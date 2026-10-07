@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { isUnilateralName } from '../lib/exercises.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
@@ -105,6 +106,15 @@ export function RoutineEdit() {
             </label>
           </div>
 
+          <label className="row">
+            <input
+              type="checkbox"
+              checked={!!cfg.side}
+              onChange={(e) => patchEx(i, { side: e.target.checked })}
+            />
+            <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
+          </label>
+
           <label className="field">
             <span className="sub">İlerleme</span>
             <select
@@ -163,7 +173,19 @@ export function RoutineEdit() {
           onSelect={(ex) => {
             setDraft((d) => ({
               ...d,
-              ex: [...d.ex, { exId: ex.id, sets: 3, reps: 8, weight: 0, prog: 'double', inc: 2.5, repsMax: 12 }],
+              ex: [
+                ...d.ex,
+                {
+                  exId: ex.id,
+                  sets: 3,
+                  reps: 8,
+                  weight: 0,
+                  prog: 'double',
+                  inc: 2.5,
+                  repsMax: 12,
+                  side: isUnilateralName(ex.name),
+                },
+              ],
             }))
             setPicking(false)
           }}
