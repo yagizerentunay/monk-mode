@@ -120,3 +120,14 @@ select.input { appearance: none; }
 }
 .rest.done { border-color: var(--accent); }
 .rest-time { text-align: center; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ana sayfa */
+.weekstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.wday { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; border-radius: 14px; background: var(--card); font-size: 13px; }
+.wday.today { outline: 2px solid var(--accent); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; }
+.dot.plan { background: var(--muted); }
+.dot.on { background: var(--accent); }
+.stat { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 6px; }
+.stat b { font-size: 24px; }
+.stat .sub { font-size: 12px; }
