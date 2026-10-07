@@ -38,6 +38,11 @@ describe('toplam tekrar ve dönüşümler', () => {
     expect(s.sides).toEqual(makeSides(10, true))
   })
 
+  it('ısınma setini tek taraflıya çevirmez', () => {
+    const [s] = toUnilateral([{ w: 8, r: 8, done: false, warmup: true }])
+    expect(s.sides).toBeUndefined()
+  })
+
   it('zaten tek taraflı olanı bozmaz', () => {
     const s = deriveSet(uni(10, 8))
     expect(toUnilateral([s])[0]).toBe(s)
@@ -58,5 +63,9 @@ describe('formatSet', () => {
 
   it('tek taraflı seti sol/sağ ayrı yazar', () => {
     expect(formatSet(uni(10, 8), '20')).toBe('20×L10/R8')
+  })
+
+  it('dropseti oku ile işaretler', () => {
+    expect(formatSet({ w: 48, r: 6, done: true, drop: true }, '48')).toBe('↓48×6')
   })
 })

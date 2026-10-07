@@ -23,8 +23,9 @@ export function setReps(set: SetEntry): number {
   return set.sides ? set.sides.L.r + set.sides.R.r : set.r
 }
 
+/** Isınma setleri tek satırlı kalır; sol/sağ ayrımı yalnız çalışma ve drop setlerinde anlamlıdır. */
 export function toUnilateral(sets: SetEntry[]): SetEntry[] {
-  return sets.map((s) => (s.sides ? s : { ...s, sides: makeSides(s.r, s.done) }))
+  return sets.map((s) => (s.sides || s.warmup ? s : { ...s, sides: makeSides(s.r, s.done) }))
 }
 
 export function toBilateral(sets: SetEntry[]): SetEntry[] {
@@ -35,8 +36,8 @@ export function toBilateral(sets: SetEntry[]): SetEntry[] {
   })
 }
 
-/** Kısa özet: `60×8 @2` veya tek taraflıda `20×L10/R8 @1`. */
+/** Kısa özet: `60×8 @2`, tek taraflıda `20×L10/R8 @1`, dropsette başına `↓`. */
 export function formatSet(set: SetEntry, weight: string): string {
   const reps = set.sides ? `L${set.sides.L.r}/R${set.sides.R.r}` : String(set.r)
-  return `${weight}×${reps}${set.rir !== undefined ? ` @${set.rir}` : ''}`
+  return `${set.drop ? '↓' : ''}${weight}×${reps}${set.rir !== undefined ? ` @${set.rir}` : ''}`
 }
