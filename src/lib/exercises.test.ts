@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { facetValues, filterExercises, fromCustom, type Exercise } from './exercises.ts'
+import { facetValues, filterExercises, fromCustom, isUnilateralName, type Exercise } from './exercises.ts'
 
 const ex = (id: string, name: string, muscle: string, equipment: string | null): Exercise => ({
   id,
@@ -34,6 +34,18 @@ describe('egzersiz filtreleri', () => {
 
   it('değerleri sıklığa göre sıralar', () => {
     expect(facetValues(list, (e) => e.primaryMuscles)).toEqual(['biceps', 'quadriceps'])
+  })
+
+  it('adından tek taraflı egzersizleri önerir', () => {
+    for (const n of ['One-Arm Dumbbell Row', 'Dumbbell Lunges', 'Barbell Step Ups', 'Single-Leg Press', 'Kettlebell Pistol Squat', 'Glute Kickback', 'Concentration Curls', 'Bulgarian Split Squat']) {
+      expect(isUnilateralName(n), n).toBe(true)
+    }
+  })
+
+  it('çift taraflı veya dönüşümlü egzersizleri önermez', () => {
+    for (const n of ['Barbell Bench Press - Medium Grip', 'Alternate Hammer Curl', 'Alternating Kettlebell Row', 'Cable Reverse Crunch', 'Chest Push (single response)', 'Barbell Squat']) {
+      expect(isUnilateralName(n), n).toBe(false)
+    }
   })
 
   it('özel egzersizi kütüphane biçimine çevirir', () => {

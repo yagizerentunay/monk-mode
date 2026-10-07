@@ -51,6 +51,17 @@ export function fromCustom(c: CustomExercise): Exercise {
   }
 }
 
+const UNILATERAL_NAME =
+  /\b(one|single)[- ](arm|leg|handed)|unilateral|bulgarian|split squat|\blunges?\b|step[- ]?ups?|pistol|concentration curl|kickback/i
+
+/**
+ * Adından tek taraflı olduğu anlaşılan egzersizler için varsayılan öneri (kullanıcı değiştirebilir).
+ * "Alternating" egzersizler dahil değil: kollar aynı set içinde dönüşümlü çalışır.
+ */
+export function isUnilateralName(name: string): boolean {
+  return UNILATERAL_NAME.test(name)
+}
+
 export interface ExerciseFilter {
   query: string
   muscle: string | null
