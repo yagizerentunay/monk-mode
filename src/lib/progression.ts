@@ -9,8 +9,9 @@ export interface Prescription {
   reason: 'plan' | 'increase' | 'repeat' | 'add-rep'
 }
 
+/** İlerleme yalnız asıl çalışma setlerine bakar: ısınma ve dropsetler hedefi tutmak zorunda değildir. */
 function workSets(entry: WorkoutEntry): SetEntry[] {
-  return entry.sets.filter((s) => !s.warmup)
+  return entry.sets.filter((s) => !s.warmup && !s.drop)
 }
 
 /** Seans, hedeflenen tüm çalışma setlerini tamamladı mı? */

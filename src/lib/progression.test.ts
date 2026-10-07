@@ -51,6 +51,17 @@ describe('nextPrescription', () => {
     expect(nextPrescription(cfg(), last).w).toBe(62.5)
   })
 
+  it('dropsetleri yok sayar: hafif, az tekrarlı drop ilerlemeyi engellemez ve ağırlığı düşürmez', () => {
+    const last = entry(set(60, 5), set(60, 5), set(60, 5), { w: 47.5, r: 3, done: true, drop: true })
+    expect(nextPrescription(cfg(), last)).toEqual({ w: 62.5, r: 5, reason: 'increase' })
+  })
+
+  it('ısınma ve dropsetler çalışma seti sayısına eklenmez', () => {
+    // 3 set hedefi, yalnız 2 asıl set + 1 drop yapılmış: eksik sayılmalı
+    const last = entry(set(60, 5), set(60, 5), { w: 47.5, r: 5, done: true, drop: true })
+    expect(nextPrescription(cfg(), last).reason).toBe('repeat')
+  })
+
   it('double: üst sınıra ulaşılınca ağırlık artar ve tekrar sıfırlanır', () => {
     const last = entry(set(60, 8), set(60, 8), set(60, 8))
     expect(nextPrescription(cfg({ prog: 'double' }), last)).toEqual({
