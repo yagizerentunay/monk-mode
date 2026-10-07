@@ -11,6 +11,8 @@ export interface ExCfg {
   reps: number
   weight: number
   prog: ProgressionMode
+  /** Tek taraflı egzersiz: sol ve sağ taraf ayrı kaydedilir, ağırlık taraf başınadır. */
+  side?: boolean
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -24,17 +26,29 @@ export interface Routine {
   ex: ExCfg[]
 }
 
+/** Tek taraflı setin bir tarafı. */
+export interface SideSet {
+  r: number
+  done: boolean
+}
+
 export interface SetEntry {
   w: number
+  /** Tekrar. Tek taraflı sette taraf başına tekrardır: iki tarafın düşüğü (zayıf taraf belirler). */
   r: number
   rir?: number
+  /** Tek taraflı sette iki taraf da tamamlanmışsa true. */
   done: boolean
   warmup?: boolean
+  /** Tek taraflı setlerde gerçek kaynak; `r` ve `done` buradan türetilir (bkz. lib/sets.ts). */
+  sides?: { L: SideSet; R: SideSet }
 }
 
 export interface WorkoutEntry {
   exId: string
   sets: SetEntry[]
+  /** Setler sol/sağ ayrı tutulur. */
+  unilateral?: boolean
 }
 
 export interface Workout {
