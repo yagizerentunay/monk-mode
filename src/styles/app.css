@@ -89,3 +89,9 @@ a { color: inherit; text-decoration: none; }
 .thumb { width: 52px; height: 52px; border-radius: 12px; background: var(--card-2); object-fit: cover; flex: none; }
 .exname { font-weight: 600; text-transform: capitalize; }
 .tag { text-transform: capitalize; }
+
+/* formlar */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.num { text-align: center; }
+select.input { appearance: none; }
