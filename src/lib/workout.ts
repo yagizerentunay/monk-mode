@@ -1,6 +1,7 @@
 import type { Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { estimate1RM } from './onerm.ts'
 import { nextPrescription } from './progression.ts'
+import { setReps, toUnilateral } from './sets.ts'
 
 /** Yerel takvim günü, YYYY-MM-DD. */
 export function dayString(date: Date = new Date()): string {
@@ -37,18 +38,26 @@ export function buildWorkout(routine: Routine, history: Workout[], now: number):
     name: routine.name,
     entries: routine.ex.map((cfg) => {
       const p = nextPrescription(cfg, lastEntryFor(history, cfg.exId))
-      return {
+      const entry: WorkoutEntry = {
         exId: cfg.exId,
         sets: Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false })),
       }
+      if (cfg.side) {
+        entry.unilateral = true
+        entry.sets = toUnilateral(entry.sets)
+      }
+      return entry
     }),
   }
 }
 
-/** Tamamlanan çalışma setlerinde toplam hacim (kg × tekrar). */
+/**
+ * Tamamlanan çalışma setlerinde toplam hacim (kg × tekrar). Tek taraflı setlerde sol + sağ
+ * tekrarların toplamı kullanılır; ağırlık taraf başına olduğundan her iki tarafın işi sayılır.
+ */
 export function workoutVolume(workout: Workout): number {
   return workout.entries.reduce(
-    (sum, e) => sum + workSets(e.sets).reduce((s, set) => s + set.w * set.r, 0),
+    (sum, e) => sum + workSets(e.sets).reduce((s, set) => s + set.w * setReps(set), 0),
     0,
   )
 }

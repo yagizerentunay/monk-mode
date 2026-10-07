@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Routine, Workout } from '../store/schema.ts'
+import { deriveSet } from './sets.ts'
 import {
   buildWorkout,
   dayString,
@@ -72,5 +73,46 @@ describe('workout yardımcıları', () => {
 
   it('ilk kayıt PR sayılır', () => {
     expect(isPR([], wk('2026-10-08', 'bench', [done(40, 8)]).entries[0])).toBe(true)
+  })
+})
+
+describe('tek taraflı egzersizler', () => {
+  const unilateralRoutine: Routine = {
+    id: 'r2',
+    name: 'Bacak',
+    ex: [{ exId: 'split', sets: 2, reps: 8, weight: 20, prog: 'double', inc: 2, repsMax: 12, side: true }],
+  }
+  const uniSet = (w: number, l: number, r: number) =>
+    deriveSet({ w, r: 0, done: false, sides: { L: { r: l, done: true }, R: { r, done: true } } })
+
+  it('rutinden tek taraflı set kurar', () => {
+    const w = buildWorkout(unilateralRoutine, [], Date.UTC(2026, 9, 8, 12))
+    expect(w.entries[0].unilateral).toBe(true)
+    expect(w.entries[0].sets[0].sides).toEqual({ L: { r: 8, done: false }, R: { r: 8, done: false } })
+  })
+
+  it('hacmi sol + sağ tekrarlardan hesaplar', () => {
+    const w = wk('2026-10-08', 'split', [uniSet(20, 10, 8)])
+    w.entries[0].unilateral = true
+    expect(workoutVolume(w)).toBe(20 * 18)
+  })
+
+  it('1RM tahmini taraf başına (zayıf taraf) tekrarı kullanır, toplamı değil', () => {
+    const [p] = exerciseHistory([wk('2026-10-08', 'split', [uniSet(20, 10, 8)])], 'split')
+    // 20 kg × 8 tekrar (zayıf taraf) = 25.33; toplam 18 tekrar sayılsaydı tavan 12'ye takılıp 28 çıkardı.
+    expect(p.e1rm).toBeCloseTo(20 * (1 + 8 / 30), 2)
+  })
+
+  it('yalnız bir tarafı biten set geçmişte çalışma seti sayılmaz', () => {
+    const half = deriveSet({ w: 20, r: 0, done: false, sides: { L: { r: 10, done: true }, R: { r: 10, done: false } } })
+    expect(exerciseHistory([wk('2026-10-08', 'split', [half])], 'split')).toEqual([])
+  })
+
+  it('progression zayıf tarafa göre ilerler', () => {
+    const history = [wk('2026-10-01', 'split', [uniSet(20, 12, 10), uniSet(20, 12, 10)])]
+    const w = buildWorkout(unilateralRoutine, history, Date.UTC(2026, 9, 8, 12))
+    // zayıf taraf 10 < üst sınır 12 → ağırlık artmaz, hedef 11 tekrar
+    expect(w.entries[0].sets[0].sides?.L.r).toBe(11)
+    expect(w.entries[0].sets[0].w).toBe(20)
   })
 })
