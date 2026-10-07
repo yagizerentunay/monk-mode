@@ -11,6 +11,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - 876 egzersizlik kütüphane (arama, kas ve ekipman filtreleri, özel egzersiz)
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
+- Tek taraflı egzersizler: sol ve sağ ayrı kaydedilir, ağırlık taraf başınadır. Hacim iki tarafın toplamıdır; 1RM ve ilerleme zayıf tarafın tekrarına göre hesaplanır
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
 - Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
