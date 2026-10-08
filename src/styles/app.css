@@ -178,3 +178,7 @@ select.input { appearance: none; }
 .mrbar > span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
 .musclerow.on .mrbar { background: var(--line); }
 .mrval { width: 32px; flex: none; text-align: right; font-size: 14px; color: var(--muted); }
+
+/* içe aktarma */
+.importmap { max-height: 220px; overflow-y: auto; font-size: 14px; display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: var(--card-2); }
+.linkbtn { border: 0; background: transparent; color: var(--accent); padding: 0 0 0 8px; font-size: 14px; }

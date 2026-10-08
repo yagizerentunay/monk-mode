@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { ImportCard } from '../components/ImportCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
@@ -131,6 +132,8 @@ export function Settings() {
         </button>
         {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
       </div>
+
+      <ImportCard />
 
       <p className="sub">
         monk-mode · MIT lisanslı. Egzersiz verisi: free-exercise-db (kamu malı).
