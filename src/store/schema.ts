@@ -1,3 +1,4 @@
+import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
 
 export const SCHEMA_VERSION = 1
@@ -90,6 +91,8 @@ export interface Settings {
   restSec: number
   /** 0 = Pazar … 6 = Cumartesi, Date.getDay() ile uyumlu. */
   weekStart: number
+  /** Plaka hesaplayıcı için bar ve eldeki plakalar; her birimin kiti kendi biriminde tutulur. */
+  plateKit: Record<Unit, PlateKit>
 }
 
 export interface State {
@@ -107,7 +110,7 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1 },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS) },
     routines: [],
     week: {},
     workouts: [],

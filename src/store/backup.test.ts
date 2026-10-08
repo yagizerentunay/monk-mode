@@ -12,8 +12,24 @@ describe('migrate', () => {
 
   it('eksik alanları varsayılanlarla tamamlar', () => {
     const s = migrate({ settings: { unit: 'lb' } })
-    expect(s.settings).toEqual({ unit: 'lb', restSec: 90, weekStart: 1 })
+    expect(s.settings).toEqual({ ...defaultState().settings, unit: 'lb' })
     expect(s.workouts).toEqual([])
+  })
+
+  it('plaka kitini doğrular: bozuk değerleri atar, plakaları sıralar ve tekilleştirir', () => {
+    const s = migrate({
+      settings: {
+        plateKit: { kg: { bar: 15, plates: [5, 20, 5, -1, 'x', 0, 500, 10] }, lb: { bar: 'x', plates: 'y' } },
+      },
+    })
+    expect(s.settings.plateKit.kg).toEqual({ bar: 15, plates: [20, 10, 5] })
+    expect(s.settings.plateKit.lb).toEqual(defaultState().settings.plateKit.lb)
+  })
+
+  it('kayıtlı plaka kitini korur, eksik birimi varsayılanla doldurur', () => {
+    const s = migrate({ settings: { plateKit: { kg: { bar: 10, plates: [] } } } })
+    expect(s.settings.plateKit.kg).toEqual({ bar: 10, plates: [] })
+    expect(s.settings.plateKit.lb.bar).toBe(45)
   })
 
   it('bozuk ayar değerlerini atar', () => {

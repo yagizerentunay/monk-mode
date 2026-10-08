@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
+import { PLATE_CHOICES } from '../lib/plates.ts'
 import { dayString } from '../lib/workout.ts'
 import { exportBackup, importBackup } from '../store/backup.ts'
 import { defaultState } from '../store/schema.ts'
@@ -10,6 +11,7 @@ export function Settings() {
   const unit = useStore((s) => s.settings.unit)
   const restSec = useStore((s) => s.settings.restSec)
   const weekStart = useStore((s) => s.settings.weekStart)
+  const plateKit = useStore((s) => s.settings.plateKit)
   const setSettings = useStore((s) => s.setSettings)
   const replaceAll = useStore((s) => s.replaceAll)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -25,6 +27,14 @@ export function Settings() {
     URL.revokeObjectURL(url)
     setMessage('Yedek indirildi.')
   }
+
+  const kit = plateKit[unit]
+  const setKit = (patch: Partial<typeof kit>) =>
+    setSettings({ plateKit: { ...plateKit, [unit]: { ...kit, ...patch } } })
+  const togglePlate = (p: number) =>
+    setKit({
+      plates: (kit.plates.includes(p) ? kit.plates.filter((x) => x !== p) : [...kit.plates, p]).sort((a, b) => b - a),
+    })
 
   const onFile = async (file: File | undefined) => {
     if (!file) return
@@ -72,6 +82,31 @@ export function Settings() {
               <option key={d} value={d}>{DAY_NAMES[d]}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="card stack">
+        <h2>Bar ve plakalar ({unit})</h2>
+        <div className="row between">
+          <span>Bar ağırlığı ({unit})</span>
+          <div style={{ width: 90 }}>
+            <NumberField label="Bar ağırlığı" value={kit.bar} step={0.5} onChange={(v) => setKit({ bar: Math.min(v, 100) })} />
+          </div>
+        </div>
+        <div>
+          <div className="sub" style={{ marginBottom: 6 }}>Eldeki plakalar (her çeşitten istediğin kadar)</div>
+          <div className="row wrap">
+            {PLATE_CHOICES[unit].map((p) => (
+              <button
+                key={p}
+                className={`chip${kit.plates.includes(p) ? ' on' : ''}`}
+                aria-pressed={kit.plates.includes(p)}
+                onClick={() => togglePlate(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
