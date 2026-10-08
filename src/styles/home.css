@@ -1,0 +1,26 @@
+/* Home ekranı, takvim ve yedek hatırlatma. Sahibi: Home ajanı. Ortak token'lar base.css'te. */
+
+.weekstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.wday { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; border-radius: var(--radius); background: var(--card); border: 1px solid var(--line); font-size: 13px; }
+.wday.today { outline: 2px solid var(--accent); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: transparent; }
+.dot.plan { background: var(--muted); }
+.dot.on { background: var(--ok); }
+.stat { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 12px 6px; }
+.stat b { font-size: 24px; }
+.stat .sub { font-size: 12px; }
+button.wday { color: var(--text); font: inherit; font-size: 13px; }
+
+/* yedek hatırlatma */
+.card.banner { border-left: 3px solid var(--warn); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+.card.banner.ok { border-left-color: var(--ok); }
+
+/* takvim */
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.calhead span { font-size: 12px; }
+.calcell {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0; border: 0;
+  border-radius: 10px; background: var(--card-2); font-size: 14px; color: var(--text);
+}
+.calcell.out { opacity: 0.35; }
+.calcell.today { outline: 2px solid var(--accent); }

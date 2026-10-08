@@ -1,0 +1,13 @@
+/* Plan, rutin düzenleme, egzersiz kütüphanesi, ayarlar, içe aktarma, kaydedilmiş antrenman düzenleme.
+   Sahibi: Plan ajanı. Ortak token'lar base.css'te. */
+
+/* egzersiz listesi */
+.exrow { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; }
+.exrow:last-child { border-bottom: 0; }
+.thumb { width: 52px; height: 52px; border-radius: 10px; background: var(--card-2); object-fit: cover; flex: none; }
+
+/* içe aktarma */
+.importmap { max-height: 220px; overflow-y: auto; font-size: 14px; display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: var(--card-2); }
+
+/* kaydedilmiş antrenman düzenleme */
+.editentry { padding: 10px 0; border-top: 1px solid var(--line); }

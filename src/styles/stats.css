@@ -1,0 +1,15 @@
+/* İstatistik ekranı: kas haritası ve kas dağılımı. Sahibi: Stats ajanı. Ortak token'lar base.css'te. */
+
+.musclemap { width: 100%; max-width: 100%; height: auto; display: block; }
+.musclemap [role=button] { cursor: pointer; }
+.musclemap [role=button]:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.musclerow {
+  display: flex; align-items: center; gap: 10px; width: 100%; border: 0; border-radius: 10px;
+  padding: 6px 8px; background: transparent; text-align: left;
+}
+.musclerow.on { background: var(--card-2); }
+.mrname { width: 96px; flex: none; font-size: 14px; }
+.mrbar { flex: 1; height: 6px; border-radius: 3px; background: var(--card-2); overflow: hidden; }
+.mrbar > span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.musclerow.on .mrbar { background: var(--line); }
+.mrval { width: 32px; flex: none; text-align: right; font-size: 14px; color: var(--muted); }

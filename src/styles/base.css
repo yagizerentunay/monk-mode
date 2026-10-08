@@ -1,0 +1,182 @@
+/* Warrior Monk tasarım sistemi: token'lar, ortak bileşenler, alt menü, sheet.
+   Renk rolleri: bakır (--accent) = ana aksiyon/odak, yeşil (--ok) = tamamlandı,
+   amber (--warn) = uyarı/ısınma/dropset, kırmızı (--danger) = tehlikeli işlem. */
+
+/* Barlow Condensed (SIL OFL) — public/fonts altında; service worker bunları önbelleğe alır. */
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 600;
+  src: url(/fonts/barlow-condensed-latin-ext-600-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 600;
+  src: url(/fonts/barlow-condensed-latin-600-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 700;
+  src: url(/fonts/barlow-condensed-latin-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 700;
+  src: url(/fonts/barlow-condensed-latin-700-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 800;
+  src: url(/fonts/barlow-condensed-latin-ext-800-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow Condensed'; font-style: normal; font-display: swap; font-weight: 800;
+  src: url(/fonts/barlow-condensed-latin-800-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --bg: #111315;
+  --card: #202428;
+  --card-2: #292f34;
+  --line: #333b41;
+  --text: #f5f2ec;
+  --muted: #9aa1a6;
+  --accent: #eb9462;
+  --accent-ink: #1c0f06;
+  --accent-soft: rgba(235, 148, 98, 0.14);
+  --ok: #5fc08a;
+  --ok-ink: #05210f;
+  --sage: #8daaa4;
+  --warn: #f0b24a;
+  --danger: #f2655b;
+  --radius: 12px;
+  --radius-btn: 10px;
+  --tab-h: 68px;
+  --tap: 44px;
+  --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body, #root { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2 { font-family: var(--display); text-transform: uppercase; line-height: 1.02; }
+h1 { font-size: 38px; font-weight: 800; margin: 0 0 4px; letter-spacing: 0.01em; }
+h2 { font-size: 22px; font-weight: 700; margin: 0 0 10px; letter-spacing: 0.02em; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { max-width: 520px; margin: 0 auto; padding: 16px 16px calc(var(--tab-h) + 28px); }
+.sub { color: var(--muted); font-size: 14px; }
+.stack > * + * { margin-top: 12px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+
+/* marka tipografisi: küçük bakır etiket ve iki satırlı büyük başlık (ikinci satır bakır) */
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.eyebrow.muted { color: var(--muted); }
+.display { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: 0.98; letter-spacing: 0.01em; font-size: 40px; margin: 0; }
+.display .hl { color: var(--accent); display: block; }
+.bignum { font-family: var(--display); font-weight: 800; line-height: 1; letter-spacing: 0.01em; }
+
+/* marka: MONKMODE yazısı ve mühür */
+.brand { display: inline-flex; align-items: center; gap: 8px; }
+.wordmark { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: 0.04em; line-height: 1; }
+.wordmark span { color: var(--accent); }
+.seal { flex: none; color: var(--accent); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+.card.tap { display: block; width: 100%; text-align: left; }
+.card.hero { border-color: rgba(235, 148, 98, 0.45); background: linear-gradient(160deg, #262b30, var(--card) 60%); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--tap);
+  border: 1px solid var(--line); border-radius: var(--radius-btn); padding: 10px 16px; font-weight: 700;
+  background: var(--card-2); color: var(--text);
+}
+.btn.primary {
+  min-height: 52px; background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  font-family: var(--display); font-size: 19px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.btn.danger { color: var(--danger); }
+.btn.small { min-height: var(--tap); min-width: var(--tap); padding: 8px 12px; font-size: 14px; }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.input {
+  width: 100%; min-height: var(--tap); background: var(--card-2); border: 1px solid var(--line);
+  border-radius: var(--radius-btn); padding: 10px 12px; outline: none;
+}
+.input:focus { border-color: var(--accent); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.chip {
+  flex: none; min-height: 36px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px;
+  background: var(--card-2); color: var(--muted);
+}
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+/* alt tab bar */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: var(--tab-h);
+  display: flex; justify-content: center; background: rgba(17, 19, 21, 0.94);
+  backdrop-filter: blur(14px); border-top: 1px solid var(--line);
+}
+.tabbar nav { display: flex; width: 100%; max-width: 520px; align-items: center; }
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: var(--tap);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); padding: 8px 0;
+}
+.tab .ico { display: grid; place-items: center; width: 24px; height: 24px; }
+.tab .ico svg { width: 24px; height: 24px; }
+.tab.active { color: var(--accent); }
+.tab.start .ico {
+  width: 54px; height: 54px; margin-top: -22px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 6px 20px rgba(235, 148, 98, 0.35); border: 4px solid var(--bg);
+}
+.tab.start .ico svg { width: 26px; height: 26px; }
+.tab.start { color: var(--text); }
+.tab.start.active { color: var(--accent); }
+
+/* bottom sheet */
+.sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.65); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; background: var(--card);
+  border: 1px solid var(--line); border-bottom: 0; border-radius: 16px 16px 0 0; padding: 16px 16px 28px;
+}
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 14px; }
+
+/* formlar */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.num { text-align: center; }
+select.input { appearance: none; }
+textarea.input { resize: vertical; font: inherit; }
+.row.wrap { flex-wrap: wrap; }
+
+/* ortak etiket/rozet/ilerleme */
+.badge { font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: var(--card-2); color: var(--muted); }
+.badge.on { background: var(--accent); color: var(--accent-ink); }
+.progress { height: 4px; border-radius: 2px; background: var(--card-2); overflow: hidden; }
+.progress > div { height: 100%; background: var(--accent); transition: width 0.2s; }
+.exname { font-weight: 700; }
+.tag { text-transform: capitalize; }
+.linkbtn { border: 0; background: transparent; color: var(--accent); padding: 0 0 0 8px; font-size: 14px; }
+
+/* çevrimdışı göstergesi */
+.offline {
+  position: sticky; top: 0; z-index: 25; padding: 6px 12px; text-align: center; font-size: 13px;
+  background: var(--warn); color: #1c1100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ortak: not ve uyarı metni (Workout, WorkoutDetail, PlateCalculator, ImportCard, WorkoutEditor kullanır) */
+.note { font-size: 14px; color: var(--text); background: var(--card-2); border-radius: 8px; padding: 6px 10px; white-space: pre-wrap; }
+.warntext { font-size: 14px; color: var(--warn); }
