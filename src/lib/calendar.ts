@@ -67,6 +67,13 @@ export function formatShortDay(d: string, today: Date = new Date()): string {
   return date.getFullYear() === today.getFullYear() ? base : `${base} ${date.getFullYear()}`
 }
 
+/** Grafik ekseni için dar biçim: "6 Eki"; yıl `today`ın yılından farklıysa "30 Ara 2025". */
+export function formatAxisDay(d: string, today: Date = new Date()): string {
+  const date = parseDay(d)
+  const base = `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}`
+  return date.getFullYear() === today.getFullYear() ? base : `${base} ${date.getFullYear()}`
+}
+
 /** "Salı, 6 Ekim 2026" */
 export function formatDayTitle(d: string): string {
   const date = parseDay(d)

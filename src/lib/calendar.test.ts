@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDayTitle, formatShortDay, monthGrid, parseDay, shiftMonth, weekdayOrder } from './calendar.ts'
+import { formatAxisDay, formatDayTitle, formatShortDay, monthGrid, parseDay, shiftMonth, weekdayOrder } from './calendar.ts'
 
 describe('ay ızgarası', () => {
   it('Ekim 2026 (Perşembe başlar) Pazartesi başlangıcında 5 hafta, ilk satır Eylül sonuyla dolar', () => {
@@ -71,6 +71,18 @@ describe('başlıklar', () => {
   it('günü Türkçe yazar', () => {
     expect(formatDayTitle('2026-10-06')).toBe('Salı, 6 Ekim 2026')
     expect(formatDayTitle('2026-01-01')).toBe('Perşembe, 1 Ocak 2026')
+  })
+
+  it('grafik ekseni için ayı üç harfe kısaltır, yıl farklıysa ekler', () => {
+    const today = new Date(2026, 9, 8)
+    expect(formatAxisDay('2026-10-01', today)).toBe('1 Eki')
+    expect(formatAxisDay('2026-01-15', today)).toBe('15 Oca')
+    expect(formatAxisDay('2025-12-30', today)).toBe('30 Ara 2025')
+  })
+
+  it('üç harfli ay kısaltmaları birbirinden ayrışır', () => {
+    const abbr = Array.from({ length: 12 }, (_, m) => formatAxisDay(`2026-${String(m + 1).padStart(2, '0')}-01`, new Date(2026, 0, 1)))
+    expect(new Set(abbr).size).toBe(12)
   })
 
   it('kısa günde yılı yalnız bugünkünden farklıysa ekler', () => {
