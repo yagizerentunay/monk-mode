@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
+import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { alternativesFor } from '../lib/swap.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { useStore } from '../store/useStore.ts'
@@ -37,7 +38,7 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
   return (
     <div className="stack">
       <p className="sub resultcount">
-        {loading ? 'Yükleniyor…' : `${current.primaryMuscles[0] ?? 'Aynı kas'} için ${alternatives.length} alternatif`}
+        {loading ? 'Yükleniyor…' : `${current.primaryMuscles[0] ? muscleLabel(current.primaryMuscles[0]) : 'Aynı kas'} için ${alternatives.length} alternatif`}
         {' · '}
         <span lang={nameLang(current)}>{current.name}</span> yerine
       </p>
@@ -51,7 +52,7 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
             )}
             <div className="grow">
               <div className="exname" lang={nameLang(e)}>{e.name}</div>
-              <div className="sub tag">{e.equipment ?? 'ekipmansız'}</div>
+              <div className="sub">{equipmentLabel(e.equipment)}</div>
             </div>
             <span className="exaction">Seç</span>
           </button>

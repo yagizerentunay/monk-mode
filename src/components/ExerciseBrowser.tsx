@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { facetValues, filterExercises, imageUrl, type Exercise } from '../lib/exercises.ts'
+import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useExercises } from '../lib/useExercises.ts'
 
 interface Props {
@@ -43,14 +44,14 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
       <div className="chips">
         <button className={`chip${muscle === null ? ' on' : ''}`} onClick={() => { setMuscle(null); reset() }}>Tüm kaslar</button>
         {muscles.map((m) => (
-          <button key={m} className={`chip tag${muscle === m ? ' on' : ''}`} onClick={() => { setMuscle(m); reset() }}>{m}</button>
+          <button key={m} className={`chip${muscle === m ? ' on' : ''}`} onClick={() => { setMuscle(m); reset() }}>{muscleLabel(m)}</button>
         ))}
       </div>
       <div className="eyebrow muted">Ekipman</div>
       <div className="chips">
         <button className={`chip${equipment === null ? ' on' : ''}`} onClick={() => { setEquipment(null); reset() }}>Tüm ekipman</button>
         {equipments.map((q) => (
-          <button key={q} className={`chip tag${equipment === q ? ' on' : ''}`} onClick={() => { setEquipment(q); reset() }}>{q}</button>
+          <button key={q} className={`chip${equipment === q ? ' on' : ''}`} onClick={() => { setEquipment(q); reset() }}>{equipmentLabel(q)}</button>
         ))}
       </div>
 
@@ -66,9 +67,9 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
             )}
             <div className="grow">
               <div className="exname">{e.name}</div>
-              <div className="sub tag">
-                {e.primaryMuscles.join(', ')}
-                {e.equipment ? ` · ${e.equipment}` : ''}
+              <div className="sub">
+                {e.primaryMuscles.map(muscleLabel).join(', ')}
+                {e.equipment ? ` · ${equipmentLabel(e.equipment)}` : ''}
               </div>
             </div>
             {actionLabel ? <span className="exaction">{actionLabel}</span> : <span className="chev" aria-hidden="true">›</span>}

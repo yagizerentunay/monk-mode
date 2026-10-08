@@ -3,6 +3,8 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
 import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
+import { MUSCLES } from '../lib/muscles.ts'
+import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useStore } from '../store/useStore.ts'
 
 function Detail({ ex }: { ex: Exercise }) {
@@ -10,10 +12,10 @@ function Detail({ ex }: { ex: Exercise }) {
     <div className="stack">
       <div className="eyebrow">Egzersiz</div>
       <div className="exname exdetail-name" lang={nameLang(ex)}>{ex.name}</div>
-      <div className="sub tag">
-        {ex.primaryMuscles.join(', ')}
-        {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.join(', ')}`}
-        {ex.equipment ? ` · ${ex.equipment}` : ''}
+      <div className="sub">
+        {ex.primaryMuscles.map(muscleLabel).join(', ')}
+        {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.map(muscleLabel).join(', ')}`}
+        {ex.equipment ? ` · ${equipmentLabel(ex.equipment)}` : ''}
       </div>
       <ExerciseHistory exId={ex.id} />
       {ex.images.length > 0 && (
@@ -48,15 +50,25 @@ function NewExercise({ onDone }: { onDone: () => void }) {
         if (!name.trim()) return
         add({
           name: name.trim(),
-          primaryMuscles: muscle.trim() ? [muscle.trim().toLowerCase()] : [],
-          equipment: equipment.trim().toLowerCase(),
+          primaryMuscles: muscle ? [muscle] : [],
+          equipment,
         })
         onDone()
       }}
     >
       <input className="input" placeholder="Egzersiz adı" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-      <input className="input" placeholder="Ana kas (örn. chest)" value={muscle} onChange={(e) => setMuscle(e.target.value)} />
-      <input className="input" placeholder="Ekipman (örn. barbell)" value={equipment} onChange={(e) => setEquipment(e.target.value)} />
+      <select className="input" aria-label="Ana kas" value={muscle} onChange={(e) => setMuscle(e.target.value)}>
+        <option value="">Ana kas (isteğe bağlı)</option>
+        {MUSCLES.map((m) => (
+          <option key={m} value={m}>{muscleLabel(m)}</option>
+        ))}
+      </select>
+      <select className="input" aria-label="Ekipman" value={equipment} onChange={(e) => setEquipment(e.target.value)}>
+        <option value="">Ekipman (isteğe bağlı)</option>
+        {Object.keys(EQUIPMENT_LABEL).map((q) => (
+          <option key={q} value={q}>{equipmentLabel(q)}</option>
+        ))}
+      </select>
       <button className="btn primary block" disabled={!name.trim()}>Ekle</button>
     </form>
   )
