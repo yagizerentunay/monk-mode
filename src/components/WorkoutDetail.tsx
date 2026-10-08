@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -12,10 +13,12 @@ interface Props {
   workout: Workout
   /** Antrenman silinince çağrılır (sheet'i kapatmak ya da listeye dönmek için). */
   onClose: () => void
+  /** Tarih sheet başlığında zaten görünüyorsa (takvim) satırda tekrarlanmaz. */
+  hideDate?: boolean
 }
 
 /** Kaydedilmiş bir antrenmanın özeti; tekrarlama, düzenleme ve silme. Geçmiş sheet'inde ve takvimde ortak. */
-export function WorkoutDetail({ workout, onClose }: Props) {
+export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
   const { byId } = useExercises()
   const unit = useStore((s) => s.settings.unit)
   const routines = useStore((s) => s.routines)
@@ -42,7 +45,7 @@ export function WorkoutDetail({ workout, onClose }: Props) {
 
   return (
     <div className="stack">
-      <div className="eyebrow muted">{workout.d} · {formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
+      <div className="eyebrow muted">{hideDate ? '' : `${formatDayTitle(workout.d)} · `}{formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
       {workout.note && <div className="note">{workout.note}</div>}
       {workout.entries.map((e, i) => (
         <div key={i}>

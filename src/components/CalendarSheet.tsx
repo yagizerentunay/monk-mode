@@ -97,7 +97,7 @@ function CalendarSheetInner({ onClose, initialDate }: { onClose: () => void; ini
         )}
 
         {effective.kind === 'detail' && detailWorkout && (
-          <WorkoutDetail workout={detailWorkout} onClose={() => goDay(effective.date)} />
+          <WorkoutDetail workout={detailWorkout} onClose={() => goDay(effective.date)} hideDate />
         )}
 
         {effective.kind === 'pick' && (
