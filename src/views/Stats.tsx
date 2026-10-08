@@ -4,6 +4,7 @@ import { BodyweightCard } from '../components/BodyweightCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
+import { WorkoutEditor } from '../components/WorkoutEditor.tsx'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -20,8 +21,23 @@ function WorkoutDetail({ workout, onClose }: { workout: Workout; onClose: () => 
   const hasActive = useStore((s) => s.active !== null)
   const startWorkout = useStore((s) => s.startWorkout)
   const deleteWorkout = useStore((s) => s.deleteWorkout)
+  const updateWorkout = useStore((s) => s.updateWorkout)
   const navigate = useNavigate()
+  const [editing, setEditing] = useState(false)
   const canRepeat = !hasActive && routines.some((r) => r.id === workout.routineId)
+
+  if (editing) {
+    return (
+      <WorkoutEditor
+        workout={workout}
+        onCancel={() => setEditing(false)}
+        onSave={(updated) => {
+          updateWorkout(updated)
+          setEditing(false)
+        }}
+      />
+    )
+  }
 
   return (
     <div className="stack">
@@ -53,6 +69,7 @@ function WorkoutDetail({ workout, onClose }: { workout: Workout; onClose: () => 
             Rutini tekrarla
           </button>
         )}
+        <button className="btn grow" onClick={() => setEditing(true)}>Düzenle</button>
         <button
           className="btn danger grow"
           onClick={() => {

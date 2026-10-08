@@ -190,3 +190,6 @@ select.input { appearance: none; }
 /* notlar */
 .note { font-size: 14px; color: var(--text); background: var(--card-2); border-radius: 10px; padding: 6px 10px; white-space: pre-wrap; }
 textarea.input { resize: vertical; font: inherit; }
+
+/* kaydedilmiş antrenman düzenleme */
+.editentry { padding: 10px 0; border-top: 1px solid var(--line); }
