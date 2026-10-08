@@ -8,9 +8,10 @@ import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
-import { describeSets, MAX_WARMUPS, restAfterSec } from '../lib/intensity.ts'
+import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { formatSet } from '../lib/sets.ts'
+import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, isPR, lastEntryFor, workoutVolume } from '../lib/workout.ts'
@@ -63,6 +64,7 @@ export function Workout() {
     updateSet,
     updateSide,
     toggleUnilateral,
+    toggleSuperset,
     addSet,
     addWarmup,
     addDrop,
@@ -114,6 +116,7 @@ export function Workout() {
 
   const { done, total } = doneSetCount(active)
   const elapsed = (now - active.start) / 1000
+  const groups = supersetInfo(active.entries.map((e) => e.linked))
 
   const finish = () => {
     const unfinished = total - done
@@ -146,10 +149,11 @@ export function Workout() {
         const last = lastEntryFor(workouts, entry.exId)
         const lastTop = last?.sets.filter((s) => s.done && !s.warmup && !s.drop).sort((a, b) => b.w - a.w)[0]
         return (
-          <div key={ei} className="card stack">
+          <div key={ei} className={`card stack${groups[ei] ? ' ss' : ''}`}>
             <div className="row">
               {ex?.images[0] && <img className="thumb" src={imageUrl(ex.images[0])} alt="" loading="lazy" />}
               <div className="grow">
+                {groups[ei] && <span className="badge on">Süperset {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</span>}
                 <div className="exname">{ex?.name ?? entry.exId}</div>
                 <div className="sub">
                   {lastTop ? `Geçen sefer: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
@@ -174,7 +178,7 @@ export function Workout() {
                   onDrop={() => addDrop(ei, si)}
                   onRemove={() => removeSet(ei, si)}
                   onCompleted={() => {
-                    const rest = restAfterSec(entry.sets, si, restSec)
+                    const rest = restAfter(active.entries, ei, si, restSec)
                     if (rest !== null) setRestEnds(Date.now() + rest * 1000)
                   }}
                 />
@@ -191,6 +195,15 @@ export function Workout() {
                 + Isınma
               </button>
               <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>
+              {ei > 0 && (
+                <button
+                  className={`chip${entry.linked ? ' on' : ''}`}
+                  aria-pressed={!!entry.linked}
+                  onClick={() => toggleSuperset(ei)}
+                >
+                  Süperset (öncekiyle)
+                </button>
+              )}
               <button
                 className={`chip${entry.unilateral ? ' on' : ''}`}
                 aria-pressed={!!entry.unilateral}

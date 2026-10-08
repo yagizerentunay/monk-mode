@@ -159,3 +159,7 @@ select.input { appearance: none; }
   border: 1px solid var(--accent); color: var(--text);
 }
 .warntext { font-size: 14px; color: var(--warn); }
+
+/* süperset */
+.card.ss { border-left: 3px solid var(--accent); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+.badge.on + .exname { margin-top: 4px; }

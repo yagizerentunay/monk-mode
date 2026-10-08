@@ -5,6 +5,7 @@ import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { isUnilateralName } from '../lib/exercises.ts'
 import { MAX_DROPS, MAX_WARMUPS } from '../lib/intensity.ts'
+import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
@@ -37,14 +38,8 @@ export function RoutineEdit() {
   const patchEx = (i: number, patch: Partial<ExCfg>) =>
     setDraft((d) => ({ ...d, ex: d.ex.map((e, j) => (j === i ? { ...e, ...patch } : e)) }))
 
-  const move = (i: number, dir: -1 | 1) =>
-    setDraft((d) => {
-      const j = i + dir
-      if (j < 0 || j >= d.ex.length) return d
-      const ex = [...d.ex]
-      ;[ex[i], ex[j]] = [ex[j], ex[i]]
-      return { ...d, ex }
-    })
+  const move = (i: number, dir: -1 | 1) => setDraft((d) => ({ ...d, ex: moveExercise(d.ex, i, dir) }))
+  const groups = supersetInfo(draft.ex.map((e) => e.superset))
 
   const canSave = draft.name.trim() !== '' && draft.ex.length > 0
 
@@ -72,15 +67,18 @@ export function RoutineEdit() {
       />
 
       {draft.ex.map((cfg, i) => (
-        <div key={i} className="card stack">
+        <div key={i} className={`card stack${groups[i] ? ' ss' : ''}`}>
           <div className="row between">
-            <div className="exname grow">{byId.get(cfg.exId)?.name ?? cfg.exId}</div>
+            <div className="grow">
+              {groups[i] && <span className="badge on">Süperset {groupLetter(groups[i].group)}{groups[i].pos + 1}</span>}
+              <div className="exname">{byId.get(cfg.exId)?.name ?? cfg.exId}</div>
+            </div>
             <button className="btn small" aria-label="Yukarı" onClick={() => move(i, -1)}>↑</button>
             <button className="btn small" aria-label="Aşağı" onClick={() => move(i, 1)}>↓</button>
             <button
               className="btn small danger"
               aria-label="Kaldır"
-              onClick={() => setDraft((d) => ({ ...d, ex: d.ex.filter((_, j) => j !== i) }))}
+              onClick={() => setDraft((d) => ({ ...d, ex: removeExercise(d.ex, i) }))}
             >
               ✕
             </button>
@@ -115,6 +113,17 @@ export function RoutineEdit() {
             />
             <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
           </label>
+
+          {i > 0 && (
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={!!cfg.superset}
+                onChange={(e) => patchEx(i, { superset: e.target.checked })}
+              />
+              <span>Öncekiyle süperset <span className="sub">(dönüşümlü, tur sonunda dinlenme)</span></span>
+            </label>
+          )}
 
           <div className="grid3">
             <label className="field">

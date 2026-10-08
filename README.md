@@ -14,6 +14,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - Tek taraflı egzersizler: sol ve sağ ayrı kaydedilir, ağırlık taraf başınadır. Hacim iki tarafın toplamıdır; 1RM ve ilerleme zayıf tarafın tekrarına göre hesaplanır
 - Isınma setleri: rutinde sayısı ayarlanır (%40 → %60 → %80 rampası) veya seansta tek dokunuşla eklenir; hacim, ilerleme ve PR'a girmez, kısa dinlenme verir
 - Dropset: rutinde son sete otomatik, seansta her sete tek dokunuşla eklenir (önceki setin %80'i, zincirlenebilir); hacme ve geçmişe girer, ilerleme hesabında yok sayılır
+- Süperset: rutinde "Öncekiyle süperset" ile ardışık egzersizler bağlanır (ikili, üçlü…), seansta da tek dokunuşla açılıp kapanır. Egzersizler turlar hâlinde dönüşümlü yapılır; dinlenme sayacı yalnız turun sonunda başlar. Hacim, ilerleme ve PR egzersiz bazında aynen çalışır
 - Plaka hesaplayıcı: seansta egzersizin "Plakalar" düğmesi hedef ağırlığı bar + taraf başına plakalara böler (sıradaki set önceden seçili, set ağırlıkları tek dokunuşla). Bar ağırlığı ve eldeki plakalar Ayarlar'da, kg ve lb için ayrı tutulur; tam tutmayan yükte hedefi aşmayan en yakın yük gösterilir
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
