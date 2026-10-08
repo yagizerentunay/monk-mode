@@ -13,3 +13,28 @@
 .mrbar > span { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
 .musclerow.on .mrbar { background: var(--line); }
 .mrval { width: 32px; flex: none; text-align: right; font-size: 14px; color: var(--muted); }
+
+/* Warrior Monk: Analiz ekranı */
+.statsview .display { font-size: 40px; }
+.statbig { align-items: baseline; gap: 8px; }
+.statbig .bignum { font-size: 56px; }
+.statunit { color: var(--muted); font-size: 14px; }
+.statdelta { color: var(--muted); font-size: 14px; font-weight: 600; margin-top: 4px; }
+.statdelta.up { color: var(--ok); }
+/* ölçü / dönem segment kontrolü */
+.statseg { gap: 0; padding: 3px; background: var(--card-2); border-radius: 12px; overflow: visible; }
+.statseg .chip { flex: 1; min-height: var(--tap); border: 0; background: transparent; border-radius: 10px; }
+.statseg .chip.on { background: var(--accent); color: var(--accent-ink); }
+/* kas haritası */
+.musclemap [role=button]:focus-visible { outline-color: var(--accent); }
+.musclesel { padding: 10px 12px; border-radius: 10px; background: var(--card-2); border-left: 3px solid var(--accent); font-size: 14px; }
+.musclerow { min-height: var(--tap); }
+.musclerow.on { background: var(--card-2); box-shadow: inset 3px 0 0 var(--accent); }
+.musclerow.on .mrname { font-weight: 700; }
+.musclerow.on .mrval { color: var(--text); font-weight: 700; }
+.mrbar { height: 8px; border-radius: 4px; }
+.mrbar > span { border-radius: 4px; }
+.mrval { font-family: var(--display); font-size: 18px; font-weight: 700; }
+/* kilo trendi */
+.bwtrend .bwval { font-size: 16px; }
+.okbadge { font-size: 14px; font-weight: 700; color: var(--ok); }

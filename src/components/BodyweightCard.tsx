@@ -26,12 +26,15 @@ export function BodyweightCard() {
 
   return (
     <div className="card stack">
-      <h2>Vücut ağırlığı</h2>
+      <div>
+        <div className="eyebrow">Kilo trendi</div>
+        <h2 style={{ margin: 0 }}>Vücut ağırlığı</h2>
+      </div>
       {bodyweight.length === 0 ? (
-        <p className="sub" style={{ margin: 0 }}>Henüz tartı yok; Ana Sayfa'dan kaydedebilirsin.</p>
+        <p className="sub" style={{ margin: 0 }}>Henüz tartı yok. Ana Sayfa'dan ilk tartını kaydedince trend burada belirir.</p>
       ) : (
         <>
-          <div className="chips">
+          <div className="chips statseg">
             {RANGES.map((r) => (
               <button key={r.label} className={`chip${range === r.n ? ' on' : ''}`} onClick={() => setRange(r.n)}>
                 {r.label}

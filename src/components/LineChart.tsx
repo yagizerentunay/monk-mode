@@ -33,13 +33,17 @@ export function LineChart({ points, unit = '', height = 140 }: Props) {
 
   return (
     <svg viewBox={`0 0 ${W} ${height}`} width="100%" role="img" aria-label="Grafik" style={{ display: 'block' }}>
+      <line x1={PAD.l} x2={W - PAD.r} y1={height - PAD.b} y2={height - PAD.b} stroke="var(--line)" strokeWidth="1" />
       <path d={path} fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      {points.map((p, i) => (
-        <circle key={i} cx={x(i)} cy={y(p.value)} r={i === points.length - 1 ? 4.5 : 2.5} fill="var(--accent)" />
+      {points.slice(0, -1).map((p, i) => (
+        <circle key={i} cx={x(i)} cy={y(p.value)} r="2.5" fill="var(--accent)" />
       ))}
+      {/* son nokta: halka + bakır dolgu */}
+      <circle cx={x(points.length - 1)} cy={y(last.value)} r="8" fill="var(--accent)" fillOpacity="0.22" />
+      <circle cx={x(points.length - 1)} cy={y(last.value)} r="4.5" fill="var(--accent)" stroke="var(--card)" strokeWidth="1.5" />
       <text x={PAD.l} y={height - 6} fontSize="10" fill="var(--muted)">{points[0].label}</text>
       <text x={W - PAD.r} y={height - 6} fontSize="10" fill="var(--muted)" textAnchor="end">{last.label}</text>
-      <text x={W - PAD.r} y={10} fontSize="11" fill="var(--text)" textAnchor="end">
+      <text x={W - PAD.r} y={10} fontSize="12" fontWeight="700" fill="var(--text)" textAnchor="end">
         {last.value}{unit && ` ${unit}`}
       </text>
     </svg>

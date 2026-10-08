@@ -25,24 +25,24 @@ export function BodyweightTrend({ compact = false }: Props) {
   const rate = weeklyRate(bodyweight, today)
 
   return (
-    <div className="stack">
+    <div className="stack bwtrend">
       {!compact && (
         <>
           <div className="row between">
             <span className="sub">Son 7 gün ortalaması</span>
-            <b>{avg === null ? '—' : `${formatWeight(avg, unit)} ${unit}`}</b>
+            <b className="bwval">{avg === null ? '—' : `${formatWeight(avg, unit)} ${unit}`}</b>
           </div>
           {avg !== null && prev !== null && (
             <div className="row between">
               <span className="sub">Önceki 7 güne göre</span>
-              <b>{formatRate(avg - prev, unit)}</b>
+              <b className="bwval">{formatRate(avg - prev, unit)}</b>
             </div>
           )}
         </>
       )}
       <div className="row between">
         <span className="sub">Haftalık değişim (son 4 hafta)</span>
-        <b>{rate === null ? 'Yeterli veri yok' : formatRate(rate, unit)}</b>
+        <b className="bwval">{rate === null ? 'Yeterli veri yok' : formatRate(rate, unit)}</b>
       </div>
       {rate === null && (
         <div className="sub">Hız için son 4 haftada en az 3 tartı ve 10 günlük aralık gerekir.</div>
@@ -53,7 +53,7 @@ export function BodyweightTrend({ compact = false }: Props) {
           {rate === null ? (
             <span className="sub">—</span>
           ) : (
-            <b className={goalStatus(rate, goal) === 'on' ? undefined : 'warntext'}>{STATUS_TEXT[goalStatus(rate, goal)]}</b>
+            <b className={goalStatus(rate, goal) === 'on' ? 'okbadge' : 'warntext'}>{STATUS_TEXT[goalStatus(rate, goal)]}</b>
           )}
         </div>
       )}

@@ -30,8 +30,11 @@ export function MuscleCard() {
 
   return (
     <div className="card stack">
-      <h2>Kas haritası</h2>
-      <div className="chips">
+      <div>
+        <div className="eyebrow">Kas dağılımı</div>
+        <h2 style={{ margin: 0 }}>Kas haritası</h2>
+      </div>
+      <div className="chips statseg">
         {PERIODS.map((p) => (
           <button key={p} className={`chip${days === p ? ' on' : ''}`} onClick={() => setDays(p)}>
             Son {p} gün
@@ -47,13 +50,13 @@ export function MuscleCard() {
       />
 
       {selected && (
-        <div className="sub" role="status">
-          {MUSCLE_LABEL[selected]}: {fmt(sets[selected])} set (hedef {fmt(target)})
+        <div className="musclesel" role="status">
+          <b>{MUSCLE_LABEL[selected]}</b>: {fmt(sets[selected])} set (varsayılan hedef {fmt(target)})
         </div>
       )}
 
       {worked.length === 0 ? (
-        <p className="sub" style={{ margin: 0 }}>Bu dönemde tamamlanmış set yok.</p>
+        <p className="sub" style={{ margin: 0 }}>Bu dönemde tamamlanmış set yok. İlk antrenmanını bitirince dağılım burada görünür.</p>
       ) : (
         <div className="stack">
           {worked.map((m) => (
@@ -63,7 +66,7 @@ export function MuscleCard() {
               onClick={() => setSelected((cur) => (cur === m ? null : m))}
             >
               <span className="mrname">{MUSCLE_LABEL[m]}</span>
-              <span className="mrbar"><span style={{ width: `${levels[m] * 100}%` }} /></span>
+              <span className="mrbar" aria-hidden="true"><span style={{ width: `${levels[m] * 100}%` }} /></span>
               <span className="mrval">{fmt(sets[m])}</span>
             </button>
           ))}
@@ -74,7 +77,7 @@ export function MuscleCard() {
         <div className="sub">Çalışmayan: {idle.map((m) => MUSCLE_LABEL[m]).join(', ')}</div>
       )}
       <div className="sub">
-        Birincil kas 1, yardımcı kas 0,5 set sayılır; ısınma seti sayılmaz. Hedef: haftada {WEEKLY_TARGET_SETS} set.
+        Birincil kas 1, yardımcı kas 0,5 set sayılır; ısınma seti sayılmaz. Varsayım: haftada kas başına {WEEKLY_TARGET_SETS} set; kesin hedef değil, yaklaşık bir ölçüdür.
       </div>
     </div>
   )

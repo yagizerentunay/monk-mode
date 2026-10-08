@@ -11,6 +11,11 @@ import { useStore } from '../store/useStore.ts'
 
 type Metric = 'e1rm' | 'topW'
 
+/** 2,5 gibi: ondalık ayracı virgül. */
+function fmtNum(n: number): string {
+  return n.toString().replace('.', ',')
+}
+
 export function Stats() {
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
@@ -36,26 +41,53 @@ export function Stats() {
   const open = workouts.find((w) => w.id === openId) ?? null
   const recent = [...workouts].reverse().slice(0, 30)
 
+  const metricLabel = metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
+  const lastPt = points[points.length - 1]
+  const prevPt = points.length >= 2 ? points[points.length - 2] : null
+  // Değişim yalnız iki seans varsa hesaplanır; veri yoksa uydurulmaz.
+  const delta = lastPt && prevPt ? Math.round((lastPt.value - prevPt.value) * 10) / 10 : null
+
   return (
-    <div className="stack">
-      <h1>İstatistik</h1>
+    <div className="stack statsview">
+      <header>
+        <div className="eyebrow">Performans analizi</div>
+        <h1 className="display">Her set<span className="hl">bir adım.</span></h1>
+      </header>
 
       <div className="card stack">
-        <h2>Egzersiz ilerlemesi</h2>
+        <div>
+          <div className="eyebrow">Güç gelişimi</div>
+          <h2 style={{ margin: 0 }}>Egzersiz ilerlemesi</h2>
+        </div>
         {exIds.length === 0 ? (
-          <p className="sub">İlk antrenmanını bitirince grafik burada görünür.</p>
+          <p className="sub" style={{ margin: 0 }}>İlk antrenmanını bitirince güç gelişimin burada görünür. Her tamamlanan set grafiğe bir nokta ekler.</p>
         ) : (
           <>
-            <select className="input" value={selected} onChange={(e) => setChosen(e.target.value)}>
+            <select className="input" value={selected} onChange={(e) => setChosen(e.target.value)} aria-label="Egzersiz">
               {exIds.map((id) => (
                 <option key={id} value={id}>{byId.get(id)?.name ?? id}</option>
               ))}
             </select>
-            <div className="chips">
-              <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
-              <button className={`chip${metric === 'topW' ? ' on' : ''}`} onClick={() => setMetric('topW')}>En ağır set</button>
-            </div>
+            {lastPt && (
+              <div>
+                <div className="row statbig">
+                  <span className="bignum">{fmtNum(lastPt.value)}</span>
+                  <span className="statunit">{unit} · {metricLabel}</span>
+                </div>
+                {delta === null ? (
+                  <div className="sub">Karşılaştırma için bir seans daha gerekli.</div>
+                ) : (
+                  <div className={`statdelta${delta > 0 ? ' up' : ''}`}>
+                    {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{fmtNum(delta)} {unit} · önceki seansa göre
+                  </div>
+                )}
+              </div>
+            )}
             <LineChart points={points} unit={unit} />
+            <div className="chips statseg" role="group" aria-label="Ölçü">
+              <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
+              <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>En ağır set</button>
+            </div>
           </>
         )}
       </div>
@@ -65,8 +97,11 @@ export function Stats() {
       <MuscleCard />
 
       <div className="card stack">
-        <h2>Son antrenmanlar</h2>
-        {recent.length === 0 && <p className="sub">Henüz antrenman yok.</p>}
+        <div>
+          <div className="eyebrow">Geçmiş</div>
+          <h2 style={{ margin: 0 }}>Son antrenmanlar</h2>
+        </div>
+        {recent.length === 0 && <p className="sub" style={{ margin: 0 }}>Henüz antrenman yok. Bitirdiğin antrenmanlar burada listelenir.</p>}
         {recent.map((w) => (
           <button key={w.id} className="exrow" onClick={() => setOpenId(w.id)}>
             <div className="grow">

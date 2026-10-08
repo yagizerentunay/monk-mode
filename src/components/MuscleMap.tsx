@@ -95,8 +95,8 @@ export function MuscleMap({ levels, labels, selected = null, onSelect }: Props) 
         transform={side === 'r' ? MIRROR : undefined}
         fill={level > 0 ? 'var(--accent)' : 'var(--card)'}
         fillOpacity={level > 0 ? 0.18 + 0.82 * level : undefined}
-        stroke={isSel ? 'var(--text)' : 'var(--line)'}
-        strokeWidth={isSel ? 1.5 : 0.8}
+        stroke={isSel ? 'var(--text)' : level > 0 ? 'var(--bg)' : 'var(--line)'}
+        strokeWidth={isSel ? 2 : 0.8}
         strokeLinejoin="round"
         {...(interactive
           ? {
