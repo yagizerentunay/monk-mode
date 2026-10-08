@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 interface Props {
@@ -11,10 +11,14 @@ interface Props {
 /** Alt çekmece. Rota değişince ve Escape ile kapanır (demodaki yığılma sorununu önler). */
 export function BottomSheet({ open, onClose, title, children }: Props) {
   const { pathname } = useLocation()
+  const lastPath = useRef(pathname)
 
   useEffect(() => {
+    // Yalnız rota GERÇEKTEN değişince kapat. İlk mount'ta (open=true ile doğan sheet) kapatmak,
+    // takvim gibi açılırken mount olan sheet'leri anında kapatırdı.
+    if (lastPath.current === pathname) return
+    lastPath.current = pathname
     if (open) onClose()
-    // yalnızca rota değişiminde kapat
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
 
