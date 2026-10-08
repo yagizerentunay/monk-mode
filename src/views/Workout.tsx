@@ -12,6 +12,7 @@ import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
+import { loadRest, saveRest } from '../lib/restState.ts'
 import { formatSet } from '../lib/sets.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
@@ -86,7 +87,12 @@ export function Workout() {
   const { byId } = useExercises()
   const navigate = useNavigate()
 
-  const [restEnds, setRestEnds] = useState<number | null>(null)
+  /** Bitiş zamanı localStorage'da da tutulur: sayfa yenilenince ya da başka sekmeden dönünce sayaç sürer. */
+  const [restEnds, setRestEndsState] = useState<number | null>(() => (active ? loadRest(active.id, Date.now()) : null))
+  const setRestEnds = (endsAt: number | null) => {
+    setRestEndsState(endsAt)
+    if (active) saveRest(active.id, endsAt)
+  }
   const [now, setNow] = useState(() => Date.now())
   const [picking, setPicking] = useState(false)
   const [menu, setMenu] = useState(false)
