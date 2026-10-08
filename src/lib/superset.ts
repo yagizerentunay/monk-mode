@@ -80,3 +80,29 @@ export function restAfter(
   }
   return base
 }
+
+interface Linkable {
+  superset?: boolean
+}
+
+/**
+ * Rutinde `i`'inci egzersizi bir adım taşır. Bağ bayrakları konuma bağlı kalır: süpersetin içinde
+ * sıra değişince çift bozulmaz, dışarıdan bir egzersiz taşınınca gruba katılır ya da gruptan çıkar.
+ */
+export function moveExercise<T extends Linkable>(ex: T[], i: number, dir: -1 | 1): T[] {
+  const j = i + dir
+  if (j < 0 || j >= ex.length) return ex
+  const out = [...ex]
+  ;[out[i], out[j]] = [{ ...ex[j], superset: ex[i].superset }, { ...ex[i], superset: ex[j].superset }]
+  return out
+}
+
+/**
+ * `i`'inci egzersizi çıkarır. Grubun başındaki (bağsız) egzersiz çıkarsa ona bağlı sıradaki başı
+ * olur; yoksa bayrağı önceki gruba yapışırdı, o yüzden çözülür.
+ */
+export function removeExercise<T extends Linkable>(ex: T[], i: number): T[] {
+  const out = ex.filter((_, j) => j !== i)
+  if (!ex[i]?.superset && out[i]?.superset) out[i] = { ...out[i], superset: false }
+  return out
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, WorkoutEntry } from '../store/schema.ts'
-import { groupLetter, restAfter, supersetInfo } from './superset.ts'
+import { groupLetter, moveExercise, removeExercise, restAfter, supersetInfo } from './superset.ts'
 
 describe('süperset grupları', () => {
   it('bağlı ardışık egzersizleri grupla, yalnızları null bırak', () => {
@@ -85,5 +85,45 @@ describe('süpersette dinlenme', () => {
     expect(restAfter([entry([work(true), drop]), partner], 0, 0, 90)).toBeNull()
     expect(restAfter([entry([work(true), drop]), partner], 0, 1, 90)).toBeNull()
     expect(restAfter([entry([work(true), drop]), entry([work(true)], true)], 0, 1, 90)).toBe(90)
+  })
+})
+
+describe('rutin düzenleme', () => {
+  const ex = (name: string, superset?: boolean) => ({ name, superset })
+  const view = (list: ReturnType<typeof ex>[]) => list.map((e) => `${e.name}${e.superset ? '+' : ''}`)
+
+  it('süpersetin içinde sıra değişince çift korunur', () => {
+    const list = [ex('a'), ex('b', true), ex('c')]
+    expect(view(moveExercise(list, 0, 1))).toEqual(['b', 'a+', 'c'])
+    expect(view(moveExercise(list, 1, -1))).toEqual(['b', 'a+', 'c'])
+  })
+
+  it('dışarıdaki egzersiz yukarı çıkınca gruba katılır, grup dışına itilen çıkar', () => {
+    const list = [ex('a'), ex('b', true), ex('c')]
+    expect(view(moveExercise(list, 2, -1))).toEqual(['a', 'c+', 'b'])
+  })
+
+  it('sınırda taşımaz', () => {
+    const list = [ex('a'), ex('b')]
+    expect(moveExercise(list, 0, -1)).toBe(list)
+    expect(moveExercise(list, 1, 1)).toBe(list)
+  })
+
+  it('girdiyi değiştirmez', () => {
+    const list = [ex('a'), ex('b', true)]
+    moveExercise(list, 0, 1)
+    expect(view(list)).toEqual(['a', 'b+'])
+  })
+
+  it('üyeyi çıkarınca grup kalanlarla sürer', () => {
+    expect(view(removeExercise([ex('a'), ex('b', true), ex('c', true)], 1))).toEqual(['a', 'c+'])
+  })
+
+  it('grup başını çıkarınca sıradaki üye bağsız yeni baş olur', () => {
+    expect(view(removeExercise([ex('a'), ex('b'), ex('c', true), ex('d')], 1))).toEqual(['a', 'c', 'd'])
+  })
+
+  it('tek başına olanı çıkarınca sonrakine dokunmaz', () => {
+    expect(view(removeExercise([ex('a'), ex('b'), ex('c')], 1))).toEqual(['a', 'c'])
   })
 })
