@@ -182,3 +182,7 @@ select.input { appearance: none; }
 /* içe aktarma */
 .importmap { max-height: 220px; overflow-y: auto; font-size: 14px; display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: var(--card-2); }
 .linkbtn { border: 0; background: transparent; color: var(--accent); padding: 0 0 0 8px; font-size: 14px; }
+
+/* yedek hatırlatma */
+.card.banner { border-left: 3px solid var(--warn); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+.card.banner.ok { border-left-color: var(--accent); }

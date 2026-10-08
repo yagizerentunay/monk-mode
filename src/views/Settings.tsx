@@ -2,30 +2,27 @@ import { useRef, useState } from 'react'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
+import { REMIND_CHOICES } from '../lib/backupReminder.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
-import { dayString } from '../lib/workout.ts'
-import { exportBackup, importBackup } from '../store/backup.ts'
+import { importBackup } from '../store/backup.ts'
+import { downloadBackup } from '../store/downloadBackup.ts'
 import { defaultState } from '../store/schema.ts'
-import { snapshot, useStore } from '../store/useStore.ts'
+import { useStore } from '../store/useStore.ts'
 
 export function Settings() {
   const unit = useStore((s) => s.settings.unit)
   const restSec = useStore((s) => s.settings.restSec)
   const weekStart = useStore((s) => s.settings.weekStart)
   const plateKit = useStore((s) => s.settings.plateKit)
+  const backupRemindDays = useStore((s) => s.settings.backupRemindDays)
+  const lastBackupAt = useStore((s) => s.settings.lastBackupAt)
   const setSettings = useStore((s) => s.setSettings)
   const replaceAll = useStore((s) => s.replaceAll)
   const fileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
 
   const download = () => {
-    const blob = new Blob([exportBackup(snapshot(useStore.getState()))], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `monk-mode-yedek-${dayString()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadBackup()
     setMessage('Yedek indirildi.')
   }
 
@@ -43,6 +40,8 @@ export function Settings() {
       const state = importBackup(await file.text())
       if (!confirm('Mevcut tüm veriler yedekteki verilerle değiştirilsin mi?')) return
       replaceAll(state)
+      // Veri az önce bir yedek dosyasından geldi; hemen ardından "yedekle" demek anlamsız olur.
+      useStore.getState().markBackedUp(Date.now())
       setMessage(`Yedek yüklendi: ${state.workouts.length} antrenman, ${state.routines.length} rutin.`)
     } catch (e) {
       setMessage((e as Error).message)
@@ -116,7 +115,25 @@ export function Settings() {
         <p className="sub" style={{ margin: 0 }}>
           Veriler yalnızca bu tarayıcıda durur. Tarayıcı verisini temizlersen kaybolur; düzenli yedek al.
         </p>
+        <div className="sub" style={{ margin: 0 }}>
+          Son yedek: {lastBackupAt ? new Date(lastBackupAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : 'hiç alınmadı'}
+        </div>
         <button className="btn block" onClick={download}>Yedeği indir (JSON)</button>
+        <div className="row between">
+          <span>Yedek hatırlatması</span>
+          <div className="chips">
+            {REMIND_CHOICES.map((d) => (
+              <button
+                key={d}
+                className={`chip${backupRemindDays === d ? ' on' : ''}`}
+                aria-pressed={backupRemindDays === d}
+                onClick={() => setSettings({ backupRemindDays: d })}
+              >
+                {d === 0 ? 'Kapalı' : `${d} gün`}
+              </button>
+            ))}
+          </div>
+        </div>
         <button className="btn block" onClick={() => fileRef.current?.click()}>Yedekten yükle</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
         <button

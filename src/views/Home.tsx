@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { BackupReminder } from '../components/BackupReminder.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
@@ -44,6 +45,8 @@ export function Home() {
         </div>
         <Link to="/settings" className="btn small" aria-label="Ayarlar">⚙</Link>
       </div>
+
+      <BackupReminder />
 
       <div className="weekstrip">
         {days.map((d) => {
