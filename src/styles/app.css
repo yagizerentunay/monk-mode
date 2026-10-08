@@ -186,3 +186,7 @@ select.input { appearance: none; }
 /* yedek hatırlatma */
 .card.banner { border-left: 3px solid var(--warn); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
 .card.banner.ok { border-left-color: var(--accent); }
+
+/* notlar */
+.note { font-size: 14px; color: var(--text); background: var(--card-2); border-radius: 10px; padding: 6px 10px; white-space: pre-wrap; }
+textarea.input { resize: vertical; font: inherit; }

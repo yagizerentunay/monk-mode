@@ -26,15 +26,19 @@ function WorkoutDetail({ workout, onClose }: { workout: Workout; onClose: () => 
   return (
     <div className="stack">
       <div className="sub">{workout.d} · {formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
+      {workout.note && <div className="note">{workout.note}</div>}
       {workout.entries.map((e, i) => (
         <div key={i}>
           <div className="exname">{byId.get(e.exId)?.name ?? e.exId}</div>
           <div className="sub">
-            {e.sets
-              .filter((s) => !s.warmup)
-              .map((s) => formatSet(s, formatWeight(s.w, unit)))
-              .join(' · ')}
+            {e.sets.length === 0
+              ? 'Set yapılmadı'
+              : e.sets
+                  .filter((s) => !s.warmup)
+                  .map((s) => formatSet(s, formatWeight(s.w, unit)))
+                  .join(' · ')}
           </div>
+          {e.note && <div className="note">{e.note}</div>}
         </div>
       ))}
       <div className="row">

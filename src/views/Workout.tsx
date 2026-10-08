@@ -9,6 +9,7 @@ import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
+import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { formatSet } from '../lib/sets.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
@@ -65,6 +66,8 @@ export function Workout() {
     updateSide,
     toggleUnilateral,
     toggleSuperset,
+    setEntryNote,
+    setWorkoutNote,
     addSet,
     addWarmup,
     addDrop,
@@ -83,6 +86,8 @@ export function Workout() {
   /** Plaka hesaplayıcısı açık olan egzersizin sırası. */
   const [plateEntry, setPlateEntry] = useState<number | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
+  /** Not alanı elle açılan egzersizlerin sırası (notu olanlar zaten görünür). */
+  const [noteOpen, setNoteOpen] = useState<Set<number>>(() => new Set())
 
   useEffect(() => {
     if (!active) return
@@ -151,6 +156,7 @@ export function Workout() {
         const ex = byId.get(entry.exId)
         const last = lastEntryFor(workouts, entry.exId)
         const lastTop = last?.sets.filter((s) => s.done && !s.warmup && !s.drop).sort((a, b) => b.w - a.w)[0]
+        const lastNote = lastNoteFor(workouts, entry.exId)
         return (
           <div key={ei} className={`card stack${groups[ei] ? ' ss' : ''}`}>
             <div className="row">
@@ -161,8 +167,19 @@ export function Workout() {
                 <div className="sub">
                   {lastTop ? `Geçen sefer: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
                 </div>
+                {lastNote && <div className="warntext">Not ({lastNote.d.slice(5)}): {lastNote.note}</div>}
               </div>
             </div>
+            {(noteOpen.has(ei) || !!entry.note) && (
+              <input
+                className="input"
+                aria-label={`${ex?.name ?? entry.exId} notu`}
+                placeholder="Not: ağrı, takılma, enerji…"
+                maxLength={NOTE_MAX}
+                value={entry.note ?? ''}
+                onChange={(e) => setEntryNote(ei, e.target.value)}
+              />
+            )}
 
             {(() => {
               const meta = describeSets(entry.sets)
@@ -214,6 +231,20 @@ export function Workout() {
               >
                 Tek taraflı (sol/sağ)
               </button>
+              <button
+                className={`chip${entry.note ? ' on' : ''}`}
+                aria-pressed={noteOpen.has(ei) || !!entry.note}
+                onClick={() =>
+                  setNoteOpen((s) => {
+                    const next = new Set(s)
+                    if (next.has(ei)) next.delete(ei)
+                    else next.add(ei)
+                    return next
+                  })
+                }
+              >
+                Not
+              </button>
             </div>
           </div>
         )
@@ -243,18 +274,30 @@ export function Workout() {
       </BottomSheet>
 
       <BottomSheet open={menu} onClose={() => setMenu(false)} title="Antrenman">
-        <button
-          className="btn danger block"
-          onClick={() => {
-            if (confirm('Bu antrenman silinsin mi? Kaydedilmeyecek.')) {
-              discardWorkout()
-              setRestEnds(null)
-              setMenu(false)
-            }
-          }}
-        >
-          Antrenmanı at
-        </button>
+        <div className="stack">
+          <label className="field">
+            <span className="sub">Antrenman notu (enerji, uyku, belirti…)</span>
+            <textarea
+              className="input"
+              rows={3}
+              maxLength={NOTE_MAX}
+              value={active.note ?? ''}
+              onChange={(e) => setWorkoutNote(e.target.value)}
+            />
+          </label>
+          <button
+            className="btn danger block"
+            onClick={() => {
+              if (confirm('Bu antrenman silinsin mi? Kaydedilmeyecek.')) {
+                discardWorkout()
+                setRestEnds(null)
+                setMenu(false)
+              }
+            }}
+          >
+            Antrenmanı at
+          </button>
+        </div>
       </BottomSheet>
     </div>
   )
