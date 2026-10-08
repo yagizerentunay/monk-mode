@@ -4,6 +4,7 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
+import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
@@ -33,8 +34,11 @@ function Starter() {
   const todayId = week[today]
 
   return (
-    <div className="stack">
-      <h1>Antrenmanı başlat</h1>
+    <div className="stack wk">
+      <div>
+        <div className="eyebrow">Antrenmanı başlat</div>
+        <h1 className="display">Bir rutin seç<span className="hl">ve başla.</span></h1>
+      </div>
       {routines.length === 0 && (
         <div className="card stack">
           <p className="sub" style={{ margin: 0 }}>Henüz rutinin yok.</p>
@@ -42,12 +46,15 @@ function Starter() {
         </div>
       )}
       {routines.map((r) => (
-        <button key={r.id} className="card tap row between" onClick={() => start(r.id)}>
+        <button
+          key={r.id}
+          className={`card tap row between starter${r.id === todayId ? ' today' : ''}`}
+          onClick={() => start(r.id)}
+        >
           <div>
+            {r.id === todayId && <div className="eyebrow">Bugün · {DAY_NAMES[today]}</div>}
             <div className="exname">{r.name}</div>
-            <div className="sub">
-              {r.ex.length} egzersiz{r.id === todayId ? ` · bugün (${DAY_NAMES[today]})` : ''}
-            </div>
+            <div className="sub">{r.ex.length} egzersiz</div>
           </div>
           <span className={r.id === todayId ? 'badge on' : 'badge'}>Başla ▶</span>
         </button>
@@ -99,9 +106,15 @@ export function Workout() {
     const { workout, prs } = summary
     const mins = Math.max(1, Math.round(((workout.end ?? workout.start) - workout.start) / 60000))
     return (
-      <div className="stack">
-        <h1>Tamamlandı 🎉</h1>
-        <div className="card stack">
+      <div className="stack wk">
+        <div className="wk-done-head">
+          <Seal size={44} />
+          <div>
+            <div className="eyebrow done">Antrenman bitti</div>
+            <h1 className="display">Tamamlandı<span className="hl">Bugün güçlendin.</span></h1>
+          </div>
+        </div>
+        <div className="card stack wk-stats">
           <div className="row between"><span className="sub">Süre</span><b>{mins} dk</b></div>
           <div className="row between"><span className="sub">Tamamlanan set</span><b>{doneSetCount(workout).done}</b></div>
           {partialSetCount(workout) > 0 && (
@@ -110,9 +123,9 @@ export function Workout() {
           <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
         </div>
         {prs.length > 0 && (
-          <div className="card stack">
-            <h2>Yeni rekorlar 🏆</h2>
-            {prs.map((p) => <div key={p}>{p}</div>)}
+          <div className="card stack wk-pr">
+            <div className="eyebrow">Yeni rekorlar</div>
+            {prs.map((p) => <div key={p} className="wk-pr-item">{p}</div>)}
           </div>
         )}
         <button className="btn primary block" onClick={() => navigate('/')}>Ana sayfaya dön</button>
@@ -139,16 +152,18 @@ export function Workout() {
   }
 
   return (
-    <div className="stack">
-      <div className="row between">
-        <div>
-          <h1 style={{ marginBottom: 0 }}>{active.name}</h1>
-          <div className="sub">{formatClock(elapsed)} · {done}/{total} set</div>
-        </div>
+    <div className={`stack wk${restEnds ? ' resting' : ''}`}>
+      <div className="row between wk-top">
+        <button className="wk-back" onClick={() => navigate('/')}>← Antrenmana dön</button>
         <div className="row">
+          <span className="wk-live"><i aria-hidden="true">●</i> Aktif</span>
           <button className="btn small" onClick={() => setMenu(true)} aria-label="Menü">⋯</button>
-          <button className="btn primary small" onClick={finish}>Bitir</button>
         </div>
+      </div>
+      <h1 className="wk-title">{active.name}</h1>
+      <div className="row between wk-meta">
+        <span className="wk-clock bignum">{formatClock(elapsed)}</span>
+        <span className="sub"><b>{done} / {total}</b> çalışma seti</span>
       </div>
       <div className="progress"><div style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
 
@@ -157,16 +172,29 @@ export function Workout() {
         const last = lastEntryFor(workouts, entry.exId)
         const lastTop = last?.sets.filter((s) => s.done && !s.warmup && !s.drop).sort((a, b) => b.w - a.w)[0]
         const lastNote = lastNoteFor(workouts, entry.exId)
+        // Hedef: ilk yapılmamış çalışma setinin (ilerleme önerisi dahil) ağırlık × tekrarı.
+        const targetSet = entry.sets.find((s) => !s.done && !s.warmup && !s.drop)
+        // Sıradaki set: tüm antrenmanda yapılmamış ilk çalışma/dropset (ısınma dahil değil).
+        const nextEi = active.entries.findIndex((e) => e.sets.some((s) => !s.done))
+        const nextSi = ei === nextEi ? entry.sets.findIndex((s) => !s.done) : -1
         return (
-          <div key={ei} className={`card stack${groups[ei] ? ' ss' : ''}`}>
+          <div key={ei} className={`card stack excard${groups[ei] ? ' ss' : ''}`}>
             <div className="row">
               {ex?.images[0] && <img className="thumb" src={imageUrl(ex.images[0])} alt="" loading="lazy" />}
               <div className="grow">
-                {groups[ei] && <span className="badge on">Süperset {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</span>}
-                <div className="exname">{ex?.name ?? entry.exId}</div>
-                <div className="sub">
-                  {lastTop ? `Geçen sefer: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
+                <div className="eyebrow">
+                  Egzersiz {String(ei + 1).padStart(2, '0')} / {String(active.entries.length).padStart(2, '0')}
+                  {groups[ei] && <> · Süperset {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</>}
                 </div>
+                <div className="exname exhead">{ex?.name ?? entry.exId}</div>
+                <div className="sub">
+                  {lastTop ? `Önceki seans: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
+                </div>
+                {targetSet && lastTop && (
+                  <div className="extarget">
+                    Hedef {formatWeight(targetSet.w, unit)} {unit} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
+                  </div>
+                )}
                 {lastNote && <div className="warntext">Not ({lastNote.d.slice(5)}): {lastNote.note}</div>}
               </div>
             </div>
@@ -181,11 +209,18 @@ export function Workout() {
               />
             )}
 
+            <div className="setcols" aria-hidden="true">
+              <span>Set</span>
+              <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
+              <span>Tekrar</span>
+              <span>Sonuç</span>
+            </div>
             {(() => {
               const meta = describeSets(entry.sets)
               return entry.sets.map((set, si) => (
                 <SetRow
                   key={si}
+                  active={si === nextSi}
                   name={meta[si].name}
                   badge={meta[si].badge}
                   kind={meta[si].kind}
@@ -205,7 +240,7 @@ export function Workout() {
               ))
             })()}
 
-            <div className="row wrap">
+            <div className="row wrap exactions">
               <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
               <button
                 className="btn small"
@@ -251,6 +286,7 @@ export function Workout() {
       })}
 
       <button className="btn block" onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
+      <button className="btn primary block wk-finish" onClick={finish}>Bitir ✓</button>
 
       {restEnds && <RestTimer endsAt={restEnds} onChange={setRestEnds} />}
 

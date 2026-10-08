@@ -31,7 +31,7 @@ export function NumberField({
 
   return (
     <input
-      className={`input num ${className}`}
+      className={`input num numfield ${className}`}
       inputMode="decimal"
       aria-label={label}
       value={text ?? String(shown)}

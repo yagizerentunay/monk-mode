@@ -30,10 +30,15 @@ export function RestTimer({ endsAt, onChange }: Props) {
   const done = left <= 0
   return (
     <div className={`rest${done ? ' done' : ''}`} role="timer">
-      <button className="btn small" onClick={() => onChange(endsAt - 15000)} aria-label="15 saniye azalt">−15</button>
-      <div className="grow rest-time">{done ? 'Hazır!' : formatClock(left)}</div>
-      <button className="btn small" onClick={() => onChange(endsAt + 15000)} aria-label="15 saniye ekle">+15</button>
-      <button className="btn small" onClick={() => onChange(null)}>{done ? 'Kapat' : 'Geç'}</button>
+      <div className="rest-label">
+        <span className="eyebrow">Dinlenme</span>
+        <div className="rest-time bignum">{done ? 'Hazır!' : formatClock(left)}</div>
+      </div>
+      <div className="rest-actions">
+        <button className="btn small" onClick={() => onChange(endsAt - 15000)} aria-label="15 saniye azalt">−15 sn</button>
+        <button className="btn small" onClick={() => onChange(endsAt + 15000)} aria-label="15 saniye ekle">+15 sn</button>
+        <button className="btn small rest-skip" onClick={() => onChange(null)}>{done ? 'Kapat' : 'Geç'}</button>
+      </div>
     </div>
   )
 }

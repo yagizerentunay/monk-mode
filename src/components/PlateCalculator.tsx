@@ -25,7 +25,7 @@ export function PlateCalculator({ initialKg, weights }: Props) {
   const heaviest = stack[0] ?? 1
 
   return (
-    <div className="stack">
+    <div className="stack plate-calc">
       {weights.length > 0 && (
         <div className="chips">
           {weights.map((w) => (
@@ -37,8 +37,8 @@ export function PlateCalculator({ initialKg, weights }: Props) {
       )}
 
       <div className="row between">
-        <span>Hedef ({unit})</span>
-        <div style={{ width: 110 }}>
+        <span className="eyebrow muted">Hedef ({unit})</span>
+        <div className="plate-target">
           <NumberField
             label="Hedef ağırlık"
             value={kg}
@@ -56,7 +56,7 @@ export function PlateCalculator({ initialKg, weights }: Props) {
         </p>
       ) : (
         <div className="card stack" role="status">
-          <div className="sub">Taraf başına</div>
+          <div className="eyebrow">Taraf başına</div>
           <div className="platetext">{text ?? 'Yalnız bar'}</div>
           {stack.length > 0 && (
             <div className="platebar" aria-hidden="true">

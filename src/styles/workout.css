@@ -1,37 +1,112 @@
-/* Antrenman ekranı: set satırları, dinlenme sayacı, ısınma/dropset, süperset, plaka hesaplayıcı.
-   Sahibi: Workout ajanı. Ortak token'lar base.css'te. */
+/* Antrenman ekranı (Focus Mode): set satırları, dinlenme sayacı, ısınma/dropset, süperset, plaka hesaplayıcı.
+   Sahibi: Workout ajanı. Ortak token'lar base.css'te. Salonda hız: büyük kutular, az dekorasyon. */
 
-.set { border-radius: 12px; }
-.set.done .setrow { opacity: 0.7; }
-.setrow { display: flex; align-items: center; gap: 8px; }
-.setno { width: 18px; text-align: center; color: var(--muted); font-size: 14px; }
+/* başlatıcı */
+.starter { padding: 16px; min-height: 72px; }
+.starter.today { border-color: rgba(235, 148, 98, 0.55); background: linear-gradient(160deg, #262b30, var(--card) 60%); }
+.starter .exname { font-family: var(--display); font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+
+/* aktif seans üst bölümü */
+.wk.resting { padding-bottom: 96px; }
+.wk-top { min-height: var(--tap); }
+.wk-back {
+  min-height: var(--tap); padding: 0; border: 0; background: none; color: var(--muted);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.wk-live {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px;
+  background: rgba(95, 192, 138, 0.14); color: var(--ok); font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.wk-live i { font-style: normal; font-size: 9px; }
+.wk-title { margin: 0; font-size: 42px; }
+.wk-meta { align-items: baseline; }
+.wk-clock { font-size: 34px; }
+.wk .progress { height: 6px; border-radius: 3px; }
+.eyebrow.done { color: var(--ok); }
+.wk-done-head { display: flex; align-items: center; gap: 14px; }
+.wk-done-head .display { font-size: 36px; }
+.wk-done-head .seal { color: var(--ok); }
+.wk-stats b { font-family: var(--display); font-size: 24px; font-weight: 800; }
+.wk-pr { border-color: rgba(235, 148, 98, 0.5); background: var(--accent-soft); }
+.wk-pr-item { font-family: var(--display); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.wk-finish { margin-top: 20px; }
+
+/* egzersiz kartı */
+.excard { padding: 16px; }
+.exhead { font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.01em; margin: 2px 0; }
+.extarget { color: var(--accent); font-size: 14px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.exactions { gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+.exactions .btn.small { color: var(--muted); font-weight: 600; }
+.exactions .chip { min-height: var(--tap); }
+.exactions .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* set tablosu: SET · KG · TEKRAR · SONUÇ */
+.setcols, .setrow { display: grid; grid-template-columns: 36px 1fr 1fr 52px; gap: 8px; align-items: center; }
+.setcols { padding: 4px 0 0; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }
+.set { border-radius: 12px; border: 1.5px solid transparent; padding: 4px 0; }
+.set + .set { margin-top: 6px; }
+.setno { text-align: center; color: var(--muted); font-family: var(--display); font-size: 22px; font-weight: 800; }
+.setrow .input.num {
+  min-height: 52px; padding: 6px 4px; font-size: 24px; font-weight: 700; text-align: center;
+}
+.unitnote { grid-column: 4; font-size: 12px; text-align: center; line-height: 1.1; }
+.setrow:has(> .unitnote) > .numfield { grid-column: 2 / 4; }
+
+/* onay düğmesi: bekleyen = boş daire, tamamlanan = yeşil dolgu ✓ */
 .check {
-  flex: none; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line);
-  background: none; color: transparent; font-size: 20px; font-weight: 700;
+  flex: none; width: 48px; height: 48px; justify-self: center; border-radius: 50%; border: 2px solid var(--line);
+  background: none; color: transparent; font-size: 24px; font-weight: 800; line-height: 1;
+  transition: background 0.15s, border-color 0.15s;
 }
 .check.on { background: var(--ok); border-color: var(--ok); color: var(--ok-ink); }
-.rirrow { display: flex; gap: 6px; align-items: center; padding: 6px 0 2px 26px; flex-wrap: wrap; }
-.rirrow .chip { padding: 4px 11px; }
+
+/* tamamlanan set: kutular sönük ama okunur; sıradaki set bakır çerçeveli */
+.set.done .input.num { background: transparent; color: var(--muted); border-color: var(--line); }
+.set.active { border-color: var(--accent); background: var(--accent-soft); padding: 8px 6px; }
+.set.active .input.num { border-color: var(--accent); }
+.set.active .setno { color: var(--accent); }
+.set.active .check { border-color: var(--accent); color: var(--accent); }
+.set.active .check:not(.on)::before { content: '✓'; }
+
+/* RIR / drop / sil: ana akışı bozmaz, tamamlanınca altta */
+.rirrow { display: flex; gap: 6px; align-items: center; padding: 8px 0 2px 44px; flex-wrap: wrap; }
+.rirrow .chip { min-height: 40px; min-width: 40px; padding: 4px 12px; }
+.rirlabel { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
+
+/* sabit dinlenme çubuğu */
 .rest {
   position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + 10px); z-index: 30;
-  max-width: 496px; margin: 0 auto; display: flex; align-items: center; gap: 8px;
-  background: #262c30; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px;
+  max-width: 496px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: #262c30; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
 }
-.rest.done { border-color: var(--accent); }
-.rest-time { text-align: center; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rest.done { border-color: var(--ok); }
+.rest.done .rest-time { color: var(--ok); }
+.rest-label { min-width: 0; }
+.rest-time { font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.rest-actions { display: flex; gap: 6px; flex: none; }
+.rest-actions .btn.small { min-width: 54px; min-height: 48px; padding: 6px 8px; font-size: 14px; }
+.rest-skip { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
 /* tek taraflı set */
-.siderow { padding-left: 26px; margin-top: 6px; }
-.sidelabel { width: 34px; font-size: 14px; font-weight: 600; color: var(--accent); flex: none; }
+.siderow { margin-top: 6px; }
+.siderow .numfield { grid-column: 2 / 4; }
+.sidelabel {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);
+  text-align: center;
+}
 
-/* ısınma ve dropset */
-.set.warmup .setno, .set.drop .setno { color: var(--warn); font-size: 12px; font-weight: 700; }
-.set.warmup, .set.drop { border-left: 3px solid var(--warn); padding-left: 8px; }
+/* ısınma ve dropset: amber + yazılı etiket */
+.setlabel { font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--warn); padding: 0 0 4px 44px; }
+.set.warmup .setno, .set.drop .setno { color: var(--warn); font-size: 16px; }
+.set.warmup, .set.drop { border-left: 3px solid var(--warn); padding-left: 8px; border-radius: 6px 12px 12px 6px; }
 .set.drop { margin-left: 14px; }
+.set.warmup.active, .set.drop.active { border-color: var(--accent); border-left-color: var(--warn); }
 
 /* plaka hesaplayıcı */
-.platetext { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.plate-target { width: 120px; }
+.platetext { font-family: var(--display); font-size: 30px; font-weight: 800; letter-spacing: 0.01em; text-transform: uppercase; }
 .platebar { display: flex; align-items: center; gap: 3px; min-height: 92px; overflow-x: auto; }
 .barstub { flex: none; width: 28px; height: 8px; border-radius: 4px; background: var(--line); }
 .plate {
@@ -39,7 +114,7 @@
   justify-content: center; font-size: 13px; font-weight: 700; background: var(--card-2);
   border: 1px solid var(--accent); color: var(--text);
 }
+.plate-calc .chip { min-height: var(--tap); }
 
 /* süperset */
 .card.ss { border-left: 3px solid var(--accent); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-.badge.on + .exname { margin-top: 4px; }

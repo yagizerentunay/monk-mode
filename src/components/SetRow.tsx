@@ -6,6 +6,7 @@ import { NumberField } from './NumberField.tsx'
 
 const RIR_CHOICES = [0, 1, 2, 3, 4]
 const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
+const KIND_LABEL: Record<SetKind, string> = { work: '', warmup: 'Isınma', drop: 'Dropset' }
 
 interface Props {
   /** Erişilebilir ad ve alan etiketlerinin öneki: "Set 1", "Isınma 1", "Drop 1". */
@@ -24,12 +25,14 @@ interface Props {
   onRemove: () => void
   /** Set tamamen bittiğinde (tek taraflıda ikinci taraf da işaretlenince) çağrılır. */
   onCompleted: () => void
+  /** Sıradaki (yapılacak ilk) set: bakır çerçeveyle öne çıkar. */
+  active?: boolean
 }
 
 function CheckButton({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
     <button className={`check${on ? ' on' : ''}`} aria-label={label} onClick={onClick}>
-      ✓
+      {on ? '✓' : ''}
     </button>
   )
 }
@@ -47,6 +50,7 @@ export function SetRow({
   onDrop,
   onRemove,
   onCompleted,
+  active = false,
 }: Props) {
   // Isınma setleri her zaman tek satırdır; sol/sağ yalnız `sides` olan setlerde gösterilir.
   const sides = unilateral ? set.sides : undefined
@@ -64,13 +68,16 @@ export function SetRow({
   )
 
   return (
-    <div className={`set${set.done ? ' done' : ''}${kind === 'work' ? '' : ` ${kind}`}`}>
+    <div className={`set${set.done ? ' done' : ''}${active && !set.done ? ' active' : ''}${kind === 'work' ? '' : ` ${kind}`}`}>
+      {kind !== 'work' && (
+        <div className="setlabel">{KIND_LABEL[kind]} {name.split(' ')[1] ?? ''}</div>
+      )}
       {sides ? (
         <>
           <div className="setrow">
             <span className="setno">{badge}</span>
             {weight}
-            <span className="sub">{unit} / taraf</span>
+            <span className="sub unitnote">{unit} / taraf</span>
           </div>
           {SIDES.map((side) => {
             const s = sides[side]
@@ -84,7 +91,6 @@ export function SetRow({
                   value={s.r}
                   onChange={(v) => onSide(side, { r: Math.round(v) })}
                 />
-                <span className="sub">tkr</span>
                 <CheckButton
                   on={s.done}
                   label={`${SIDE_LABEL[side]} tarafı ${s.done ? 'geri al' : 'tamamla'}`}
@@ -101,14 +107,12 @@ export function SetRow({
         <div className="setrow">
           <span className="setno">{badge}</span>
           {weight}
-          <span className="sub">{unit}</span>
           <NumberField
             className="grow"
             label={`${name} tekrar`}
             value={set.r}
             onChange={(v) => onChange({ r: Math.round(v) })}
           />
-          <span className="sub">tkr</span>
           <CheckButton
             on={set.done}
             label={set.done ? 'Seti geri al' : 'Seti tamamla'}
@@ -128,7 +132,7 @@ export function SetRow({
         <div className="rirrow">
           {kind === 'work' && set.done && (
             <>
-              <span className="sub">RIR</span>
+              <span className="sub rirlabel">RIR</span>
               {RIR_CHOICES.map((r) => (
                 <button
                   key={r}
