@@ -18,6 +18,8 @@ export interface ExCfg {
   warmups?: number
   /** Son çalışma setinin ardından eklenecek dropset sayısı (0-3). */
   drops?: number
+  /** Önceki egzersizle süperset: bağlı ardışık egzersizler bir turda dönüşümlü yapılır. */
+  superset?: boolean
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -60,6 +62,8 @@ export interface WorkoutEntry {
   sets: SetEntry[]
   /** Setler sol/sağ ayrı tutulur. */
   unilateral?: boolean
+  /** Önceki egzersizle süperset; ilk egzersizde yok sayılır (bkz. lib/superset.ts). */
+  linked?: boolean
 }
 
 export interface Workout {
