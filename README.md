@@ -21,6 +21,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
 - Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
+- Yedek hatırlatması: veri yalnızca tarayıcıda durduğu için, son yedekten beri veri değişmiş ve 14 gün (Ayarlar'dan Kapalı/7/14/30) geçmişse Ana Sayfa'da "Verini yedekle" şeridi çıkar; "Yedeği indir" ya da "3 gün sonra hatırlat". Değişiklik verinin parmak iziyle anlaşılır; yedekten sonra bir şey değişmediyse hatırlatmaz. Hiç yedek yoksa süre en eski kayıttan sayılır
 - Çevrimdışı çalışma: uygulama kabuğu, egzersiz verisi ve gezilen görseller önbelleğe alınır; ana ekrana eklenebilir (PWA)
 
 ## Çalıştırma
