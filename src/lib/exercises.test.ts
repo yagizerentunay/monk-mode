@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { facetValues, filterExercises, fromCustom, isUnilateralName, type Exercise } from './exercises.ts'
+import { facetValues, filterExercises, fromCustom, isUnilateralName, nameLang, type Exercise } from './exercises.ts'
 
 const ex = (id: string, name: string, muscle: string, equipment: string | null): Exercise => ({
   id,
@@ -18,6 +18,14 @@ const list = [
   ex('b', 'Dumbbell Curl', 'biceps', 'dumbbell'),
   ex('c', 'Barbell Curl', 'biceps', 'barbell'),
 ]
+
+describe('nameLang', () => {
+  it('kütüphane adlarını İngilizce, özel ve bilinmeyen adları sayfa dilinde bırakır', () => {
+    expect(nameLang(list[0])).toBe('en')
+    expect(nameLang(fromCustom({ id: 'c1', name: 'Mekik', primaryMuscles: ['abdominals'], equipment: '' }))).toBeUndefined()
+    expect(nameLang(undefined)).toBeUndefined()
+  })
+})
 
 describe('egzersiz filtreleri', () => {
   it('ada göre büyük/küçük harf duyarsız arar', () => {

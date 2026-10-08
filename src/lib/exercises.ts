@@ -51,6 +51,14 @@ export function fromCustom(c: CustomExercise): Exercise {
   }
 }
 
+/**
+ * Egzersiz adının dil etiketi. free-exercise-db adları İngilizcedir; sayfa `tr` olduğu için büyük harfe
+ * çevirmede "Medium" → "MEDİUM" olur. Özel (kullanıcının yazdığı) adlar sayfa dilinde kalır.
+ */
+export function nameLang(ex: Pick<Exercise, 'custom'> | undefined): 'en' | undefined {
+  return ex && !ex.custom ? 'en' : undefined
+}
+
 const UNILATERAL_NAME =
   /\b(one|single)[- ](arm|leg|handed)|unilateral|bulgarian|split squat|\blunges?\b|step[- ]?ups?|pistol|concentration curl|kickback/i
 

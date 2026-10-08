@@ -8,7 +8,7 @@ import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
+import { imageUrl, isUnilateralName, nameLang } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
@@ -23,7 +23,7 @@ import { useStore } from '../store/useStore.ts'
 
 interface Summary {
   workout: WorkoutT
-  prs: string[]
+  prs: { name: string; lang?: 'en' }[]
 }
 
 function Starter() {
@@ -131,7 +131,7 @@ export function Workout() {
         {prs.length > 0 && (
           <div className="card stack wk-pr">
             <div className="eyebrow">Yeni rekorlar</div>
-            {prs.map((p) => <div key={p} className="wk-pr-item">{p}</div>)}
+            {prs.map((p) => <div key={p.name} className="wk-pr-item" lang={p.lang}>{p.name}</div>)}
           </div>
         )}
         <button className="btn primary block" onClick={() => navigate('/')}>Ana sayfaya dön</button>
@@ -150,7 +150,7 @@ export function Workout() {
     if (unfinished > 0 && !confirm(`${unfinished} set tamamlanmadı. Yine de bitirilsin mi?`)) return
     const prs = active.entries
       .filter((e) => isPR(workouts, { ...e, sets: e.sets.filter((x) => x.done) }))
-      .map((e) => byId.get(e.exId)?.name ?? e.exId)
+      .map((e) => ({ name: byId.get(e.exId)?.name ?? e.exId, lang: nameLang(byId.get(e.exId)) }))
     const finished = finishWorkout()
     setRestEnds(null)
     if (finished) setSummary({ workout: finished, prs })
@@ -192,7 +192,7 @@ export function Workout() {
                   Egzersiz {String(ei + 1).padStart(2, '0')} / {String(active.entries.length).padStart(2, '0')}
                   {groups[ei] && <> · Süperset {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</>}
                 </div>
-                <div className="exname exhead">{ex?.name ?? entry.exId}</div>
+                <div className="exname exhead" lang={nameLang(ex)}>{ex?.name ?? entry.exId}</div>
                 <div className="sub">
                   {lastTop ? `Önceki seans: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
                 </div>

@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
-import { imageUrl, type Exercise } from '../lib/exercises.ts'
+import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
 import { useStore } from '../store/useStore.ts'
 
 function Detail({ ex }: { ex: Exercise }) {
   return (
     <div className="stack">
       <div className="eyebrow">Egzersiz</div>
-      <div className="exname exdetail-name">{ex.name}</div>
+      <div className="exname exdetail-name" lang={nameLang(ex)}>{ex.name}</div>
       <div className="sub tag">
         {ex.primaryMuscles.join(', ')}
         {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.join(', ')}`}
