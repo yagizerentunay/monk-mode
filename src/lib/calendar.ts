@@ -60,6 +60,13 @@ export function weekdayOrder(weekStart: number): number[] {
   return Array.from({ length: 7 }, (_, i) => (weekStart + i) % 7)
 }
 
+/** "6 Ekim"; yıl `today`ın yılından farklıysa "6 Ekim 2025". Varsayılan `today` render dışında değerlendirilir. */
+export function formatShortDay(d: string, today: Date = new Date()): string {
+  const date = parseDay(d)
+  const base = `${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`
+  return date.getFullYear() === today.getFullYear() ? base : `${base} ${date.getFullYear()}`
+}
+
 /** "Salı, 6 Ekim 2026" */
 export function formatDayTitle(d: string): string {
   const date = parseDay(d)

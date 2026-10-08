@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDayTitle, monthGrid, parseDay, shiftMonth, weekdayOrder } from './calendar.ts'
+import { formatDayTitle, formatShortDay, monthGrid, parseDay, shiftMonth, weekdayOrder } from './calendar.ts'
 
 describe('ay ızgarası', () => {
   it('Ekim 2026 (Perşembe başlar) Pazartesi başlangıcında 5 hafta, ilk satır Eylül sonuyla dolar', () => {
@@ -71,5 +71,12 @@ describe('başlıklar', () => {
   it('günü Türkçe yazar', () => {
     expect(formatDayTitle('2026-10-06')).toBe('Salı, 6 Ekim 2026')
     expect(formatDayTitle('2026-01-01')).toBe('Perşembe, 1 Ocak 2026')
+  })
+
+  it('kısa günde yılı yalnız bugünkünden farklıysa ekler', () => {
+    const today = new Date(2026, 9, 8)
+    expect(formatShortDay('2026-10-06', today)).toBe('6 Ekim')
+    expect(formatShortDay('2025-12-31', today)).toBe('31 Aralık 2025')
+    expect(formatShortDay('2027-01-02', today)).toBe('2 Ocak 2027')
   })
 })

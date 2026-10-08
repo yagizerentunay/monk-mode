@@ -4,6 +4,7 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
 import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
+import { formatShortDay } from '../lib/calendar.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, exerciseHistory, workoutVolume } from '../lib/workout.ts'
@@ -106,7 +107,7 @@ export function Stats() {
           <button key={w.id} className="exrow" onClick={() => setOpenId(w.id)}>
             <div className="grow">
               <div className="exname">{w.name}</div>
-              <div className="sub">{w.d} · {doneSetCount(w).done} set</div>
+              <div className="sub">{formatShortDay(w.d)} · {doneSetCount(w).done} set</div>
             </div>
             <span className="sub">{formatWeight(workoutVolume(w), unit)} {unit}</span>
           </button>

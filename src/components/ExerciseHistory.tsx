@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { MONTH_NAMES, parseDay } from '../lib/calendar.ts'
+import { formatShortDay } from '../lib/calendar.ts'
 import { exerciseSummary } from '../lib/exerciseStats.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
@@ -7,11 +7,6 @@ import { exerciseHistory } from '../lib/workout.ts'
 import { useStore } from '../store/useStore.ts'
 import { LineChart } from './LineChart.tsx'
 import { PlateauNote } from './PlateauNote.tsx'
-
-function shortDay(d: string): string {
-  const date = parseDay(d)
-  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`
-}
 
 /** Kütüphane detayında: bu egzersizde kullanıcının kendi geçmişi (son seans, en iyi 1RM, ilerleme). */
 export function ExerciseHistory({ exId }: { exId: string }) {
@@ -46,11 +41,11 @@ export function ExerciseHistory({ exId }: { exId: string }) {
             <span className="bignum">{formatWeight(best.e1rm, unit)}</span>
             <span className="statunit">{unit} · en iyi tahmini 1RM</span>
           </div>
-          <div className="sub">{formatSet({ w: best.w, r: best.r, done: true }, formatWeight(best.w, unit))} · {shortDay(best.d)}</div>
+          <div className="sub">{formatSet({ w: best.w, r: best.r, done: true }, formatWeight(best.w, unit))} · {formatShortDay(best.d)}</div>
         </div>
       )}
       <div>
-        <div className="eyebrow muted">Son seans · {shortDay(last.d)}</div>
+        <div className="eyebrow muted">Son seans · {formatShortDay(last.d)}</div>
         <div className="sub">{last.sets.map((s) => formatSet(s, formatWeight(s.w, unit))).join(' · ')}</div>
       </div>
       <PlateauNote exId={exId} />
