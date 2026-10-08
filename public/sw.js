@@ -1,7 +1,7 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
 // Aynı VERSION içinde eski hash'li js/css dosyaları pruneStale ile temizlenir (aşağıda).
-const VERSION = 'v3'
+const VERSION = 'v4'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz görselleri
@@ -15,6 +15,7 @@ const MATCH = { ignoreVary: true }
 const scope = self.registration.scope
 const INDEX = new URL('./', scope).href
 const EXERCISES = new URL('data/exercises.json', scope).href
+const FONTS = ['600', '700', '800'].flatMap((w) => ['latin', 'latin-ext'].map((r) => `barlow-condensed-${r}-${w}-normal.woff2`))
 const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
 
 function isImageCdn(url) {
@@ -42,6 +43,7 @@ async function precache() {
       new URL('favicon.svg', scope).href,
       new URL('icon-192.png', scope).href, // apple-touch-icon
       new URL('manifest.webmanifest', scope).href,
+      ...FONTS.map((f) => new URL('fonts/' + f, scope).href), // CSS'ten yüklenen yazı tipleri (assets/ dışında, pruneStale'e takılmaz)
     ].map((u) => shell.add(u).catch(() => {})),
   )
   // Egzersiz verisi büyük (~1 MB) ve çevrimdışı kütüphane için şart; başarısızsa kurulumu bozma.
