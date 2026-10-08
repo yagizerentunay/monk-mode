@@ -69,6 +69,8 @@ export interface WorkoutEntry {
   unilateral?: boolean
   /** Önceki egzersizle süperset; ilk egzersizde yok sayılır (bkz. lib/superset.ts). */
   linked?: boolean
+  /** Kısa not (ağrı, takılma, enerji…); aynı egzersizin sonraki seansında hatırlatılır (lib/notes.ts). */
+  note?: string
 }
 
 export interface Workout {
