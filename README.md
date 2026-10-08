@@ -20,7 +20,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - Plaka hesaplayıcı: seansta egzersizin "Plakalar" düğmesi hedef ağırlığı bar + taraf başına plakalara böler (sıradaki set önceden seçili, set ağırlıkları tek dokunuşla). Bar ağırlığı ve eldeki plakalar Ayarlar'da, kg ve lb için ayrı tutulur; tam tutmayan yükte hedefi aşmayan en yakın yük gösterilir
 - Doğrusal ve çift ilerleme ile bir sonraki seans için ağırlık önerisi
 - Tahmini 1RM grafiği, PR tespiti, antrenman geçmişi, hafta serisi
-- Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme
+- Vücut ağırlığı kaydı, kg/lb, JSON yedek alma ve geri yükleme. "Yedekten yalnız rutinleri ekle" (Ayarlar) bir yedek dosyasındaki rutinleri mevcut verinin üstüne ekler; antrenmanlara, ayarlara ve programa dokunmaz, aynı dosyayı tekrar yüklemek çoğaltmaz (rutin paylaşmak/başka cihaza taşımak için)
 - Yedek hatırlatması: veri yalnızca tarayıcıda durduğu için, son yedekten beri veri değişmiş ve 14 gün (Ayarlar'dan Kapalı/7/14/30) geçmişse Ana Sayfa'da "Verini yedekle" şeridi çıkar; "Yedeği indir" ya da "3 gün sonra hatırlat". Değişiklik verinin parmak iziyle anlaşılır; yedekten sonra bir şey değişmediyse hatırlatmaz. Hiç yedek yoksa süre en eski kayıttan sayılır
 - Çevrimdışı çalışma: uygulama kabuğu, egzersiz verisi ve gezilen görseller önbelleğe alınır; ana ekrana eklenebilir (PWA)
 
