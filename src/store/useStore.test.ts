@@ -339,6 +339,44 @@ describe('antrenman ve egzersiz notları', () => {
   })
 })
 
+describe('kaydedilmiş antrenmanı güncelleme', () => {
+  const mk = (id: string, d: string, w: number) => ({
+    id,
+    d,
+    start: Date.parse(d),
+    name: 't',
+    entries: [{ exId: 'bench', sets: [{ w, r: 5, done: true }] }],
+  })
+
+  it('kimliği eşleşen antrenmanı değiştirir; sırayı ve diğerlerini korur', () => {
+    useStore.getState().importWorkouts([mk('a', '2026-10-01', 60), mk('b', '2026-10-02', 70), mk('c', '2026-10-03', 80)], [])
+    useStore.getState().updateWorkout(mk('b', '2026-10-02', 72.5))
+    const ws = useStore.getState().workouts
+    expect(ws.map((w) => w.id)).toEqual(['a', 'b', 'c'])
+    expect(ws[1].entries[0].sets[0].w).toBe(72.5)
+    expect(ws[0].entries[0].sets[0].w).toBe(60)
+  })
+
+  it('olmayan kimlikte hiçbir şey eklemez', () => {
+    useStore.getState().importWorkouts([mk('a', '2026-10-01', 60)], [])
+    useStore.getState().updateWorkout(mk('zzz', '2026-10-09', 1))
+    expect(useStore.getState().workouts).toHaveLength(1)
+  })
+
+  it('düzeltme sonraki seansın ilerleme önerisini değiştirir (türetilmiş veri)', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], reps: 5, prog: 'linear' as const, inc: 2.5 }] })
+    s.importWorkouts([{ ...mk('a', '2026-10-01', 60), routineId: 'r1', entries: [{ exId: 'bench', sets: [{ w: 60, r: 5, done: true }, { w: 60, r: 5, done: true }] }] }], [])
+    useStore.getState().startWorkout('r1')
+    expect(useStore.getState().active!.entries[0].sets[0].w).toBe(62.5)
+    useStore.getState().discardWorkout()
+    // Yanlış girilmiş 60 kg gerçekte 40 kg'mış: düzeltince öneri de değişir.
+    useStore.getState().updateWorkout({ ...mk('a', '2026-10-01', 40), routineId: 'r1', entries: [{ exId: 'bench', sets: [{ w: 40, r: 5, done: true }, { w: 40, r: 5, done: true }] }] })
+    useStore.getState().startWorkout('r1')
+    expect(useStore.getState().active!.entries[0].sets[0].w).toBe(42.5)
+  })
+})
+
 describe('yedekten rutin ekleme', () => {
   const incoming = {
     routines: [{ id: 'a', name: 'A Günü', ex: [{ exId: 'bench', sets: 3, reps: 8, weight: 20, prog: 'double', inc: 2.5, repsMax: 12 }] }],

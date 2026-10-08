@@ -59,6 +59,8 @@ export interface Actions {
   finishWorkout(): Workout | null
   discardWorkout(): void
   deleteWorkout(id: string): void
+  /** Kaydedilmiş bir antrenmanı (kimliğiyle) düzeltilmiş hâliyle değiştirir; sıra ve tarih korunur. */
+  updateWorkout(updated: Workout): void
   importWorkouts(workouts: Workout[], customEx: CustomExercise[]): void
   /** Yedek dosyasındaki rutinleri mevcut verinin üstüne ekler (bkz. lib/mergeRoutines.ts). */
   addRoutinesFrom(incoming: { routines: unknown; customEx: unknown }): RoutineMerge
@@ -267,6 +269,9 @@ export const useStore = create<Store>((set, get) => ({
   discardWorkout: () => set(() => ({ active: null })),
 
   deleteWorkout: (id) => set((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })),
+
+  updateWorkout: (updated) =>
+    set((s) => ({ workouts: s.workouts.map((w) => (w.id === updated.id ? updated : w)) })),
 
   importWorkouts: (incoming, customEx) =>
     set((s) => {
