@@ -131,3 +131,12 @@ describe('swapEntry', () => {
     expect(JSON.stringify(e)).toBe(snap)
   })
 })
+
+describe('hasCompletedWork', () => {
+  it('tek tarafı işaretlenmiş sol/sağ seti de iş sayar', () => {
+    const e = entry({ unilateral: true })
+    e.sets = [{ w: 10, r: 5, done: false, sides: { L: { r: 5, done: true }, R: { r: 5, done: false } } }]
+    expect(hasCompletedWork(e)).toBe(true)
+    expect(swapEntry(e, 'db', true, [])).toBeNull()
+  })
+})

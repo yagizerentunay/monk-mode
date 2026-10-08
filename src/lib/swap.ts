@@ -29,9 +29,12 @@ export function alternativesFor(
     .slice(0, Math.max(0, limit))
 }
 
-/** Egzersizde tamamlanmış ya da yarım kalmış herhangi bir set var mı? Varsa değiştirilemez. */
+/**
+ * Egzersizde tamamlanmış ya da yarım kalmış herhangi bir set var mı? Varsa değiştirilemez. Tek taraflı
+ * sette yalnız bir tarafın işaretlenmesi de iş sayılır (`partial` bayrağı ancak seans bitince konur).
+ */
 export function hasCompletedWork(entry: WorkoutEntry): boolean {
-  return entry.sets.some((s) => s.done || s.partial)
+  return entry.sets.some((s) => s.done || s.partial || s.sides?.L.done || s.sides?.R.done)
 }
 
 /**
