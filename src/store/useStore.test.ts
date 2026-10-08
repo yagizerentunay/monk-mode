@@ -226,3 +226,38 @@ describe('süperset', () => {
     expect(finished?.entries.map((e) => !!e.linked)).toEqual([false, true])
   })
 })
+
+describe('içe aktarma', () => {
+  const wk = (id: string, d: string, start: number) => ({
+    id,
+    d,
+    start,
+    name: 'Üst',
+    entries: [{ exId: 'bench', sets: [{ w: 60, r: 5, done: true }] }],
+  })
+
+  it('antrenmanları tarih sırasıyla birleştirir ve özel egzersizi ekler', () => {
+    const s = useStore.getState()
+    s.importWorkouts([wk('b', '2026-10-05', 5)], [])
+    useStore.getState().importWorkouts(
+      [wk('a', '2026-10-01', 1), wk('c', '2026-10-09', 9)],
+      [{ id: 'custom-x', name: 'X', primaryMuscles: [], equipment: '' }],
+    )
+    expect(useStore.getState().workouts.map((w) => w.id)).toEqual(['a', 'b', 'c'])
+    expect(useStore.getState().customEx.map((c) => c.id)).toEqual(['custom-x'])
+  })
+
+  it('aynı başlangıç ve adlı antrenmanı ikinci kez eklemez', () => {
+    const s = useStore.getState()
+    s.importWorkouts([wk('a', '2026-10-01', 1)], [])
+    useStore.getState().importWorkouts([wk('a2', '2026-10-01', 1)], [])
+    expect(useStore.getState().workouts).toHaveLength(1)
+  })
+
+  it('aynı kimlikli özel egzersizi çoğaltmaz', () => {
+    const custom = { id: 'custom-x', name: 'X', primaryMuscles: [], equipment: '' }
+    useStore.getState().importWorkouts([], [custom])
+    useStore.getState().importWorkouts([], [custom])
+    expect(useStore.getState().customEx).toHaveLength(1)
+  })
+})

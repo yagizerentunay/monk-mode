@@ -53,6 +53,7 @@ export interface Actions {
   finishWorkout(): Workout | null
   discardWorkout(): void
   deleteWorkout(id: string): void
+  importWorkouts(workouts: Workout[], customEx: CustomExercise[]): void
   logBodyweight(entry: BodyweightEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   replaceAll(state: State): void
@@ -237,6 +238,18 @@ export const useStore = create<Store>((set, get) => ({
   discardWorkout: () => set(() => ({ active: null })),
 
   deleteWorkout: (id) => set((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })),
+
+  importWorkouts: (incoming, customEx) =>
+    set((s) => {
+      // Aynı başlangıç + ad zaten varsa eklenmez; liste eskiden yeniye sıralı kalır (bkz. lastEntryFor).
+      const have = new Set(s.workouts.map((w) => `${w.start}|${w.name}`))
+      const fresh = incoming.filter((w) => !have.has(`${w.start}|${w.name}`))
+      const ids = new Set(s.customEx.map((c) => c.id))
+      return {
+        workouts: [...s.workouts, ...fresh].sort((a, b) => a.d.localeCompare(b.d) || a.start - b.start),
+        customEx: [...s.customEx, ...customEx.filter((c) => !ids.has(c.id))],
+      }
+    }),
 
   logBodyweight: (entry) =>
     set((s) => ({
