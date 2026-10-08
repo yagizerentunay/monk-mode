@@ -339,6 +339,28 @@ describe('antrenman ve egzersiz notları', () => {
   })
 })
 
+describe('geçmiş güne antrenman ekleme', () => {
+  const mk = (id: string, d: string) => ({
+    id,
+    d,
+    start: Date.parse(d),
+    name: 't',
+    entries: [{ exId: 'bench', sets: [{ w: 60, r: 5, done: true }] }],
+  })
+
+  it('antrenmanı tarih sırasında araya ekler', () => {
+    useStore.getState().importWorkouts([mk('a', '2026-10-01'), mk('c', '2026-10-09')], [])
+    useStore.getState().addWorkout(mk('b', '2026-10-05'))
+    expect(useStore.getState().workouts.map((w) => w.id)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('aynı kimliği ikinci kez eklemez', () => {
+    useStore.getState().addWorkout(mk('a', '2026-10-01'))
+    useStore.getState().addWorkout(mk('a', '2026-10-02'))
+    expect(useStore.getState().workouts).toHaveLength(1)
+  })
+})
+
 describe('kaydedilmiş antrenmanı güncelleme', () => {
   const mk = (id: string, d: string, w: number) => ({
     id,

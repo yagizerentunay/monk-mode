@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { insertWorkout } from '../lib/backdate.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
@@ -61,6 +62,8 @@ export interface Actions {
   deleteWorkout(id: string): void
   /** Kaydedilmiş bir antrenmanı (kimliğiyle) düzeltilmiş hâliyle değiştirir; sıra ve tarih korunur. */
   updateWorkout(updated: Workout): void
+  /** Geçmiş bir güne girilen antrenmanı (d, start) sırasında ekler; aynı kimlik varsa dokunmaz. */
+  addWorkout(workout: Workout): void
   importWorkouts(workouts: Workout[], customEx: CustomExercise[]): void
   /** Yedek dosyasındaki rutinleri mevcut verinin üstüne ekler (bkz. lib/mergeRoutines.ts). */
   addRoutinesFrom(incoming: { routines: unknown; customEx: unknown }): RoutineMerge
@@ -269,6 +272,8 @@ export const useStore = create<Store>((set, get) => ({
   discardWorkout: () => set(() => ({ active: null })),
 
   deleteWorkout: (id) => set((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })),
+
+  addWorkout: (workout) => set((s) => ({ workouts: insertWorkout(s.workouts, workout) })),
 
   updateWorkout: (updated) =>
     set((s) => ({ workouts: s.workouts.map((w) => (w.id === updated.id ? updated : w)) })),
