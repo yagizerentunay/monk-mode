@@ -8,6 +8,7 @@ import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
+import { suggestNextRoutine } from '../lib/nextWorkout.ts'
 import { weekStartOf, weekStreak } from '../lib/streak.ts'
 import { formatWeight, kgToUnit, unitToKg } from '../lib/units.ts'
 import { dayString } from '../lib/workout.ts'
@@ -36,6 +37,27 @@ export function Home() {
 
   const todayRoutine = routines.find((r) => r.id === week[today.getDay()])
   const doneToday = trainedDays.has(todayKey)
+  // Sıradaki öneri yalnız dinlenme gününde ya da bugünün planı bittiğinde; bugünün rutiniyle aynıysa gereksiz.
+  const suggestion = suggestNextRoutine(routines, workouts)
+  const next = suggestion && (!todayRoutine || (doneToday && suggestion.routine.id !== todayRoutine.id)) ? suggestion : undefined
+  const nextBlock = next && (
+    <div className="hero-next stack">
+      <div className="eyebrow">Sıradaki</div>
+      <div className="hero-next-title">{next.routine.name}</div>
+      <div className="sub">
+        {next.last ? `Son: ${next.last.name} · ` : ''}{next.routine.ex.length} egzersiz
+      </div>
+      <button
+        className="btn primary block"
+        onClick={() => {
+          startWorkout(next.routine.id)
+          navigate('/workout')
+        }}
+      >
+        Başla ▶
+      </button>
+    </div>
+  )
   const streak = weekStreak(workouts, today, weekStart)
   const monthPrefix = todayKey.slice(0, 7)
   const thisMonth = workouts.filter((w) => w.d.startsWith(monthPrefix)).length
@@ -113,7 +135,7 @@ export function Home() {
           <div className="hero-title">{todayRoutine.name}</div>
           <div className="sub">{todayRoutine.ex.length} egzersiz · {workSets} çalışma seti</div>
           <button
-            className="btn primary block"
+            className={nextBlock ? 'btn block' : 'btn primary block'}
             onClick={() => {
               startWorkout(todayRoutine.id)
               navigate('/workout')
@@ -121,6 +143,7 @@ export function Home() {
           >
             {doneToday ? 'Tekrar başla' : 'Antrenmana başla'}
           </button>
+          {nextBlock}
         </div>
       ) : (
         <div className="card hero stack">
@@ -129,7 +152,8 @@ export function Home() {
           <div className="sub">
             {routines.length === 0 ? 'İlk rutinini kur, günlere ata.' : 'İstersen yine de antrenman başlatabilirsin.'}
           </div>
-          <Link to={routines.length === 0 ? '/plan' : '/workout'} className="btn primary block">
+          {nextBlock}
+          <Link to={routines.length === 0 ? '/plan' : '/workout'} className={nextBlock ? 'btn block' : 'btn primary block'}>
             {routines.length === 0 ? 'Plan oluştur' : 'Antrenman seç'}
           </Link>
         </div>
