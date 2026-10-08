@@ -3,11 +3,19 @@ import { ImportCard } from '../components/ImportCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { REMIND_CHOICES } from '../lib/backupReminder.ts'
+import { formatRate } from '../lib/bodyweight.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
+import { unitToKg, type Unit } from '../lib/units.ts'
 import { importBackup } from '../store/backup.ts'
 import { downloadBackup } from '../store/downloadBackup.ts'
 import { defaultState } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
+
+/** Hedef hız seçenekleri, kullanıcının biriminde (kg/hafta ya da lb/hafta); saklanırken kg'a çevrilir. */
+const GOAL_CHOICES: Record<Unit, number[]> = {
+  kg: [-0.5, -0.25, 0, 0.25, 0.5],
+  lb: [-1, -0.5, 0, 0.5, 1],
+}
 
 export function Settings() {
   const unit = useStore((s) => s.settings.unit)
@@ -16,6 +24,7 @@ export function Settings() {
   const plateKit = useStore((s) => s.settings.plateKit)
   const backupRemindDays = useStore((s) => s.settings.backupRemindDays)
   const lastBackupAt = useStore((s) => s.settings.lastBackupAt)
+  const bodyweightGoal = useStore((s) => s.settings.bodyweightGoal)
   const setSettings = useStore((s) => s.setSettings)
   const replaceAll = useStore((s) => s.replaceAll)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -125,6 +134,31 @@ export function Settings() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="card stack">
+        <h2>Kilo hedefi</h2>
+        <p className="sub" style={{ margin: 0 }}>
+          Haftalık hedef değişim hızı. Ana Sayfa ve İstatistik'te gerçek hızınla karşılaştırılır.
+        </p>
+        <div className="chips">
+          <button
+            className={`chip${bodyweightGoal === undefined ? ' on' : ''}`}
+            aria-pressed={bodyweightGoal === undefined}
+            onClick={() => setSettings({ bodyweightGoal: undefined })}
+          >
+            Yok
+          </button>
+          {GOAL_CHOICES[unit].map((v) => {
+            const kg = unitToKg(v, unit)
+            const on = bodyweightGoal !== undefined && Math.abs(bodyweightGoal - kg) < 0.005
+            return (
+              <button key={v} className={`chip${on ? ' on' : ''}`} aria-pressed={on} onClick={() => setSettings({ bodyweightGoal: kg })}>
+                {v === 0 ? 'Koru' : formatRate(kg, unit)}
+              </button>
+            )
+          })}
         </div>
       </div>
 

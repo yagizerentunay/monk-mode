@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BackupReminder } from '../components/BackupReminder.tsx'
+import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
@@ -129,6 +130,7 @@ export function Home() {
             points={bodyweight.slice(-30).map((b) => ({ label: b.d.slice(5), value: Math.round(kgToUnit(b.w, unit) * 10) / 10 }))}
           />
         )}
+        <BodyweightTrend compact />
       </div>
 
       <BottomSheet open={logging} onClose={() => setLogging(false)} title="Bugünkü tartı">
