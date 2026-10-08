@@ -109,6 +109,8 @@ export interface Settings {
   lastBackupHash?: string
   /** "Sonra hatırlat" ile ertelendiyse bu zamana (epoch ms) kadar hatırlatma yok. */
   backupSnoozedUntil?: number
+  /** Hedef vücut ağırlığı değişim hızı, kg/hafta (+ kilo alma, − verme, 0 koruma); yoksa hedef yok. */
+  bodyweightGoal?: number
 }
 
 export interface State {

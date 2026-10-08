@@ -74,6 +74,12 @@ export function migrate(raw: unknown): State {
           ? settings.lastBackupHash
           : undefined,
       backupSnoozedUntil: positive(settings.backupSnoozedUntil),
+      bodyweightGoal:
+        typeof settings.bodyweightGoal === 'number' &&
+        Number.isFinite(settings.bodyweightGoal) &&
+        Math.abs(settings.bodyweightGoal) <= 2
+          ? settings.bodyweightGoal
+          : undefined,
     },
     routines: arr(raw.routines),
     week: isRecord(raw.week) ? (raw.week as State['week']) : base.week,

@@ -53,6 +53,17 @@ describe('yedek', () => {
   })
 })
 
+describe('kilo hedefi ayarı', () => {
+  it('geçerli hedefi (0 dahil, negatif dahil) korur, bozuk ya da aşırı değeri atar', () => {
+    expect(migrate({ settings: { bodyweightGoal: 0.25 } }).settings.bodyweightGoal).toBe(0.25)
+    expect(migrate({ settings: { bodyweightGoal: 0 } }).settings.bodyweightGoal).toBe(0)
+    expect(migrate({ settings: { bodyweightGoal: -0.5 } }).settings.bodyweightGoal).toBe(-0.5)
+    expect(migrate({ settings: { bodyweightGoal: 9 } }).settings.bodyweightGoal).toBeUndefined()
+    expect(migrate({ settings: { bodyweightGoal: 'x' } }).settings.bodyweightGoal).toBeUndefined()
+    expect(migrate({}).settings.bodyweightGoal).toBeUndefined()
+  })
+})
+
 describe('yedek hatırlatma ayarları', () => {
   it('varsayılanı 14 gün yapar, bozuk değerleri atar', () => {
     expect(migrate({}).settings.backupRemindDays).toBe(14)
