@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultState } from './schema.ts'
+import { doneSetCount } from '../lib/workout.ts'
 import { snapshot, useStore } from './useStore.ts'
 
 const routine = {
@@ -77,12 +78,14 @@ describe('store akışı', () => {
     expect(set0.sides).toEqual({ L: { r: 6, done: true }, R: { r: 4, done: true } })
   })
 
-  it('yalnız bir tarafı biten set kayda alınmaz', () => {
+  it('yalnız bir tarafı biten set tamamlanmış sayılmaz, yarım set olarak kaydedilir', () => {
     const s = useStore.getState()
     s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], side: true }] })
     s.startWorkout('r1')
     useStore.getState().updateSide(0, 0, 'L', { done: true })
-    expect(useStore.getState().finishWorkout()).toBeNull()
+    const finished = useStore.getState().finishWorkout()
+    expect(finished?.entries[0].sets[0]).toMatchObject({ partial: true, done: false })
+    expect(doneSetCount(finished!).done).toBe(0)
   })
 
   it('egzersizi tek taraflıya çevirip geri alır, durumu korur', () => {
@@ -288,5 +291,31 @@ describe('ısınmayı çalışma ağırlığına bağlama', () => {
     useStore.getState().updateSet(0, 1, { w: 55 })
     useStore.getState().updateSet(0, 2, { w: 60 })
     expect(sets().slice(0, 2).map((x) => x.w)).toEqual([25, 55])
+  })
+})
+
+describe('yarım tek taraflı set', () => {
+  it('antrenman bitince bir tarafı yapılmış seti yarım set olarak kaydeder', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], sets: 2, weight: 20, side: true }] })
+    s.startWorkout('r1')
+    useStore.getState().updateSide(0, 0, 'L', { done: true })
+    useStore.getState().updateSide(0, 1, 'L', { done: true })
+    useStore.getState().updateSide(0, 1, 'R', { done: true })
+    const finished = useStore.getState().finishWorkout()
+    expect(finished?.entries[0].sets).toHaveLength(2)
+    expect(finished?.entries[0].sets[0]).toMatchObject({ partial: true, done: false })
+    expect(finished?.entries[0].sets[1]).toMatchObject({ done: true })
+    expect(finished?.entries[0].sets[1].partial).toBeUndefined()
+  })
+
+  it('yalnız yarım seti olan egzersiz kayda girer, hiçbir şey yapılmadıysa girmez', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], sets: 1, weight: 20, side: true }] })
+    s.startWorkout('r1')
+    expect(useStore.getState().finishWorkout()).toBeNull()
+    useStore.getState().startWorkout('r1')
+    useStore.getState().updateSide(0, 0, 'R', { done: true })
+    expect(useStore.getState().finishWorkout()?.entries).toHaveLength(1)
   })
 })

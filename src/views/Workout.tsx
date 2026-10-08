@@ -14,7 +14,7 @@ import { formatSet } from '../lib/sets.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
-import { doneSetCount, isPR, lastEntryFor, workoutVolume } from '../lib/workout.ts'
+import { doneSetCount, isPR, lastEntryFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -99,6 +99,9 @@ export function Workout() {
         <div className="card stack">
           <div className="row between"><span className="sub">Süre</span><b>{mins} dk</b></div>
           <div className="row between"><span className="sub">Tamamlanan set</span><b>{doneSetCount(workout).done}</b></div>
+          {partialSetCount(workout) > 0 && (
+            <div className="row between"><span className="sub">Yarım set (tek taraf)</span><b>{partialSetCount(workout)}</b></div>
+          )}
           <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
         </div>
         {prs.length > 0 && (

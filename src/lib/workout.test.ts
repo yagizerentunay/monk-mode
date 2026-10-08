@@ -6,8 +6,10 @@ import {
   dayString,
   doneSetCount,
   exerciseHistory,
+  finalizeSet,
   isPR,
   lastEntryFor,
+  partialSetCount,
   workoutVolume,
 } from './workout.ts'
 
@@ -191,5 +193,45 @@ describe('süperset', () => {
     const r: Routine = { id: 'r3', name: 'Üst', ex: [cfg('a', true), cfg('b', true)] }
     const w = buildWorkout(r, [], Date.UTC(2026, 9, 8, 12))
     expect(w.entries.map((e) => !!e.linked)).toEqual([false, true])
+  })
+})
+
+describe('yarım tek taraflı set', () => {
+  const half = (l: number, r: number, doneL: boolean, doneR: boolean) =>
+    deriveSet({ w: 20, r: 0, done: false, sides: { L: { r: l, done: doneL }, R: { r, done: doneR } } })
+
+  it('bir tarafı yapılmış seti yarım set olarak saklar, yapılmayan tarafın tekrarını sıfırlar', () => {
+    expect(finalizeSet(half(8, 8, true, false))).toMatchObject({
+      r: 0,
+      done: false,
+      partial: true,
+      sides: { L: { r: 8, done: true }, R: { r: 0, done: false } },
+    })
+    expect(finalizeSet(half(8, 6, false, true))).toMatchObject({
+      partial: true,
+      sides: { L: { r: 0, done: false }, R: { r: 6, done: true } },
+    })
+  })
+
+  it('hiç yapılmamış, tam yapılmış ve tekrarsız seti yarım saymaz', () => {
+    expect(finalizeSet(half(8, 8, false, false))).toBeNull()
+    expect(finalizeSet(half(0, 8, true, false))).toBeNull()
+    const full = half(8, 8, true, true)
+    expect(finalizeSet(full)).toBe(full)
+  })
+
+  it('tek taraflı olmayan tamamlanmamış seti ve ısınmayı atar', () => {
+    expect(finalizeSet({ w: 60, r: 5, done: false })).toBeNull()
+    expect(finalizeSet({ w: 20, r: 5, done: false, warmup: true })).toBeNull()
+  })
+
+  it('hacme yapılan tarafı katar, 1RM ve PR geçmişine katmaz', () => {
+    const partial = finalizeSet(half(8, 8, true, false))!
+    const wk: Workout = { id: 'p', d: '2026-10-01', start: 0, name: 't', entries: [{ exId: 'split', unilateral: true, sets: [partial] }] }
+    expect(workoutVolume(wk)).toBe(160)
+    expect(exerciseHistory([wk], 'split')).toEqual([])
+    expect(lastEntryFor([wk], 'split')).toBeUndefined()
+    expect(partialSetCount(wk)).toBe(1)
+    expect(doneSetCount(wk).done).toBe(0)
   })
 })

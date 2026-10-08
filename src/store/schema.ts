@@ -53,6 +53,11 @@ export interface SetEntry {
    * girer ama ilerleme hesabında yok sayılır (hafif ve az tekrarlı olduğu için hedefi tutmaz).
    */
   drop?: boolean
+  /**
+   * Yarım set: tek taraflı sette yalnız bir taraf yapılmış, antrenman o hâlde bitmiş. Hacme girer ama
+   * `done` değildir; bu yüzden ilerleme, 1RM ve PR hesabına karışmaz. Yapılmayan tarafın tekrarı 0'dır.
+   */
+  partial?: boolean
   /** Tek taraflı setlerde gerçek kaynak; `r` ve `done` buradan türetilir (bkz. lib/sets.ts). */
   sides?: { L: SideSet; R: SideSet }
 }

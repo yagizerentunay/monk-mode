@@ -39,5 +39,6 @@ export function toBilateral(sets: SetEntry[]): SetEntry[] {
 /** Kısa özet: `60×8 @2`, tek taraflıda `20×L10/R8 @1`, dropsette başına `↓`. */
 export function formatSet(set: SetEntry, weight: string): string {
   const reps = set.sides ? `L${set.sides.L.r}/R${set.sides.R.r}` : String(set.r)
-  return `${set.drop ? '↓' : ''}${weight}×${reps}${set.rir !== undefined ? ` @${set.rir}` : ''}`
+  const half = set.partial ? ' (yarım)' : ''
+  return `${set.drop ? '↓' : ''}${weight}×${reps}${set.rir !== undefined ? ` @${set.rir}` : ''}${half}`
 }

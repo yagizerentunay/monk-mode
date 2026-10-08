@@ -61,9 +61,33 @@ export function buildWorkout(routine: Routine, history: Workout[], now: number):
  */
 export function workoutVolume(workout: Workout): number {
   return workout.entries.reduce(
-    (sum, e) => sum + workSets(e.sets).reduce((s, set) => s + set.w * setReps(set), 0),
+    (sum, e) =>
+      sum +
+      e.sets
+        .filter((s) => !s.warmup && (s.done || s.partial))
+        .reduce((s, set) => s + set.w * setReps(set), 0),
     0,
   )
+}
+
+/** Kaydedilmiş antrenmandaki yarım (tek tarafı yapılmış) set sayısı. */
+export function partialSetCount(workout: Workout): number {
+  return workout.entries.reduce((n, e) => n + e.sets.filter((s) => s.partial).length, 0)
+}
+
+/**
+ * Seans bitişinde setin ne olacağı: tamamlandıysa aynen kalır; tek taraflıda tam bir taraf yapılmışsa
+ * yarım set olarak (yapılmayan tarafın tekrarı 0) saklanır; hiç yapılmadıysa null.
+ */
+export function finalizeSet(set: SetEntry): SetEntry | null {
+  if (set.done) return set
+  if (!set.sides || set.warmup) return null
+  const { L, R } = set.sides
+  if (L.done === R.done) return null
+  const kept = L.done ? L : R
+  if (kept.r <= 0) return null
+  const none = { r: 0, done: false }
+  return { ...set, r: 0, done: false, partial: true, sides: L.done ? { L, R: none } : { L: none, R } }
 }
 
 export function doneSetCount(workout: Workout): { done: number; total: number } {

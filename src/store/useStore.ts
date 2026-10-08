@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
-import { buildWorkout, dayString, newId } from '../lib/workout.ts'
+import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
 import {
   defaultState,
@@ -225,9 +225,9 @@ export const useStore = create<Store>((set, get) => ({
   finishWorkout: () => {
     const { active } = get()
     if (!active) return null
-    // Yalnız tamamlanan setler kaydedilir; yalnız ısınması yapılmış egzersiz kayda girmez.
+    // Tamamlanan setler (ve tek tarafı yapılmış yarım setler) kaydedilir; yalnız ısınması yapılmış egzersiz kayda girmez.
     const entries = active.entries
-      .map((e) => ({ ...e, sets: e.sets.filter((x) => x.done) }))
+      .map((e) => ({ ...e, sets: e.sets.flatMap((x) => finalizeSet(x) ?? []) }))
       .filter((e) => e.sets.some((x) => !x.warmup))
     if (entries.length === 0) {
       set(() => ({ active: null }))

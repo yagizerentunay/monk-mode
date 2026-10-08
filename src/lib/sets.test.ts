@@ -69,3 +69,10 @@ describe('formatSet', () => {
     expect(formatSet({ w: 48, r: 6, done: true, drop: true }, '48')).toBe('↓48×6')
   })
 })
+
+describe('yarım set gösterimi', () => {
+  it('yarım seti işaretler', () => {
+    const set = { w: 20, r: 0, done: false, partial: true, sides: { L: { r: 8, done: true }, R: { r: 0, done: false } } }
+    expect(formatSet(set, '20')).toBe('20×L8/R0 (yarım)')
+  })
+})
