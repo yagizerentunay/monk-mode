@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultState } from './schema.ts'
+import { fingerprint } from '../lib/backupReminder.ts'
 import { doneSetCount } from '../lib/workout.ts'
 import { snapshot, useStore } from './useStore.ts'
 
@@ -291,6 +292,28 @@ describe('ısınmayı çalışma ağırlığına bağlama', () => {
     useStore.getState().updateSet(0, 1, { w: 55 })
     useStore.getState().updateSet(0, 2, { w: 60 })
     expect(sets().slice(0, 2).map((x) => x.w)).toEqual([25, 55])
+  })
+})
+
+describe('yedek işaretleme', () => {
+  const wk = { id: 'w', d: '2026-10-01', start: 1, name: 't', entries: [] }
+
+  it('yedeklendi işareti zamanı ve veri parmak izini kaydeder, ertelemeyi siler', () => {
+    useStore.getState().importWorkouts([wk], [])
+    useStore.getState().snoozeBackup(1000)
+    expect(useStore.getState().settings.backupSnoozedUntil).toBe(1000 + 3 * 24 * 60 * 60 * 1000)
+    useStore.getState().markBackedUp(5000)
+    const s = useStore.getState().settings
+    expect(s.lastBackupAt).toBe(5000)
+    expect(s.lastBackupHash).toBe(fingerprint(useStore.getState()))
+    expect(s.backupSnoozedUntil).toBeUndefined()
+  })
+
+  it('yedekten sonra veri değişince parmak izi uyuşmaz', () => {
+    useStore.getState().importWorkouts([wk], [])
+    useStore.getState().markBackedUp(5000)
+    useStore.getState().logBodyweight({ d: '2026-10-02', w: 80 })
+    expect(useStore.getState().settings.lastBackupHash).not.toBe(fingerprint(useStore.getState()))
   })
 })
 

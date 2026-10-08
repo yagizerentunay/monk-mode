@@ -102,6 +102,13 @@ export interface Settings {
   weekStart: number
   /** Plaka hesaplayıcı için bar ve eldeki plakalar; her birimin kiti kendi biriminde tutulur. */
   plateKit: Record<Unit, PlateKit>
+  /** Yedek hatırlatma aralığı (gün); 0 = kapalı. */
+  backupRemindDays: number
+  /** Son yedeğin zamanı (epoch ms) ve o andaki verinin parmak izi (bkz. lib/backupReminder.ts). */
+  lastBackupAt?: number
+  lastBackupHash?: string
+  /** "Sonra hatırlat" ile ertelendiyse bu zamana (epoch ms) kadar hatırlatma yok. */
+  backupSnoozedUntil?: number
 }
 
 export interface State {
@@ -119,7 +126,7 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS) },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14 },
     routines: [],
     week: {},
     workouts: [],

@@ -52,3 +52,22 @@ describe('yedek', () => {
     expect(() => importBackup('{"app":"other","state":{}}')).toThrow('monk-mode')
   })
 })
+
+describe('yedek hatırlatma ayarları', () => {
+  it('varsayılanı 14 gün yapar, bozuk değerleri atar', () => {
+    expect(migrate({}).settings.backupRemindDays).toBe(14)
+    const s = migrate({
+      settings: { backupRemindDays: -3, lastBackupAt: 'x', lastBackupHash: 5, backupSnoozedUntil: -1 },
+    })
+    expect(s.settings.backupRemindDays).toBe(14)
+    expect(s.settings.lastBackupAt).toBeUndefined()
+    expect(s.settings.lastBackupHash).toBeUndefined()
+    expect(s.settings.backupSnoozedUntil).toBeUndefined()
+  })
+
+  it('geçerli değerleri ve yedek turunu korur', () => {
+    const s = migrate({ settings: { backupRemindDays: 0, lastBackupAt: 1700000000000, lastBackupHash: 'abc' } })
+    expect(s.settings).toMatchObject({ backupRemindDays: 0, lastBackupAt: 1700000000000, lastBackupHash: 'abc' })
+    expect(importBackup(exportBackup(s)).settings.lastBackupHash).toBe('abc')
+  })
+})

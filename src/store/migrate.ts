@@ -6,6 +6,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
 }
 
+/** Pozitif, sonlu sayı; değilse undefined (bozuk yedek alanı atılır). */
+function positive(v: unknown): number | undefined {
+  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : undefined
+}
+
 const MAX_BAR = 100
 const MAX_PLATE = 100
 
@@ -56,6 +61,19 @@ export function migrate(raw: unknown): State {
         kg: migrateKit(isRecord(settings.plateKit) ? settings.plateKit.kg : undefined, 'kg'),
         lb: migrateKit(isRecord(settings.plateKit) ? settings.plateKit.lb : undefined, 'lb'),
       },
+      backupRemindDays:
+        typeof settings.backupRemindDays === 'number' &&
+        Number.isInteger(settings.backupRemindDays) &&
+        settings.backupRemindDays >= 0 &&
+        settings.backupRemindDays <= 365
+          ? settings.backupRemindDays
+          : base.settings.backupRemindDays,
+      lastBackupAt: positive(settings.lastBackupAt),
+      lastBackupHash:
+        typeof settings.lastBackupHash === 'string' && settings.lastBackupHash.length <= 32
+          ? settings.lastBackupHash
+          : undefined,
+      backupSnoozedUntil: positive(settings.backupSnoozedUntil),
     },
     routines: arr(raw.routines),
     week: isRecord(raw.week) ? (raw.week as State['week']) : base.week,

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
@@ -57,6 +58,9 @@ export interface Actions {
   logBodyweight(entry: BodyweightEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   replaceAll(state: State): void
+  /** Şu anki verinin yedeklendiğini işaretler (yedek indirilince ya da yedekten yüklenince). */
+  markBackedUp(now: number): void
+  snoozeBackup(now: number): void
 }
 
 export type Store = State & Actions
@@ -268,6 +272,14 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   replaceAll: (state) => set(() => ({ ...state })),
+
+  markBackedUp: (now) =>
+    set((s) => ({
+      settings: { ...s.settings, lastBackupAt: now, lastBackupHash: fingerprint(s), backupSnoozedUntil: undefined },
+    })),
+
+  snoozeBackup: (now) =>
+    set((s) => ({ settings: { ...s.settings, backupSnoozedUntil: now + SNOOZE_DAYS * 24 * 60 * 60 * 1000 } })),
 }))
 
 /** Yalnızca veri alanlarını (eylemler hariç) seçer. */
