@@ -34,7 +34,8 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
   }
 
   return (
-    <div className="stack">
+    <div className="stack workouteditor">
+      <div className="eyebrow">Antrenmanı düzenle</div>
       <label className="field">
         <span className="sub">Antrenman notu</span>
         <textarea

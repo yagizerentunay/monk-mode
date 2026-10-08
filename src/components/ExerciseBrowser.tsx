@@ -28,7 +28,7 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
   if (error) return <p className="sub">Egzersizler yüklenemedi: {error}</p>
 
   return (
-    <div className="stack">
+    <div className="stack exbrowser">
       <input
         className="input"
         type="search"
@@ -39,12 +39,14 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
           reset()
         }}
       />
+      <div className="eyebrow muted">Kas grubu</div>
       <div className="chips">
         <button className={`chip${muscle === null ? ' on' : ''}`} onClick={() => { setMuscle(null); reset() }}>Tüm kaslar</button>
         {muscles.map((m) => (
           <button key={m} className={`chip tag${muscle === m ? ' on' : ''}`} onClick={() => { setMuscle(m); reset() }}>{m}</button>
         ))}
       </div>
+      <div className="eyebrow muted">Ekipman</div>
       <div className="chips">
         <button className={`chip${equipment === null ? ' on' : ''}`} onClick={() => { setEquipment(null); reset() }}>Tüm ekipman</button>
         {equipments.map((q) => (
@@ -52,7 +54,7 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
         ))}
       </div>
 
-      <p className="sub">{loading ? 'Yükleniyor…' : `${filtered.length} egzersiz`}</p>
+      <p className="sub resultcount">{loading ? 'Yükleniyor…' : `${filtered.length} egzersiz`}</p>
 
       <div className="card" style={{ padding: '4px 14px' }}>
         {filtered.slice(0, shown).map((e) => (
@@ -69,7 +71,7 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
                 {e.equipment ? ` · ${e.equipment}` : ''}
               </div>
             </div>
-            {actionLabel && <span className="sub">{actionLabel}</span>}
+            {actionLabel ? <span className="exaction">{actionLabel}</span> : <span className="chev" aria-hidden="true">›</span>}
           </button>
         ))}
         {!loading && filtered.length === 0 && <p className="sub">Sonuç yok.</p>}

@@ -60,7 +60,8 @@ export function ImportCard() {
   const last = parsed?.workouts[parsed.workouts.length - 1]?.date
 
   return (
-    <div className="card stack">
+    <div className="card stack importcard">
+      <div className="eyebrow">İçe aktarma</div>
       <h2>Başka uygulamadan içe aktar</h2>
       <p className="sub" style={{ margin: 0 }}>
         Strong veya Hevy'nin CSV dışa aktarımını seç. Strong dosyası İngilizce dışa aktarılmış olmalı. Veri bu

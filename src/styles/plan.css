@@ -11,3 +11,71 @@
 
 /* kaydedilmiş antrenman düzenleme */
 .editentry { padding: 10px 0; border-top: 1px solid var(--line); }
+
+/* ---- Warrior Monk: Plan, rutin düzenleme, kütüphane, ayarlar ---- */
+
+/* segment kontrolü (aktif = bakır dolgu) */
+.seg { display: flex; padding: 4px; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.seg button {
+  flex: 1; min-height: var(--tap); border: 0; border-radius: 9px; background: transparent; color: var(--muted);
+  font-weight: 700; font-size: 15px; transition: background 0.15s, color 0.15s;
+}
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+
+/* haftalık program satırları */
+.dayrow { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 14px; }
+.dayrow.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.dayrow.dayrest .dayname { color: var(--muted); }
+.daydate { display: flex; flex-direction: column; align-items: center; width: 44px; flex: none; }
+.daydate .dow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.daydate .dno { font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1; }
+.dayrow.today .dow { color: var(--accent); }
+.dayname { display: block; font-weight: 700; font-size: 17px; }
+.daysub { display: block; font-size: 13px; color: var(--muted); }
+.donemark { font-size: 12px; font-weight: 700; color: var(--ok); white-space: nowrap; }
+.chev { color: var(--muted); font-size: 22px; line-height: 1; flex: none; }
+.dayrow.today .chev { color: var(--accent); }
+.routinecard { min-height: 64px; }
+
+/* rutin düzenleme */
+.routinename { font-size: 18px; font-weight: 700; min-height: 52px; }
+.exedit .btn.small { min-width: var(--tap); min-height: var(--tap); }
+.exedit .field > .sub, .exedit .adv .field > .sub { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.exedit .num { font-size: 20px; font-weight: 700; min-height: 52px; }
+.exedit input[type='checkbox'] { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.exedit label.row { min-height: var(--tap); }
+.adv { border: 1px solid var(--line); border-radius: var(--radius-btn); background: var(--card-2); }
+.adv > summary {
+  display: flex; flex-direction: column; gap: 2px; min-height: var(--tap); padding: 8px 12px; cursor: pointer;
+  list-style: none; font-weight: 700;
+}
+.adv > summary::-webkit-details-marker { display: none; }
+.adv > summary::after { content: '+'; position: absolute; }
+.adv > summary { position: relative; padding-right: 36px; }
+.adv > summary::after { right: 14px; top: 8px; font-size: 20px; color: var(--accent); }
+.adv[open] > summary::after { content: '−'; }
+.advsum { font-size: 13px; font-weight: 400; color: var(--muted); }
+.advbody { padding: 4px 12px 12px; }
+
+/* kütüphane / egzersiz seçici */
+.exbrowser .chip { min-height: var(--tap); padding: 8px 16px; }
+.exbrowser .chip.on { box-shadow: none; }
+.exbrowser .resultcount { margin: 0; }
+.exbrowser .input[type='search'] { min-height: 48px; }
+.exrow { position: relative; min-height: 64px; padding-left: 12px; }
+.exrow::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--accent); opacity: 0.55; }
+.exrow:active::before, .exrow:hover::before { opacity: 1; }
+.thumb { border: 1px solid var(--line); }
+.exaction { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.exdetail-name { font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.05; }
+.exdetail-img { height: 160px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card-2); }
+
+/* ayarlar, içe aktarma, antrenman düzenleme */
+.settings .chip, .importcard .chip { min-height: var(--tap); padding: 8px 16px; }
+.settings .card h2, .importcard h2 { margin-bottom: 0; }
+.eyebrow.danger { color: var(--danger); }
+.dangerzone { border-color: rgba(242, 101, 91, 0.45); background: rgba(242, 101, 91, 0.06); margin-top: 28px; }
+.btn.danger { border-color: rgba(242, 101, 91, 0.6); }
+.btn.danger.block { background: transparent; }
+.workouteditor .btn.small { min-width: var(--tap); }
+.workouteditor .editentry .exname { font-size: 17px; }

@@ -78,10 +78,14 @@ export function Settings() {
   }
 
   return (
-    <div className="stack">
-      <h1>Ayarlar</h1>
+    <div className="stack settings">
+      <div>
+        <div className="eyebrow">Tercihler ve veri</div>
+        <h1 className="display">Ayarlar</h1>
+      </div>
 
       <div className="card stack">
+        <div className="eyebrow">Genel</div>
         <h2>Tercihler</h2>
         <div className="row between">
           <span>Birim</span>
@@ -113,6 +117,7 @@ export function Settings() {
       </div>
 
       <div className="card stack">
+        <div className="eyebrow">Salon</div>
         <h2>Bar ve plakalar ({unit})</h2>
         <div className="row between">
           <span>Bar ağırlığı ({unit})</span>
@@ -138,6 +143,7 @@ export function Settings() {
       </div>
 
       <div className="card stack">
+        <div className="eyebrow">Vücut</div>
         <h2>Kilo hedefi</h2>
         <p className="sub" style={{ margin: 0 }}>
           Haftalık hedef değişim hızı. Ana Sayfa ve İstatistik'te gerçek hızınla karşılaştırılır.
@@ -163,6 +169,7 @@ export function Settings() {
       </div>
 
       <div className="card stack">
+        <div className="eyebrow">Yedek</div>
         <h2>Veri ve yedek</h2>
         <p className="sub" style={{ margin: 0 }}>
           Veriler yalnızca bu tarayıcıda durur. Tarayıcı verisini temizlersen kaybolur; düzenli yedek al.
@@ -191,6 +198,12 @@ export function Settings() {
         <button className="btn block" onClick={() => routineFileRef.current?.click()}>Yedekten yalnız rutinleri ekle</button>
         <p className="sub" style={{ margin: 0 }}>Mevcut antrenmanların ve ayarların değişmez; dosyadaki rutinler üstüne eklenir.</p>
         <input ref={routineFileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onRoutineFile(e.target.files?.[0])} />
+        {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
+      </div>
+
+      <div className="card stack dangerzone">
+        <div className="eyebrow danger">Tehlikeli bölge</div>
+        <p className="sub" style={{ margin: 0 }}>Tüm antrenmanlar, rutinler ve ayarlar bu tarayıcıdan silinir. Önce yedek al.</p>
         <button
           className="btn danger block"
           onClick={() => {
@@ -202,7 +215,6 @@ export function Settings() {
         >
           Her şeyi sıfırla
         </button>
-        {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
       </div>
 
       <ImportCard />

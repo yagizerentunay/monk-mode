@@ -7,7 +7,8 @@ import { useStore } from '../store/useStore.ts'
 function Detail({ ex }: { ex: Exercise }) {
   return (
     <div className="stack">
-      <div className="exname" style={{ fontSize: 20 }}>{ex.name}</div>
+      <div className="eyebrow">Egzersiz</div>
+      <div className="exname exdetail-name">{ex.name}</div>
       <div className="sub tag">
         {ex.primaryMuscles.join(', ')}
         {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.join(', ')}`}
@@ -16,7 +17,7 @@ function Detail({ ex }: { ex: Exercise }) {
       {ex.images.length > 0 && (
         <div className="row" style={{ overflowX: 'auto' }}>
           {ex.images.map((p) => (
-            <img key={p} src={imageUrl(p)} alt={ex.name} style={{ height: 160, borderRadius: 12 }} loading="lazy" />
+            <img key={p} className="exdetail-img" src={imageUrl(p)} alt={ex.name} loading="lazy" />
           ))}
         </div>
       )}
@@ -66,7 +67,10 @@ export function Library() {
   return (
     <div className="stack">
       <div className="row between">
-        <h1>Egzersizler</h1>
+        <div>
+          <div className="eyebrow">Kütüphane</div>
+          <h1 className="display">Egzersizler</h1>
+        </div>
         <button className="btn small" onClick={() => setAdding(true)}>+ Özel</button>
       </div>
       <ExerciseBrowser onSelect={setSelected} />
