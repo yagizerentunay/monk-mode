@@ -195,8 +195,8 @@ describe('gerçek egzersiz kütüphanesi', () => {
       ['Barfiks', 'Pullups'],
       ['Oturarak Cable Row - V Tutuş', 'Seated_Cable_Rows'],
       ['Lateral Raise (Dambıl)', 'Side_Lateral_Raise'],
-      // İngilizce "Pec Deck" de eşleşmiyor: kütüphanede ortak sözcüğü olan karşılığı yok.
-      ['Butterfly (Pec Deck)', null],
+      // "Pec Deck" makine demektir; kütüphanedeki "Butterfly" (machine) aynı hareket.
+      ['Butterfly (Pec Deck)', 'Butterfly'],
     ]
     for (const [name, id] of cases) expect([name, match(name)?.id ?? null]).toEqual([name, id])
   })

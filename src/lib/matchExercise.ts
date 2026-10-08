@@ -58,6 +58,8 @@ const PHRASES: ReadonlyArray<readonly [RegExp, string]> = [
   // Türkçe uygulama dilinde Hevy adları yerelleşiyor ("Barfiks", "Oturarak ... V Tutuş"); aksan
   // temizlendikten sonra çalışır, bu yüzden "tutuş" -> "tutus" gibi yazılır.
   [/\bbarfiks\b/g, 'pullup'],
+  // "Butterfly (Pec Deck)" kütüphanedeki "Butterfly" (machine) ile aynı makine; "pec deck" ekipman belirtir.
+  [/\bpec deck\b/g, 'machine'],
 ]
 
 /** Tek jeton takma adları (kısaltmalar, yazım hataları). */
