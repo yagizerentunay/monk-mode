@@ -163,3 +163,8 @@ select.input { appearance: none; }
 /* süperset */
 .card.ss { border-left: 3px solid var(--accent); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
 .badge.on + .exname { margin-top: 4px; }
+
+/* kas haritası */
+.musclemap { width: 100%; max-width: 100%; height: auto; display: block; }
+.musclemap [role=button] { cursor: pointer; }
+.musclemap [role=button]:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
