@@ -295,6 +295,50 @@ describe('ısınmayı çalışma ağırlığına bağlama', () => {
   })
 })
 
+describe('antrenman ve egzersiz notları', () => {
+  const start = () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [routine.ex[0], { ...routine.ex[0], exId: 'row' }] })
+    s.startWorkout('r1')
+  }
+
+  it('yazarken ham metni saklar, kayıtta kırpar ve boş notu atar', () => {
+    start()
+    useStore.getState().setEntryNote(0, '  sol omuz ')
+    expect(useStore.getState().active!.entries[0].note).toBe('  sol omuz ')
+    useStore.getState().setEntryNote(1, '   ')
+    useStore.getState().setWorkoutNote(' enerji düşüktü ')
+    useStore.getState().updateSet(0, 0, { done: true })
+    const f = useStore.getState().finishWorkout()!
+    expect(f.entries[0].note).toBe('sol omuz')
+    expect(f.note).toBe('enerji düşüktü')
+    expect(Object.keys(f.entries[1] ?? {})).not.toContain('note')
+  })
+
+  it('seti yapılmayan ama notu olan egzersizi, antrenman kaydediliyorsa tutar', () => {
+    start()
+    useStore.getState().updateSet(0, 0, { done: true })
+    useStore.getState().setEntryNote(1, 'omzum ağrıdığı için yapmadım')
+    const f = useStore.getState().finishWorkout()!
+    expect(f.entries.map((e) => e.exId)).toEqual(['bench', 'row'])
+    expect(f.entries[1]).toMatchObject({ sets: [], note: 'omzum ağrıdığı için yapmadım' })
+  })
+
+  it('hiç set yapılmadıysa yalnız notla antrenman kaydetmez', () => {
+    start()
+    useStore.getState().setEntryNote(0, 'not')
+    useStore.getState().setWorkoutNote('not')
+    expect(useStore.getState().finishWorkout()).toBeNull()
+    expect(useStore.getState().workouts).toHaveLength(0)
+  })
+
+  it('notu uzunluk sınırında keser', () => {
+    start()
+    useStore.getState().setWorkoutNote('a'.repeat(900))
+    expect(useStore.getState().active!.note).toHaveLength(500)
+  })
+})
+
 describe('yedekten rutin ekleme', () => {
   const incoming = {
     routines: [{ id: 'a', name: 'A Günü', ex: [{ exId: 'bench', sets: 3, reps: 8, weight: 20, prog: 'double', inc: 2.5, repsMax: 12 }] }],

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
+import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
@@ -47,6 +48,9 @@ export interface Actions {
   updateSide(entry: number, set: number, side: Side, patch: Partial<SideSet>): void
   toggleUnilateral(entry: number): void
   toggleSuperset(entry: number): void
+  /** Egzersiz / antrenman notu; yazarken ham metin saklanır, kayıtta kırpılır (finishWorkout). */
+  setEntryNote(entry: number, text: string): void
+  setWorkoutNote(text: string): void
   addSet(entry: number): void
   addWarmup(entry: number): void
   addDrop(entry: number, set: number): void
@@ -159,6 +163,14 @@ export const useStore = create<Store>((set, get) => ({
       entries: w.entries.map((e, i) => (i !== entry || i === 0 ? e : { ...e, linked: !e.linked })),
     })),
 
+  setEntryNote: (entry, text) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) => (i === entry ? { ...e, note: text.slice(0, NOTE_MAX) } : e)),
+    })),
+
+  setWorkoutNote: (text) => withActive(set, (w) => ({ ...w, note: text.slice(0, NOTE_MAX) })),
+
   addSet: (entry) =>
     withActive(set, (w) => ({
       ...w,
@@ -233,14 +245,21 @@ export const useStore = create<Store>((set, get) => ({
     const { active } = get()
     if (!active) return null
     // Tamamlanan setler (ve tek tarafı yapılmış yarım setler) kaydedilir; yalnız ısınması yapılmış egzersiz kayda girmez.
-    const entries = active.entries
-      .map((e) => ({ ...e, sets: e.sets.flatMap((x) => finalizeSet(x) ?? []) }))
-      .filter((e) => e.sets.some((x) => !x.warmup))
-    if (entries.length === 0) {
+    const mapped = active.entries.map((e) => {
+      const { note: _raw, ...rest } = e
+      const note = cleanNote(e.note)
+      return { ...rest, sets: e.sets.flatMap((x) => finalizeSet(x) ?? []), ...(note ? { note } : {}) }
+    })
+    // Hiç set yapılmadıysa antrenman kaydedilmez (yalnız not da yetmez). Antrenman kaydedilirken,
+    // setsiz kalan ama notu olan egzersiz de tutulur: "ağrı yüzünden yapmadım" bilgisi değerlidir.
+    if (!mapped.some((e) => e.sets.some((x) => !x.warmup))) {
       set(() => ({ active: null }))
       return null
     }
-    const finished: Workout = { ...active, entries, end: Date.now(), d: active.d || dayString() }
+    const entries = mapped.filter((e) => e.sets.some((x) => !x.warmup) || e.note)
+    const { note: _rawNote, ...base } = active
+    const note = cleanNote(active.note)
+    const finished: Workout = { ...base, entries, end: Date.now(), d: active.d || dayString(), ...(note ? { note } : {}) }
     set((s) => ({ workouts: [...s.workouts, finished], active: null }))
     return finished
   },
