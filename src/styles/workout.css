@@ -71,7 +71,7 @@
 
 /* RIR / drop / sil: ana akışı bozmaz, tamamlanınca altta */
 .rirrow { display: flex; gap: 6px; align-items: center; padding: 8px 0 2px 44px; flex-wrap: wrap; }
-.rirrow .chip { min-height: 40px; min-width: 40px; padding: 4px 12px; }
+.rirrow .chip { min-height: var(--tap); min-width: var(--tap); padding: 4px 12px; }
 .rirlabel { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
 
 /* sabit dinlenme çubuğu */
