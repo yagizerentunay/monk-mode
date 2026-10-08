@@ -261,3 +261,32 @@ describe('içe aktarma', () => {
     expect(useStore.getState().customEx).toHaveLength(1)
   })
 })
+
+describe('ısınmayı çalışma ağırlığına bağlama', () => {
+  const start = (weight: number) => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], weight, warmups: 2 }] })
+    s.startWorkout('r1')
+    return () => useStore.getState().active!.entries[0].sets
+  }
+
+  it('ilk çalışma setinin ağırlığı değişince yapılmamış otomatik ısınmalar güncellenir', () => {
+    const sets = start(100)
+    expect(sets().slice(0, 2).map((x) => x.w)).toEqual([40, 60])
+    useStore.getState().updateSet(0, 2, { w: 60 })
+    expect(sets().slice(0, 2).map((x) => x.w)).toEqual([25, 35])
+  })
+
+  it('ikinci çalışma setinin ağırlığı değişince ısınmaya dokunmaz', () => {
+    const sets = start(100)
+    useStore.getState().updateSet(0, 3, { w: 60 })
+    expect(sets().slice(0, 2).map((x) => x.w)).toEqual([40, 60])
+  })
+
+  it('elle değiştirilmiş ısınmayı korur', () => {
+    const sets = start(100)
+    useStore.getState().updateSet(0, 1, { w: 55 })
+    useStore.getState().updateSet(0, 2, { w: 60 })
+    expect(sets().slice(0, 2).map((x) => x.w)).toEqual([25, 55])
+  })
+})

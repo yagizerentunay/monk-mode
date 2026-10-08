@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry } from '../store/schema.ts'
-import { describeSets, dropChain, dropSet, restAfterSec, roundLoad, warmupSet, warmupSets } from './intensity.ts'
+import {
+  describeSets,
+  dropChain,
+  dropSet,
+  restAfterSec,
+  retargetWarmups,
+  roundLoad,
+  warmupSet,
+  warmupSets,
+} from './intensity.ts'
 
 describe('yük yuvarlama', () => {
   it('ağır yüklerde 2,5 kg adıma yuvarlar', () => {
@@ -114,5 +123,43 @@ describe('dropset', () => {
 
   it('tek taraflı olmayanı tek taraflı yapmaz', () => {
     expect(dropSet(main).sides).toBeUndefined()
+  })
+})
+
+describe('ısınmayı çalışma ağırlığına göre güncelleme', () => {
+  const w = (weight: number, over: Partial<SetEntry> = {}): SetEntry => ({ w: weight, r: 5, done: false, ...over })
+
+  it('otomatik değerindeki yapılmamış ısınmaları yeni rampaya çeker', () => {
+    const sets = [...warmupSets(100, 3), w(100)]
+    const next = retargetWarmups(sets, 100, 60)
+    expect(next.filter((s) => s.warmup).map((s) => s.w)).toEqual([25, 35, 47.5])
+    expect(next[3]).toBe(sets[3])
+  })
+
+  it('elle değiştirilmiş ısınmaya dokunmaz', () => {
+    const sets = [warmupSet(100, 0), { ...warmupSet(100, 1), w: 55 }, w(100)]
+    const next = retargetWarmups(sets, 100, 60)
+    expect(next[0].w).toBe(25)
+    expect(next[1].w).toBe(55)
+  })
+
+  it('tamamlanmış ısınmaya dokunmaz', () => {
+    const sets = [{ ...warmupSet(100, 0), done: true }, w(100)]
+    expect(retargetWarmups(sets, 100, 60)[0].w).toBe(40)
+  })
+
+  it('sıfırdan başlayan ağırlığı da takip eder, tuş tuş yazılan ara değerlerde kopmaz', () => {
+    let sets = [...warmupSets(0, 2), w(0)]
+    let prev = 0
+    for (const next of [6, 60]) {
+      sets = retargetWarmups(sets, prev, next)
+      prev = next
+    }
+    expect(sets.filter((s) => s.warmup).map((s) => s.w)).toEqual([warmupSet(60, 0).w, warmupSet(60, 1).w])
+  })
+
+  it('ısınması olmayan listede aynen döner', () => {
+    const sets = [w(100)]
+    expect(retargetWarmups(sets, 100, 80)).toEqual(sets)
   })
 })

@@ -87,3 +87,19 @@ export function dropChain(last: SetEntry, count: number): SetEntry[] {
   }
   return out
 }
+
+/**
+ * Çalışma ağırlığı `from`dan `to`ya değişince ısınmaları yeni rampaya çeker. Yalnız yapılmamış ve
+ * hâlâ `from`dan hesaplanan otomatik değerinde duran ısınmalar güncellenir; elle değiştirilen ya da
+ * tamamlanan ısınmaya dokunulmaz. (Yazarken her tuşta çağrılır: ara değerler de aynı fonksiyonla
+ * hesaplandığı için bir sonraki adımda yine "otomatik" olarak tanınırlar.)
+ */
+export function retargetWarmups(sets: SetEntry[], from: number, to: number): SetEntry[] {
+  let k = 0
+  return sets.map((s) => {
+    if (!s.warmup) return s
+    const idx = k++
+    if (s.done || s.w !== warmupSet(from, idx).w) return s
+    return { ...s, w: warmupSet(to, idx).w }
+  })
+}

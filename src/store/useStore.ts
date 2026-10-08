@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { dropSet, MAX_DROPS, MAX_WARMUPS, warmupSet } from '../lib/intensity.ts'
+import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
@@ -106,11 +106,14 @@ export const useStore = create<Store>((set, get) => ({
   updateSet: (entry, setIdx, patch) =>
     withActive(set, (w) => ({
       ...w,
-      entries: w.entries.map((e, i) =>
-        i !== entry
-          ? e
-          : { ...e, sets: e.sets.map((x, j) => (j === setIdx ? deriveSet({ ...x, ...patch }) : x)) },
-      ),
+      entries: w.entries.map((e, i) => {
+        if (i !== entry) return e
+        let sets = e.sets.map((x, j) => (j === setIdx ? deriveSet({ ...x, ...patch }) : x))
+        // İlk çalışma setinin ağırlığı değişince otomatik ısınmalar yeni rampaya çekilir.
+        const first = e.sets.findIndex((s) => !s.warmup && !s.drop)
+        if (patch.w !== undefined && setIdx === first) sets = retargetWarmups(sets, e.sets[first].w, patch.w)
+        return { ...e, sets }
+      }),
     })),
 
   updateSide: (entry, setIdx, side, patch) =>
