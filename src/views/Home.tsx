@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BackupReminder } from '../components/BackupReminder.tsx'
 import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
+import { CalendarSheet } from '../components/CalendarSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
@@ -21,6 +22,8 @@ export function Home() {
   const [today] = useState(() => new Date())
   const [logging, setLogging] = useState(false)
   const [draftW, setDraftW] = useState(0)
+  /** Takvim sheet'i: null = kapalı; date verilirse o günün görünümüyle, null ise aylık takvimle açılır. */
+  const [calendar, setCalendar] = useState<{ date: string | null } | null>(null)
 
   const todayKey = dayString(today)
   const monday = weekStartOf(today, weekStart)
@@ -44,7 +47,10 @@ export function Home() {
           <h1>monk-mode</h1>
           <div className="sub">{DAY_NAMES[today.getDay()]}, {today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
         </div>
-        <Link to="/settings" className="btn small" aria-label="Ayarlar">⚙</Link>
+        <div className="row">
+          <button className="btn small" aria-label="Takvim" onClick={() => setCalendar({ date: null })}>📅</button>
+          <Link to="/settings" className="btn small" aria-label="Ayarlar">⚙</Link>
+        </div>
       </div>
 
       <BackupReminder />
@@ -54,14 +60,25 @@ export function Home() {
           const planned = !!week[d.dow]
           const trained = trainedDays.has(d.key)
           return (
-            <div key={d.key} className={`wday${d.key === todayKey ? ' today' : ''}`}>
+            <button
+              key={d.key}
+              className={`wday${d.key === todayKey ? ' today' : ''}`}
+              aria-label={`${DAY_NAMES[d.dow]} ${d.date.getDate()}, gün detayını aç`}
+              onClick={() => setCalendar({ date: d.key })}
+            >
               <span className="sub">{DAY_SHORT[d.dow]}</span>
               <b>{d.date.getDate()}</b>
               <span className={`dot${trained ? ' on' : planned ? ' plan' : ''}`} />
-            </div>
+            </button>
           )
         })}
       </div>
+
+      <CalendarSheet
+        open={calendar !== null}
+        initialDate={calendar?.date ?? null}
+        onClose={() => setCalendar(null)}
+      />
 
       {active ? (
         <Link to="/workout" className="card tap row between hero">
