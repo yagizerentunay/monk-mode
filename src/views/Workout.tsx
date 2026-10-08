@@ -209,12 +209,20 @@ export function Workout() {
               />
             )}
 
-            <div className="setcols" aria-hidden="true">
-              <span>Set</span>
-              <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
-              <span>Tekrar</span>
-              <span>Sonuç</span>
-            </div>
+            {entry.unilateral ? (
+              <div className="setcols side" aria-hidden="true">
+                <span>Set</span>
+                <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()} · Tekrar (taraf başına)</span>
+                <span>Sonuç</span>
+              </div>
+            ) : (
+              <div className="setcols" aria-hidden="true">
+                <span>Set</span>
+                <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
+                <span>Tekrar</span>
+                <span>Sonuç</span>
+              </div>
+            )}
             {(() => {
               const meta = describeSets(entry.sets)
               return entry.sets.map((set, si) => (
