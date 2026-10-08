@@ -1,6 +1,7 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
-const VERSION = 'v2'
+// Aynı VERSION içinde eski hash'li js/css dosyaları pruneStale ile temizlenir (aşağıda).
+const VERSION = 'v3'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz görselleri
@@ -36,13 +37,34 @@ async function precache() {
   const html = await res.clone().text()
   await shell.put(INDEX, res)
   await Promise.all(
-    [...assetUrls(html), new URL('favicon.svg', scope).href, new URL('manifest.webmanifest', scope).href].map((u) =>
-      shell.add(u).catch(() => {}),
-    ),
+    [
+      ...assetUrls(html),
+      new URL('favicon.svg', scope).href,
+      new URL('icon-192.png', scope).href, // apple-touch-icon
+      new URL('manifest.webmanifest', scope).href,
+    ].map((u) => shell.add(u).catch(() => {})),
   )
   // Egzersiz verisi büyük (~1 MB) ve çevrimdışı kütüphane için şart; başarısızsa kurulumu bozma.
   const data = await caches.open(DATA)
   await data.add(EXERCISES).catch(() => {})
+}
+
+/**
+ * Önbellekteki index.html'in başvurmadığı eski hash'li js/css dosyalarını siler. Yeni dağıtımda sw.js
+ * baytları değişmediği için install/activate çalışmaz; yeni varlıklar sayfa açılınca yüklenip
+ * önbelleğe girer ve temizlik o zaman tetiklenir. Güvenlik: yeni sürümün varlıkları tamamen
+ * önbellekte değilse hiçbir şey silinmez, çünkü yarım inen güncellemede eski sürüm çevrimdışı
+ * açılış için son yedektir.
+ */
+async function pruneStale() {
+  const cache = await caches.open(SHELL)
+  const index = await cache.match(INDEX, MATCH)
+  if (!index) return
+  const keep = assetUrls(await index.text())
+  if (keep.length === 0) return
+  const have = (await cache.keys()).map((r) => r.url)
+  if (!keep.every((u) => have.includes(u))) return
+  await Promise.all(have.filter((u) => u.startsWith(ASSETS) && !keep.includes(u)).map((u) => cache.delete(u, MATCH)))
 }
 
 self.addEventListener('install', (event) => {
@@ -54,6 +76,7 @@ self.addEventListener('activate', (event) => {
     (async () => {
       const names = await caches.keys()
       await Promise.all(names.filter((n) => n.startsWith('monk-') && !KEEP.includes(n)).map((n) => caches.delete(n)))
+      await pruneStale().catch(() => {})
       await self.clients.claim()
     })(),
   )
@@ -77,12 +100,14 @@ async function navigate(request) {
   return (await cache.match(INDEX, MATCH)) || network
 }
 
-async function cacheFirst(request, cacheName) {
+async function cacheFirst(event, cacheName) {
+  const { request } = event
   const cache = await caches.open(cacheName)
   const hit = await cache.match(request, MATCH)
   if (hit) return hit
   const res = await fetch(request)
-  if (res.ok) cache.put(request, res.clone())
+  // Yeni sürümün bir varlığı indi: hepsi tamamsa eski sürümün dosyaları temizlenir.
+  if (res.ok) event.waitUntil(cache.put(request, res.clone()).then(pruneStale).catch(() => {}))
   return res
 }
 
@@ -126,7 +151,7 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(navigate(request))
   } else if (url.href.startsWith(ASSETS)) {
-    event.respondWith(cacheFirst(request, SHELL))
+    event.respondWith(cacheFirst(event, SHELL))
   } else if (url.href === EXERCISES) {
     event.respondWith(staleWhileRevalidate(request, DATA))
   } else {
