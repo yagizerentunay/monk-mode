@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
+import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
@@ -55,6 +56,8 @@ export interface Actions {
   discardWorkout(): void
   deleteWorkout(id: string): void
   importWorkouts(workouts: Workout[], customEx: CustomExercise[]): void
+  /** Yedek dosyasındaki rutinleri mevcut verinin üstüne ekler (bkz. lib/mergeRoutines.ts). */
+  addRoutinesFrom(incoming: { routines: unknown; customEx: unknown }): RoutineMerge
   logBodyweight(entry: BodyweightEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   replaceAll(state: State): void
@@ -257,6 +260,12 @@ export const useStore = create<Store>((set, get) => ({
         customEx: [...s.customEx, ...customEx.filter((c) => !ids.has(c.id))],
       }
     }),
+
+  addRoutinesFrom: (incoming) => {
+    const merged = mergeRoutines(get(), incoming)
+    if (merged.added > 0) set(() => ({ routines: merged.routines, customEx: merged.customEx }))
+    return merged
+  },
 
   logBodyweight: (entry) =>
     set((s) => ({

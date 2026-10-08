@@ -295,6 +295,34 @@ describe('ısınmayı çalışma ağırlığına bağlama', () => {
   })
 })
 
+describe('yedekten rutin ekleme', () => {
+  const incoming = {
+    routines: [{ id: 'a', name: 'A Günü', ex: [{ exId: 'bench', sets: 3, reps: 8, weight: 20, prog: 'double', inc: 2.5, repsMax: 12 }] }],
+    customEx: [],
+  }
+
+  it('rutini ekler; antrenmanlara, ayarlara ve programa dokunmaz', () => {
+    useStore.getState().saveRoutine(routine)
+    useStore.getState().assignDay(1, 'r1')
+    useStore.getState().importWorkouts([{ id: 'w', d: '2026-10-01', start: 1, name: 't', entries: [] }], [])
+    useStore.getState().setSettings({ unit: 'lb' })
+    const m = useStore.getState().addRoutinesFrom(incoming)
+    const s = useStore.getState()
+    expect(m.added).toBe(1)
+    expect(s.routines.map((r) => r.id)).toEqual(['r1', 'a'])
+    expect(s.workouts).toHaveLength(1)
+    expect(s.week[1]).toBe('r1')
+    expect(s.settings.unit).toBe('lb')
+  })
+
+  it('aynı dosyayı ikinci kez eklemek çoğaltmaz', () => {
+    useStore.getState().addRoutinesFrom(incoming)
+    const again = useStore.getState().addRoutinesFrom(incoming)
+    expect(again).toMatchObject({ added: 0, skipped: 1 })
+    expect(useStore.getState().routines).toHaveLength(1)
+  })
+})
+
 describe('yedek işaretleme', () => {
   const wk = { id: 'w', d: '2026-10-01', start: 1, name: 't', entries: [] }
 

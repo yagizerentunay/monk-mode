@@ -19,6 +19,7 @@ export function Settings() {
   const setSettings = useStore((s) => s.setSettings)
   const replaceAll = useStore((s) => s.replaceAll)
   const fileRef = useRef<HTMLInputElement>(null)
+  const routineFileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
 
   const download = () => {
@@ -47,6 +48,23 @@ export function Settings() {
       setMessage((e as Error).message)
     } finally {
       if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  /** Yedek dosyasından yalnız rutinleri ekler; antrenmanlara, ayarlara ve programa dokunmaz. */
+  const onRoutineFile = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const incoming = importBackup(await file.text())
+      const m = useStore.getState().addRoutinesFrom(incoming)
+      const parts = [`${m.added} rutin eklendi`]
+      if (m.skipped > 0) parts.push(`${m.skipped} zaten vardı`)
+      if (m.invalid > 0) parts.push(`${m.invalid} geçersiz rutin atlandı`)
+      setMessage(m.added + m.skipped + m.invalid === 0 ? 'Dosyada rutin bulunamadı.' : `${parts.join(', ')}.`)
+    } catch (e) {
+      setMessage((e as Error).message)
+    } finally {
+      if (routineFileRef.current) routineFileRef.current.value = ''
     }
   }
 
@@ -136,6 +154,9 @@ export function Settings() {
         </div>
         <button className="btn block" onClick={() => fileRef.current?.click()}>Yedekten yükle</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
+        <button className="btn block" onClick={() => routineFileRef.current?.click()}>Yedekten yalnız rutinleri ekle</button>
+        <p className="sub" style={{ margin: 0 }}>Mevcut antrenmanların ve ayarların değişmez; dosyadaki rutinler üstüne eklenir.</p>
+        <input ref={routineFileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onRoutineFile(e.target.files?.[0])} />
         <button
           className="btn danger block"
           onClick={() => {
