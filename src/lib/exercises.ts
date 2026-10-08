@@ -1,4 +1,5 @@
 import type { CustomExercise } from '../store/schema.ts'
+import { equipmentLabel, muscleLabel } from './labels.ts'
 
 /** free-exercise-db kaydı (kullandığımız alanlar). */
 export interface Exercise {
@@ -76,11 +77,29 @@ export interface ExerciseFilter {
   equipment: string | null
 }
 
+/** Aramada büyük/küçük harf ve Türkçe aksan farkını yok sayar: "GÖĞÜS", "gogus" ve "göğüs" aynıdır. */
+function fold(s: string): string {
+  return s
+    .toLocaleLowerCase('tr')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/ı/g, 'i')
+}
+
+/** Arama metni egzersiz adında, birincil kasın ya da ekipmanın Türkçe etiketinde geçiyorsa eşleşir. */
+function matchesQuery(e: Exercise, q: string): boolean {
+  return (
+    fold(e.name).includes(q) ||
+    e.primaryMuscles.some((m) => fold(muscleLabel(m)).includes(q)) ||
+    (!!e.equipment && fold(equipmentLabel(e.equipment)).includes(q))
+  )
+}
+
 export function filterExercises(list: Exercise[], f: ExerciseFilter): Exercise[] {
-  const q = f.query.trim().toLowerCase()
+  const q = fold(f.query.trim())
   return list.filter(
     (e) =>
-      (!q || e.name.toLowerCase().includes(q)) &&
+      (!q || matchesQuery(e, q)) &&
       (!f.muscle || e.primaryMuscles.includes(f.muscle)) &&
       (!f.equipment || e.equipment === f.equipment),
   )

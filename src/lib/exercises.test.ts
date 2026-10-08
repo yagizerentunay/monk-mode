@@ -32,6 +32,21 @@ describe('egzersiz filtreleri', () => {
     expect(filterExercises(list, { query: 'curl', muscle: null, equipment: null }).map((e) => e.id)).toEqual(['b', 'c'])
   })
 
+  it('Türkçe kas ve ekipman adıyla da arar, aksan ve büyük harf farkını yok sayar', () => {
+    const ids = (query: string) => filterExercises(list, { query, muscle: null, equipment: null }).map((e) => e.id)
+    expect(ids('biseps')).toEqual(['b', 'c'])
+    expect(ids('BİSEPS')).toEqual(['b', 'c'])
+    expect(ids('on bacak')).toEqual(['a'])
+    expect(ids('Ön Bacak')).toEqual(['a'])
+    expect(ids('dumbbell')).toEqual(['b'])
+    expect(ids('kablo')).toEqual([])
+  })
+
+  it('İngilizce adlarda I harfi noktalı/noktasız fark etmez', () => {
+    expect(filterExercises(list, { query: 'BARBELL SQUAT', muscle: null, equipment: null }).map((e) => e.id)).toEqual(['a'])
+    expect(filterExercises(list, { query: 'dumbbell curl', muscle: null, equipment: null }).map((e) => e.id)).toEqual(['b'])
+  })
+
   it('kas ve ekipmanı birlikte uygular', () => {
     expect(filterExercises(list, { query: '', muscle: 'biceps', equipment: 'barbell' }).map((e) => e.id)).toEqual(['c'])
   })
