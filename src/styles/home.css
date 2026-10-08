@@ -24,3 +24,29 @@ button.wday { color: var(--text); font: inherit; font-size: 13px; }
 }
 .calcell.out { opacity: 0.35; }
 .calcell.today { outline: 2px solid var(--accent); }
+
+/* Warrior Monk: Home */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }
+.home-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.home-top .seal { color: var(--accent); }
+.btn.icon { min-width: var(--tap); min-height: var(--tap); padding: 0; border-radius: 50%; font-size: 18px; }
+.home-head { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow.ok { color: var(--ok); }
+.hero-title { font-family: var(--display); font-weight: 800; font-size: 32px; line-height: 1.02; text-transform: uppercase; }
+.card.hero { gap: 8px; }
+.wday { min-height: 72px; justify-content: center; gap: 2px; padding: 6px 0; }
+.wday b { font-family: var(--display); font-size: 20px; font-weight: 800; }
+.wday.today { outline: 0; border: 2px solid var(--accent); }
+.wday.done .wlabel { color: var(--ok); }
+.wlabel { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.dot { width: 8px; height: 8px; }
+.stat { gap: 4px; padding: 14px 6px; }
+.stat .bignum { font-size: 40px; }
+.statlbl { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.bignum.bw { font-size: 32px; display: block; }
+.calmonth { font-family: var(--display); font-size: 22px; letter-spacing: 0.04em; text-transform: uppercase; }
+.calcell { min-height: var(--tap); }
+.calcell.today { outline: 0; border: 2px solid var(--accent); }
+.badge.ok { background: var(--ok); color: var(--ok-ink); }
+.banner-title { color: var(--warn); }
+.card.banner.ok { color: var(--ok); font-weight: 700; }

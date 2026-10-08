@@ -152,7 +152,7 @@ function MonthView({ cursor, setCursor, weekStart, today, trained, planned, onPi
     <>
       <div className="row between">
         <button className="btn small" aria-label="Önceki ay" onClick={() => setCursor((c) => shiftMonth(c.year, c.month, -1))}>‹</button>
-        <b>{MONTH_NAMES[cursor.month]} {cursor.year}</b>
+        <b className="calmonth">{MONTH_NAMES[cursor.month]} {cursor.year}</b>
         <button className="btn small" aria-label="Sonraki ay" onClick={() => setCursor((c) => shiftMonth(c.year, c.month, 1))}>›</button>
       </div>
       <div className="calgrid calhead">
@@ -213,7 +213,7 @@ function DayView({ date, today, workouts, planned, hasRoutines, onOpen, onRecord
               {doneSetCount(w).done} set · {formatWeight(workoutVolume(w), unit)} {unit}
             </div>
           </div>
-          <span className="badge on">Aç ▶</span>
+          <span className="badge ok">Aç ▶</span>
         </button>
       ))}
       {workouts.length === 0 && (

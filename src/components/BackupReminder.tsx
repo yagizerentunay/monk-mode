@@ -24,14 +24,14 @@ export function BackupReminder() {
   )
 
   if (done) {
-    return <div className="card banner ok" role="status">Yedek indirildi.</div>
+    return <div className="card banner ok" role="status">✓ Yedek indirildi.</div>
   }
   if (!status.due) return null
 
   return (
     <div className="card banner stack" role="status">
       <div>
-        <b>Verini yedekle</b>
+        <b className="banner-title">⚠ Verini yedekle</b>
         <div className="sub">
           {status.never
             ? `Hiç yedek almadın; ${workouts.length} antrenman yalnızca bu tarayıcıda duruyor.`

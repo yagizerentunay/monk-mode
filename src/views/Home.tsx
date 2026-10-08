@@ -4,6 +4,7 @@ import { BackupReminder } from '../components/BackupReminder.tsx'
 import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { CalendarSheet } from '../components/CalendarSheet.tsx'
+import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
@@ -40,17 +41,25 @@ export function Home() {
   const thisMonth = workouts.filter((w) => w.d.startsWith(monthPrefix)).length
   const lastBw = bodyweight[bodyweight.length - 1]
 
+  const workSets = todayRoutine ? todayRoutine.ex.reduce((n, e) => n + e.sets, 0) : 0
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const dateLine = `${DAY_NAMES[today.getDay()]} · ${today.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long' })}`
+
   return (
-    <div className="stack">
-      <div className="row between">
-        <div>
-          <h1>monk-mode</h1>
-          <div className="sub">{DAY_NAMES[today.getDay()]}, {today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}</div>
-        </div>
+    <div className="stack home">
+      <header className="home-top">
+        <h1 className="sr-only">monk-mode</h1>
+        <Wordmark seal />
         <div className="row">
-          <button className="btn small" aria-label="Takvim" onClick={() => setCalendar({ date: null })}>📅</button>
-          <Link to="/settings" className="btn small" aria-label="Ayarlar">⚙</Link>
+          <button className="btn icon" aria-label="Takvim" onClick={() => setCalendar({ date: null })}>📅</button>
+          <Link to="/settings" className="btn icon" aria-label="Ayarlar">⚙</Link>
         </div>
+      </header>
+
+      <div className="home-head">
+        <div className="eyebrow">{dateLine}</div>
+        <p className="display">BUGÜN<span className="hl">GÜÇLEN.</span></p>
+        <div className="sub">Disiplin, tekrarlarla inşa edilir.</div>
       </div>
 
       <BackupReminder />
@@ -62,13 +71,14 @@ export function Home() {
           return (
             <button
               key={d.key}
-              className={`wday${d.key === todayKey ? ' today' : ''}`}
-              aria-label={`${DAY_NAMES[d.dow]} ${d.date.getDate()}, gün detayını aç`}
+              className={`wday${d.key === todayKey ? ' today' : ''}${trained ? ' done' : ''}`}
+              aria-label={`${DAY_NAMES[d.dow]} ${d.date.getDate()}${trained ? ', antrenman yapıldı' : planned ? ', planlı' : ''}, gün detayını aç`}
               onClick={() => setCalendar({ date: d.key })}
             >
               <span className="sub">{DAY_SHORT[d.dow]}</span>
               <b>{d.date.getDate()}</b>
               <span className={`dot${trained ? ' on' : planned ? ' plan' : ''}`} />
+              <span className="wlabel" aria-hidden="true">{trained ? 'Yapıldı' : planned ? 'Plan' : ' '}</span>
             </button>
           )
         })}
@@ -81,55 +91,50 @@ export function Home() {
       />
 
       {active ? (
-        <Link to="/workout" className="card tap row between hero">
-          <div>
-            <div className="sub">Devam eden antrenman</div>
-            <div className="exname">{active.name}</div>
-          </div>
-          <span className="badge on">Devam et ▶</span>
-        </Link>
+        <div className="card hero stack">
+          <div className="eyebrow">Devam eden antrenman</div>
+          <div className="hero-title">{active.name}</div>
+          <Link to="/workout" className="btn primary block">Devam et ▶</Link>
+        </div>
       ) : todayRoutine ? (
-        <div className="card row between hero">
-          <div>
-            <div className="sub">{doneToday ? 'Bugün tamamlandı ✓' : 'Bugünün antrenmanı'}</div>
-            <div className="exname">{todayRoutine.name}</div>
-            <div className="sub">{todayRoutine.ex.length} egzersiz</div>
-          </div>
+        <div className="card hero stack">
+          <div className={doneToday ? 'eyebrow ok' : 'eyebrow'}>{doneToday ? '✓ Bugün tamamlandı' : 'Bugünün antrenmanı'}</div>
+          <div className="hero-title">{todayRoutine.name}</div>
+          <div className="sub">{todayRoutine.ex.length} egzersiz · {workSets} çalışma seti</div>
           <button
-            className="btn primary"
+            className="btn primary block"
             onClick={() => {
               startWorkout(todayRoutine.id)
               navigate('/workout')
             }}
           >
-            {doneToday ? 'Tekrar' : 'Başla'}
+            {doneToday ? 'Tekrar başla' : 'Antrenmana başla'}
           </button>
         </div>
       ) : (
-        <div className="card row between hero">
-          <div>
-            <div className="exname">{routines.length === 0 ? 'Rutin oluştur' : 'Bugün dinlenme günü'}</div>
-            <div className="sub">
-              {routines.length === 0 ? 'İlk rutinini kur, günlere ata.' : 'İstersen yine de antrenman başlatabilirsin.'}
-            </div>
+        <div className="card hero stack">
+          <div className="eyebrow muted">{routines.length === 0 ? 'Rutin yok' : 'Dinlenme günü'}</div>
+          <div className="hero-title">{routines.length === 0 ? 'Rutin oluştur' : 'Bugün toparlan'}</div>
+          <div className="sub">
+            {routines.length === 0 ? 'İlk rutinini kur, günlere ata.' : 'İstersen yine de antrenman başlatabilirsin.'}
           </div>
-          <Link to={routines.length === 0 ? '/plan' : '/workout'} className="btn">
-            {routines.length === 0 ? 'Plan' : 'Seç'}
+          <Link to={routines.length === 0 ? '/plan' : '/workout'} className="btn primary block">
+            {routines.length === 0 ? 'Plan oluştur' : 'Antrenman seç'}
           </Link>
         </div>
       )}
 
       <div className="grid3">
-        <div className="card stat"><b>{streak}</b><span className="sub">hafta serisi</span></div>
-        <div className="card stat"><b>{thisMonth}</b><span className="sub">bu ay</span></div>
-        <div className="card stat"><b>{workouts.length}</b><span className="sub">toplam</span></div>
+        <div className="card stat"><span className="bignum">{pad(streak)}</span><span className="statlbl">hafta serisi</span></div>
+        <div className="card stat"><span className="bignum">{pad(thisMonth)}</span><span className="statlbl">bu ay</span></div>
+        <div className="card stat"><span className="bignum">{pad(workouts.length)}</span><span className="statlbl">toplam</span></div>
       </div>
 
       <div className="card stack">
         <div className="row between">
           <div>
-            <div className="sub">Vücut ağırlığı</div>
-            <b style={{ fontSize: 22 }}>{lastBw ? `${formatWeight(lastBw.w, unit)} ${unit}` : '—'}</b>
+            <div className="eyebrow muted">Vücut ağırlığı</div>
+            <span className="bignum bw">{lastBw ? `${formatWeight(lastBw.w, unit)} ${unit}` : '—'}</span>
           </div>
           <button
             className="btn small"

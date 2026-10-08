@@ -42,7 +42,7 @@ export function WorkoutDetail({ workout, onClose }: Props) {
 
   return (
     <div className="stack">
-      <div className="sub">{workout.d} · {formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
+      <div className="eyebrow muted">{workout.d} · {formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
       {workout.note && <div className="note">{workout.note}</div>}
       {workout.entries.map((e, i) => (
         <div key={i}>
