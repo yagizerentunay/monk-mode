@@ -55,6 +55,9 @@ const PHRASES: ReadonlyArray<readonly [RegExp, string]> = [
   [/\balternat(e|ing)\b/g, 'alternate'],
   [/\bfl(y|ye|yes|ys|ies)\b/g, 'fly'],
   [/\bskull ?crushers?\b/g, 'skullcrusher'],
+  // Türkçe uygulama dilinde Hevy adları yerelleşiyor ("Barfiks", "Oturarak ... V Tutuş"); aksan
+  // temizlendikten sonra çalışır, bu yüzden "tutuş" -> "tutus" gibi yazılır.
+  [/\bbarfiks\b/g, 'pullup'],
 ]
 
 /** Tek jeton takma adları (kısaltmalar, yazım hataları). */
@@ -65,6 +68,16 @@ const TOKEN_ALIASES: Readonly<Record<string, string>> = {
   bb: 'barbell',
   kb: 'kettlebell',
   bands: 'band',
+  // Türkçe ekipman ve konum sözcükleri (aksansız): Dambıl, Halter, Makine, Kablo, Oturarak, Tutuş...
+  dambil: 'dumbbell',
+  halter: 'barbell',
+  makine: 'machine',
+  kablo: 'cable',
+  oturarak: 'seated',
+  ayakta: 'standing',
+  yatarak: 'lying',
+  egimli: 'incline',
+  tutus: 'grip',
 }
 
 /** Anlam taşımayan dolgu sözcükleri. Tutuş adları (wide, close...) dolgu DEĞİL, ayırt edicidir. */

@@ -188,6 +188,25 @@ describe('gerçek egzersiz kütüphanesi', () => {
     expect(wrong.map((e) => e.name + ' => ' + match(e.name)?.name)).toEqual([])
   })
 
+  it('Türkçe uygulama dilindeki Hevy adlarını eşler (gerçek bir Hevy antrenmanından)', () => {
+    // Kaynak: Yağız'ın Türkçe Hevy hesabındaki "A Day" antrenmanı (1 Eki 2026).
+    const cases: [string, string | null][] = [
+      ['Incline Bench Press (Dambıl)', 'Incline_Dumbbell_Press'],
+      ['Barfiks', 'Pullups'],
+      ['Oturarak Cable Row - V Tutuş', 'Seated_Cable_Rows'],
+      ['Lateral Raise (Dambıl)', 'Side_Lateral_Raise'],
+      // İngilizce "Pec Deck" de eşleşmiyor: kütüphanede ortak sözcüğü olan karşılığı yok.
+      ['Butterfly (Pec Deck)', null],
+    ]
+    for (const [name, id] of cases) expect([name, match(name)?.id ?? null]).toEqual([name, id])
+  })
+
+  it('Türkçe ekipman Dambıl İngilizce Dumbbell ile aynı sonucu verir; çelişen ekipman yine reddedilir', () => {
+    expect(match('Bench Press (Dambıl)')?.id).toBe(match('Bench Press (Dumbbell)')?.id)
+    expect(match('Bench Press (Dambıl)')?.id).not.toBe('Barbell_Bench_Press_-_Medium_Grip')
+    expect(normalizeName('Oturarak V Tutuş')).toEqual(['seated', 'grip'])
+  })
+
   it('5000 adı hızlı eşler', () => {
     const t = performance.now()
     for (let i = 0; i < 5000; i++) match(`Unknown Move ${i} (Barbell)`)
