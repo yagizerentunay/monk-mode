@@ -4,7 +4,7 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
 import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
-import { formatShortDay } from '../lib/calendar.ts'
+import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, exerciseHistory, workoutVolume } from '../lib/workout.ts'
@@ -35,7 +35,7 @@ export function Stats() {
   const selected = chosen && exIds.includes(chosen) ? chosen : exIds[0]
   const points = selected
     ? exerciseHistory(workouts, selected).map((p) => ({
-        label: p.d.slice(5),
+        label: formatAxisDay(p.d),
         value: Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
       }))
     : []

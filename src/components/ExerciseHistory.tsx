@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { formatShortDay } from '../lib/calendar.ts'
+import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { exerciseSummary } from '../lib/exerciseStats.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
@@ -16,7 +16,7 @@ export function ExerciseHistory({ exId }: { exId: string }) {
   const points = useMemo(
     () =>
       exerciseHistory(workouts, exId).map((p) => ({
-        label: p.d.slice(5),
+        label: formatAxisDay(p.d),
         value: Math.round(kgToUnit(p.e1rm, unit) * 10) / 10,
       })),
     [workouts, exId, unit],

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatAxisDay } from '../lib/calendar.ts'
 import { kgToUnit } from '../lib/units.ts'
 import { useStore } from '../store/useStore.ts'
 import { BodyweightTrend } from './BodyweightTrend.tsx'
@@ -43,7 +44,7 @@ export function BodyweightCard() {
           </div>
           <LineChart
             unit={unit}
-            points={shown.map((b) => ({ label: b.d.slice(5), value: Math.round(kgToUnit(b.w, unit) * 10) / 10 }))}
+            points={shown.map((b) => ({ label: formatAxisDay(b.d), value: Math.round(kgToUnit(b.w, unit) * 10) / 10 }))}
           />
           <BodyweightTrend />
         </>

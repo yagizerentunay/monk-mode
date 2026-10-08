@@ -7,6 +7,7 @@ import { CalendarSheet } from '../components/CalendarSheet.tsx'
 import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { formatAxisDay } from '../lib/calendar.ts'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
 import { suggestNextRoutine } from '../lib/nextWorkout.ts'
 import { weekStartOf, weekStreak } from '../lib/streak.ts'
@@ -184,7 +185,7 @@ export function Home() {
         {bodyweight.length > 1 && (
           <LineChart
             unit={unit}
-            points={bodyweight.slice(-30).map((b) => ({ label: b.d.slice(5), value: Math.round(kgToUnit(b.w, unit) * 10) / 10 }))}
+            points={bodyweight.slice(-30).map((b) => ({ label: formatAxisDay(b.d), value: Math.round(kgToUnit(b.w, unit) * 10) / 10 }))}
           />
         )}
         <BodyweightTrend compact />

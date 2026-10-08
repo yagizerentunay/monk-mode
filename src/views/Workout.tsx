@@ -9,6 +9,7 @@ import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { SwapSheet } from '../components/SwapSheet.tsx'
 import { formatClock } from '../lib/alert.ts'
+import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName, nameLang } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
@@ -208,7 +209,7 @@ export function Workout() {
                   </div>
                 )}
                 <PlateauNote exId={entry.exId} />
-                {lastNote && <div className="warntext">Not ({lastNote.d.slice(5)}): {lastNote.note}</div>}
+                {lastNote && <div className="warntext">Not ({formatShortDay(lastNote.d)}): {lastNote.note}</div>}
               </div>
             </div>
             {(noteOpen.has(ei) || !!entry.note) && (
