@@ -16,7 +16,7 @@ export function newId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
 }
 
-function workSets(sets: SetEntry[]): SetEntry[] {
+export function workSets(sets: SetEntry[]): SetEntry[] {
   return sets.filter((s) => !s.warmup && s.done)
 }
 
