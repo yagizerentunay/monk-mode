@@ -90,7 +90,8 @@ a { color: inherit; text-decoration: none; }
 .seal { flex: none; color: var(--accent); }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
-.card.tap { display: block; width: 100%; text-align: left; }
+:where(.card.tap) { display: block; }
+.card.tap { width: 100%; text-align: left; }
 .card.hero { border-color: rgba(235, 148, 98, 0.45); background: linear-gradient(160deg, #262b30, var(--card) 60%); }
 
 .btn {
