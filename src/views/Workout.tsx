@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
+import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS, restAfterSec } from '../lib/intensity.ts'
+import { plateTargets } from '../lib/plates.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -76,6 +78,8 @@ export function Workout() {
   const [now, setNow] = useState(() => Date.now())
   const [picking, setPicking] = useState(false)
   const [menu, setMenu] = useState(false)
+  /** Plaka hesaplayıcısı açık olan egzersizin sırası. */
+  const [plateEntry, setPlateEntry] = useState<number | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
 
   useEffect(() => {
@@ -186,6 +190,7 @@ export function Workout() {
               >
                 + Isınma
               </button>
+              <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>
               <button
                 className={`chip${entry.unilateral ? ' on' : ''}`}
                 aria-pressed={!!entry.unilateral}
@@ -210,6 +215,15 @@ export function Workout() {
             setPicking(false)
           }}
         />
+      </BottomSheet>
+
+      <BottomSheet open={plateEntry !== null} onClose={() => setPlateEntry(null)} title="Plaka hesaplayıcı">
+        {plateEntry !== null && active.entries[plateEntry] && (
+          <PlateCalculator
+            initialKg={plateTargets(active.entries[plateEntry].sets).initial}
+            weights={plateTargets(active.entries[plateEntry].sets).weights}
+          />
+        )}
       </BottomSheet>
 
       <BottomSheet open={menu} onClose={() => setMenu(false)} title="Antrenman">
