@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout } from '../store/schema.ts'
-import { MUSCLES, MUSCLE_LABEL, emptyMuscleSets, muscleLevel, muscleSets, sinceDay } from './muscles.ts'
+import {
+  MUSCLES,
+  MUSCLE_LABEL,
+  emptyMuscleSets,
+  muscleLevel,
+  muscleSets,
+  sinceDay,
+  underTargetMuscles,
+  weekComparison,
+  weekRanges,
+} from './muscles.ts'
 
 const set = (over: Partial<SetEntry> = {}): SetEntry => ({ w: 50, r: 8, done: true, ...over })
 
@@ -140,5 +150,117 @@ describe('kas ısısı', () => {
     expect(muscleLevel(Number.NaN, 7)).toBe(0)
     expect(muscleLevel(5, Number.POSITIVE_INFINITY)).toBe(0)
     expect(muscleLevel(-2, 7)).toBe(0)
+  })
+})
+
+describe('takvim haftası aralıkları', () => {
+  // 2026-10-08 Perşembe
+  const thu = new Date(2026, 9, 8)
+
+  it('Pazartesi başlangıcında hafta Pzt..bugün, geçen hafta tam Pzt..Paz', () => {
+    expect(weekRanges(thu, 1)).toEqual({
+      thisFrom: '2026-10-05',
+      thisTo: '2026-10-08',
+      lastFrom: '2026-09-28',
+      lastTo: '2026-10-04',
+      daysElapsed: 4,
+    })
+  })
+
+  it('Pazar başlangıcında hafta Pazar günü başlar', () => {
+    const r = weekRanges(thu, 0)
+    expect(r.thisFrom).toBe('2026-10-04')
+    expect(r.lastFrom).toBe('2026-09-27')
+    expect(r.lastTo).toBe('2026-10-03')
+    expect(r.daysElapsed).toBe(5)
+  })
+
+  it('bugün hafta başıysa bu hafta tek gündür; Cumartesi başlangıcı da çalışır', () => {
+    const r = weekRanges(new Date(2026, 9, 5), 1)
+    expect(r.thisFrom).toBe('2026-10-05')
+    expect(r.thisTo).toBe('2026-10-05')
+    expect(r.daysElapsed).toBe(1)
+    expect(r.lastTo).toBe('2026-10-04')
+    expect(weekRanges(thu, 6).thisFrom).toBe('2026-10-03')
+  })
+
+  it('bugün haftanın son günüyse 7 gün geçmiştir', () => {
+    expect(weekRanges(new Date(2026, 9, 11), 1).daysElapsed).toBe(7)
+  })
+
+  it('ay ve yıl sınırını aşar', () => {
+    const r = weekRanges(new Date(2027, 0, 1), 1) // Cuma
+    expect(r.thisFrom).toBe('2026-12-28')
+    expect(r.lastFrom).toBe('2026-12-21')
+    expect(r.lastTo).toBe('2026-12-27')
+  })
+
+  it('yaz/kış saati geçiş haftalarında günleri kaydırmaz', () => {
+    // Avrupa kış saati: 2026-10-25 Pazar; ABD yaz saati: 2026-03-08 Pazar.
+    expect(weekRanges(new Date(2026, 9, 28, 12), 1)).toMatchObject({ thisFrom: '2026-10-26', lastFrom: '2026-10-19', lastTo: '2026-10-25' })
+    expect(weekRanges(new Date(2026, 9, 25, 0, 30), 1)).toMatchObject({ thisFrom: '2026-10-19', lastFrom: '2026-10-12', lastTo: '2026-10-18' })
+    expect(weekRanges(new Date(2026, 2, 9, 12), 1)).toMatchObject({ thisFrom: '2026-03-09', lastFrom: '2026-03-02', lastTo: '2026-03-08' })
+  })
+
+  it('geçersiz hafta başlangıcı Pazartesi sayılır, taşan değer mod 7 alınır', () => {
+    expect(weekRanges(thu, Number.NaN).thisFrom).toBe('2026-10-05')
+    expect(weekRanges(thu, 8).thisFrom).toBe('2026-10-05')
+    expect(weekRanges(thu, -6).thisFrom).toBe('2026-10-05')
+  })
+})
+
+describe('bu hafta ve geçen hafta karşılaştırması', () => {
+  const thu = new Date(2026, 9, 8)
+  const ws = [
+    workout('2026-09-27', [{ exId: 'curl', sets: [set()] }]), // Pazar
+    workout('2026-09-28', [{ exId: 'bench', sets: [set(), set(), set()] }]), // geçen hafta ilk gün
+    workout('2026-10-04', [{ exId: 'curl', sets: [set(), set()] }]), // geçen hafta son gün (Pazar)
+    workout('2026-10-05', [{ exId: 'bench', sets: [set()] }]), // bu hafta ilk gün
+    workout('2026-10-08', [{ exId: 'curl', sets: [set(), set(), set()] }]), // bugün
+    workout('2026-10-09', [{ exId: 'curl', sets: [set()] }]), // gelecek: sayılmaz
+  ]
+
+  it('iki ucu dahil sayar, hafta dışını saymaz', () => {
+    const c = weekComparison(ws, byId, thu, 1)
+    expect(c.thisWeek.chest).toBe(1)
+    expect(c.thisWeek.biceps).toBe(3)
+    expect(c.lastWeek.chest).toBe(3)
+    expect(c.lastWeek.biceps).toBe(2)
+    expect(c.delta.chest).toBe(-2)
+    expect(c.delta.biceps).toBe(1)
+    expect(c.delta.triceps).toBe(0.5 - 1.5)
+  })
+
+  it('hafta başlangıcı sonucu değiştirir', () => {
+    // Pazar başlangıcında 09-27 geçen haftaya, 10-04 Pazar bu haftaya girer.
+    const c = weekComparison(ws, byId, thu, 0)
+    expect(c.lastWeek.biceps).toBe(1)
+    expect(c.thisWeek.biceps).toBe(2 + 3)
+  })
+
+  it('boş geçmişte her şey sıfırdır', () => {
+    const c = weekComparison([], byId, thu, 1)
+    expect(Object.values(c.thisWeek).every((v) => v === 0)).toBe(true)
+    expect(Object.values(c.delta).every((v) => v === 0)).toBe(true)
+  })
+})
+
+describe('hedefin altındaki kaslar', () => {
+  const base = () => ({ ...emptyMuscleSets(), chest: 4, biceps: 9.5, lats: 12, triceps: 10 })
+
+  it('hedef ve üstündekileri dışarıda bırakır, hedefe en uzak olandan sıralar', () => {
+    const r = underTargetMuscles(base(), { eligible: (m) => ['chest', 'biceps', 'lats', 'triceps', 'calves'].includes(m) })
+    expect(r.map((u) => u.muscle)).toEqual(['calves', 'chest', 'biceps'])
+    expect(r[1]).toEqual({ muscle: 'chest', sets: 4, target: 10, gap: 6 })
+  })
+
+  it('limit ve özel hedef uygulanır', () => {
+    const r = underTargetMuscles(base(), { limit: 2, eligible: (m) => m === 'chest' || m === 'biceps' || m === 'lats', target: 12 })
+    expect(r.map((u) => u.muscle)).toEqual(['chest', 'biceps'])
+    expect(underTargetMuscles(base(), { limit: 0 })).toEqual([])
+  })
+
+  it('uygunluk süzgeci verilmezse tüm kaslar değerlendirilir', () => {
+    expect(underTargetMuscles(base())).toHaveLength(MUSCLES.length - 2)
   })
 })

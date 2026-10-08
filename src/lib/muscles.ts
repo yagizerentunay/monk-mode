@@ -105,3 +105,98 @@ export function muscleLevel(sets: number, periodDays: number): number {
   const target = (WEEKLY_TARGET_SETS * periodDays) / 7
   return Math.min(1, Math.max(0, sets / target))
 }
+
+/** Takvim haftası aralıkları: yerel YYYY-MM-DD, iki uç da dahil (muscleSets ile aynı). */
+export interface WeekRanges {
+  thisFrom: string
+  /** Bugün (hafta henüz bitmedi). */
+  thisTo: string
+  lastFrom: string
+  /** Geçen haftanın son günü: bu haftanın başlangıcından bir önceki gün. */
+  lastTo: string
+  /** Bu haftanın kaçıncı günündeyiz (1..7, bugün dahil). */
+  daysElapsed: number
+}
+
+/** weekStart 0=Pazar..6=Cumartesi; geçersiz değer Pazartesi'ye (1) düşer, taşan değer mod 7 alınır. */
+function normalizeWeekStart(weekStart: number): number {
+  if (!Number.isFinite(weekStart)) return 1
+  return ((Math.floor(weekStart) % 7) + 7) % 7
+}
+
+/**
+ * Kullanıcının hafta başlangıcına göre "bu hafta (başından bugüne)" ve "geçen hafta (tam hafta)".
+ * Tarih aritmetiği yerel takvim günü üzerinden (new Date(y, m, d + n)) yapılır, 24 saat eklenmez;
+ * böylece yaz/kış saati geçişi haftayı kaydırmaz.
+ */
+export function weekRanges(today: Date = new Date(), weekStart: number = 1): WeekRanges {
+  const ws = normalizeWeekStart(weekStart)
+  const y = today.getFullYear()
+  const m = today.getMonth()
+  const d = today.getDate()
+  const back = (today.getDay() - ws + 7) % 7
+  const start = new Date(y, m, d - back)
+  const sy = start.getFullYear()
+  const sm = start.getMonth()
+  const sd = start.getDate()
+  return {
+    thisFrom: dayString(start),
+    thisTo: dayString(new Date(y, m, d)),
+    lastFrom: dayString(new Date(sy, sm, sd - 7)),
+    lastTo: dayString(new Date(sy, sm, sd - 1)),
+    daysElapsed: back + 1,
+  }
+}
+
+export interface WeekComparison {
+  ranges: WeekRanges
+  /** Bu hafta, haftanın başından bugüne. */
+  thisWeek: MuscleSets
+  /** Geçen takvim haftası (tam). */
+  lastWeek: MuscleSets
+  /** thisWeek - lastWeek. Bu hafta henüz yarım olduğundan negatif fark "geride" demek değildir. */
+  delta: MuscleSets
+}
+
+/** Bu hafta ve geçen hafta için kas başına ağırlıklı set ve fark. */
+export function weekComparison(
+  workouts: Workout[],
+  byId: ReadonlyMap<string, MuscleInfo>,
+  today: Date = new Date(),
+  weekStart: number = 1,
+): WeekComparison {
+  const ranges = weekRanges(today, weekStart)
+  const thisWeek = muscleSets(workouts, byId, { from: ranges.thisFrom, to: ranges.thisTo })
+  const lastWeek = muscleSets(workouts, byId, { from: ranges.lastFrom, to: ranges.lastTo })
+  const delta = emptyMuscleSets()
+  for (const m of MUSCLES) delta[m] = thisWeek[m] - lastWeek[m]
+  return { ranges, thisWeek, lastWeek, delta }
+}
+
+export interface UnderTarget {
+  muscle: MuscleId
+  sets: number
+  target: number
+  /** target - sets (> 0). */
+  gap: number
+}
+
+/**
+ * Hedefin altındaki kaslar, hedefe en uzak olandan başlayarak (eşitlikte MUSCLES sırası).
+ * `eligible` verilirse yalnız o kaslar değerlendirilir (ör. yakın zamanda çalışılmış olanlar).
+ * Geçen (tam) hafta için doğrudan "hedefin altında" anlamına gelir; içinde bulunulan hafta için
+ * arayüz bunu "hedefe ilerleme" olarak çerçevelemelidir.
+ */
+export function underTargetMuscles(
+  sets: MuscleSets,
+  options: { target?: number; limit?: number; eligible?: (m: MuscleId) => boolean } = {},
+): UnderTarget[] {
+  const target = options.target ?? WEEKLY_TARGET_SETS
+  const out: UnderTarget[] = []
+  for (const m of MUSCLES) {
+    if (options.eligible && !options.eligible(m)) continue
+    if (sets[m] < target) out.push({ muscle: m, sets: sets[m], target, gap: target - sets[m] })
+  }
+  out.sort((a, b) => b.gap - a.gap)
+  return options.limit === undefined ? out : out.slice(0, Math.max(0, options.limit))
+}
