@@ -474,3 +474,100 @@ describe('yarım tek taraflı set', () => {
     expect(useStore.getState().finishWorkout()?.entries).toHaveLength(1)
   })
 })
+
+describe('egzersiz değiştirme', () => {
+  const rt = {
+    id: 'r1',
+    name: 'Push',
+    ex: [
+      { exId: 'bench', sets: 3, reps: 5, weight: 60, prog: 'linear' as const, inc: 2.5, repsMax: 8, warmups: 1 },
+      { exId: 'row', sets: 2, reps: 8, weight: 40, prog: 'linear' as const, inc: 2.5, repsMax: 8, superset: true },
+    ],
+  }
+
+  it('hiç set tamamlanmamış egzersizi değiştirir; rutin, not ve süperset bağı korunur', () => {
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    useStore.getState().setEntryNote(1, 'diz ağrısı')
+    useStore.getState().swapExercise(1, 'cable-row')
+    const e = useStore.getState().active!.entries[1]
+    expect(e.exId).toBe('cable-row')
+    expect(e.note).toBeUndefined()
+    expect(e.linked).toBe(true)
+    expect(e.sets).toHaveLength(2)
+    expect(e.sets.every((x) => x.w === 0 && x.r === 8 && !x.done)).toBe(true)
+    expect(useStore.getState().routines[0].ex[1].exId).toBe('row')
+    expect(useStore.getState().active!.entries[0].exId).toBe('bench')
+  })
+
+  it('ısınmayı yeni çalışma ağırlığından yeniden kurar; sayıyı korur', () => {
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    s.addExerciseToActive('x')
+    useStore.getState().swapExercise(0, 'db-press')
+    const sets = useStore.getState().active!.entries[0].sets
+    expect(sets.filter((x) => x.warmup)).toHaveLength(1)
+    expect(sets.filter((x) => !x.warmup)).toHaveLength(3)
+    expect(sets.every((x) => x.w === 0)).toBe(true)
+  })
+
+  it('yeni egzersizin geçmişinden hedef alır', () => {
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    useStore.getState().updateSet(1, 0, { w: 50, r: 8, done: true })
+    useStore.getState().updateSet(1, 1, { w: 50, r: 8, done: true })
+    useStore.getState().finishWorkout()
+    useStore.getState().startWorkout('r1')
+    useStore.getState().swapExercise(0, 'row')
+    const work = useStore.getState().active!.entries[0].sets.filter((x) => !x.warmup)
+    expect(work).toHaveLength(3)
+    expect(work.every((x) => x.w === 50 && x.r === 8)).toBe(true)
+  })
+
+  it('tek taraflı adı için sol/sağ setler kurar, geri dönüşte bilateral yapar', () => {
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    useStore.getState().swapExercise(1, 'lunge', true)
+    let e = useStore.getState().active!.entries[1]
+    expect(e.unilateral).toBe(true)
+    expect(e.sets.every((x) => !!x.sides)).toBe(true)
+    useStore.getState().swapExercise(1, 'row', false)
+    e = useStore.getState().active!.entries[1]
+    expect(e.unilateral).toBeUndefined()
+    expect(e.sets.every((x) => !x.sides)).toBe(true)
+  })
+
+  it('tamamlanmış ya da yarım set varsa hiçbir şey yapmaz', () => {
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    useStore.getState().updateSet(1, 0, { done: true })
+    const before = useStore.getState().active
+    useStore.getState().swapExercise(1, 'cable-row')
+    expect(useStore.getState().active).toBe(before)
+
+    useStore.getState().discardWorkout()
+    useStore.getState().startWorkout('r1')
+    useStore.getState().toggleUnilateral(1)
+    useStore.getState().updateSide(1, 0, 'L', { done: true, r: 5 })
+    const mid = useStore.getState().active
+    useStore.getState().swapExercise(1, 'db-press')
+    expect(useStore.getState().active).toBe(mid)
+  })
+
+  it('antrenman yoksa, geçersiz sıra ya da aynı egzersizde dokunmaz', () => {
+    useStore.getState().swapExercise(0, 'x')
+    expect(useStore.getState().active).toBeNull()
+    const s = useStore.getState()
+    s.saveRoutine(rt)
+    s.startWorkout('r1')
+    const before = useStore.getState().active
+    useStore.getState().swapExercise(5, 'x')
+    useStore.getState().swapExercise(0, 'bench')
+    expect(useStore.getState().active).toBe(before)
+  })
+})

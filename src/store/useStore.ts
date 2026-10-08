@@ -5,6 +5,7 @@ import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
+import { swapEntry } from '../lib/swap.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
 import { migrate } from './migrate.ts'
 import {
@@ -57,6 +58,12 @@ export interface Actions {
   addDrop(entry: number, set: number): void
   removeSet(entry: number, set: number): void
   addExerciseToActive(exId: string, cfg?: Partial<ExCfg>): void
+  /**
+   * Aktif antrenmanda henüz hiç set tamamlanmamış (done/partial yok) bir egzersizi `exId` ile değiştirir;
+   * aksi hâlde hiçbir şey yapmaz. Yalnız bu seansı etkiler (rutin değişmez). `side`: yeni egzersiz tek
+   * taraflı mı (arayüz adından belirler, bkz. isUnilateralName); verilmezse bilateral.
+   */
+  swapExercise(entry: number, exId: string, side?: boolean): void
   finishWorkout(): Workout | null
   discardWorkout(): void
   deleteWorkout(id: string): void
@@ -245,6 +252,15 @@ export const useStore = create<Store>((set, get) => ({
         })(),
       ],
     })),
+
+  swapExercise: (entry, exId, side = false) =>
+    set((s) => {
+      const e = s.active?.entries[entry]
+      if (!s.active || !e || e.exId === exId) return {}
+      const swapped = swapEntry(e, exId, side, s.workouts)
+      if (!swapped) return {}
+      return { active: { ...s.active, entries: s.active.entries.map((x, i) => (i === entry ? swapped : x)) } }
+    }),
 
   finishWorkout: () => {
     const { active } = get()

@@ -6,6 +6,7 @@ import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
 import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
+import { SwapSheet } from '../components/SwapSheet.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isUnilateralName, nameLang } from '../lib/exercises.ts'
@@ -14,6 +15,7 @@ import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
 import { formatSet } from '../lib/sets.ts'
+import { hasCompletedWork } from '../lib/swap.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -81,6 +83,7 @@ export function Workout() {
     addDrop,
     removeSet,
     addExerciseToActive,
+    swapExercise,
     finishWorkout,
     discardWorkout,
   } = useStore.getState()
@@ -95,6 +98,8 @@ export function Workout() {
   }
   const [now, setNow] = useState(() => Date.now())
   const [picking, setPicking] = useState(false)
+  /** Değiştir sayfası açık olan egzersizin sırası. */
+  const [swapEntryIdx, setSwapEntryIdx] = useState<number | null>(null)
   const [menu, setMenu] = useState(false)
   /** Plaka hesaplayıcısı açık olan egzersizin sırası. */
   const [plateEntry, setPlateEntry] = useState<number | null>(null)
@@ -264,6 +269,9 @@ export function Workout() {
                 + Isınma
               </button>
               <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>
+              {ex && !hasCompletedWork(entry) && (
+                <button className="btn small" onClick={() => setSwapEntryIdx(ei)}>Değiştir</button>
+              )}
               {ei > 0 && (
                 <button
                   className={`chip${entry.linked ? ' on' : ''}`}
@@ -295,6 +303,9 @@ export function Workout() {
                 Not
               </button>
             </div>
+            {hasCompletedWork(entry) && (
+              <div className="sub exswaphint">Tamamlanmış set var; egzersizi değiştirmek için önce setlerin işaretini geri al.</div>
+            )}
           </div>
         )
       })}
@@ -312,6 +323,19 @@ export function Workout() {
             setPicking(false)
           }}
         />
+      </BottomSheet>
+
+      <BottomSheet open={swapEntryIdx !== null} onClose={() => setSwapEntryIdx(null)} title="Egzersizi değiştir">
+        {swapEntryIdx !== null && active.entries[swapEntryIdx] && byId.get(active.entries[swapEntryIdx].exId) && (
+          <SwapSheet
+            current={byId.get(active.entries[swapEntryIdx].exId)!}
+            excludeIds={new Set(active.entries.map((e) => e.exId))}
+            onSelect={(next) => {
+              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name))
+              setSwapEntryIdx(null)
+            }}
+          />
+        )}
       </BottomSheet>
 
       <BottomSheet open={plateEntry !== null} onClose={() => setPlateEntry(null)} title="Plaka hesaplayıcı">
