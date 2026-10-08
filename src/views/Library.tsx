@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
+import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
 import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -14,6 +15,7 @@ function Detail({ ex }: { ex: Exercise }) {
         {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.join(', ')}`}
         {ex.equipment ? ` · ${ex.equipment}` : ''}
       </div>
+      <ExerciseHistory exId={ex.id} />
       {ex.images.length > 0 && (
         <div className="row" style={{ overflowX: 'auto' }}>
           {ex.images.map((p) => (
