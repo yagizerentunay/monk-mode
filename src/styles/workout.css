@@ -119,3 +119,4 @@
 
 /* süperset */
 .card.ss { border-left: 3px solid var(--accent); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+.exswaphint { font-size: 13px; }
