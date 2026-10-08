@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
+import { MuscleCard } from '../components/MuscleCard.tsx'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -111,6 +112,8 @@ export function Stats() {
           </>
         )}
       </div>
+
+      <MuscleCard />
 
       <div className="card stack">
         <h2>Son antrenmanlar</h2>
