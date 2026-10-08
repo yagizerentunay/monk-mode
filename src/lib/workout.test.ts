@@ -168,3 +168,28 @@ describe('tek taraflı egzersizler', () => {
     expect(w.entries[0].sets[0].w).toBe(20)
   })
 })
+
+describe('süperset', () => {
+  const cfg = (exId: string, superset?: boolean) => ({
+    exId,
+    sets: 2,
+    reps: 8,
+    weight: 20,
+    prog: 'off' as const,
+    inc: 0,
+    repsMax: 8,
+    superset,
+  })
+
+  it('rutindeki süperset bayrağını seans egzersizine taşır', () => {
+    const r: Routine = { id: 'r3', name: 'Üst', ex: [cfg('a'), cfg('b', true), cfg('c')] }
+    const w = buildWorkout(r, [], Date.UTC(2026, 9, 8, 12))
+    expect(w.entries.map((e) => !!e.linked)).toEqual([false, true, false])
+  })
+
+  it('ilk egzersizin bayrağını yok sayar', () => {
+    const r: Routine = { id: 'r3', name: 'Üst', ex: [cfg('a', true), cfg('b', true)] }
+    const w = buildWorkout(r, [], Date.UTC(2026, 9, 8, 12))
+    expect(w.entries.map((e) => !!e.linked)).toEqual([false, true])
+  })
+})

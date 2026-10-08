@@ -37,11 +37,12 @@ export function buildWorkout(routine: Routine, history: Workout[], now: number):
     start: now,
     routineId: routine.id,
     name: routine.name,
-    entries: routine.ex.map((cfg) => {
+    entries: routine.ex.map((cfg, i) => {
       const p = nextPrescription(cfg, lastEntryFor(history, cfg.exId))
       const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
       const warmups = warmupSets(p.w, cfg.warmups ?? 0)
       const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
+      if (cfg.superset && i > 0) entry.linked = true
       if (cfg.side) {
         entry.unilateral = true
         entry.sets = toUnilateral(entry.sets)

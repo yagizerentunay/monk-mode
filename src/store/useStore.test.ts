@@ -191,3 +191,38 @@ describe('store akışı', () => {
     expect(Object.keys(snapshot(useStore.getState())).sort()).toEqual(Object.keys(defaultState()).sort())
   })
 })
+
+describe('süperset', () => {
+  const two = {
+    ...routine,
+    ex: [routine.ex[0], { ...routine.ex[0], exId: 'row' }],
+  }
+
+  it('seansta ikinci egzersizi öncekiyle bağlar ve çözer', () => {
+    const s = useStore.getState()
+    s.saveRoutine(two)
+    s.startWorkout('r1')
+    useStore.getState().toggleSuperset(1)
+    expect(useStore.getState().active!.entries[1].linked).toBe(true)
+    useStore.getState().toggleSuperset(1)
+    expect(useStore.getState().active!.entries[1].linked).toBe(false)
+  })
+
+  it('ilk egzersizi bağlamaz', () => {
+    const s = useStore.getState()
+    s.saveRoutine(two)
+    s.startWorkout('r1')
+    useStore.getState().toggleSuperset(0)
+    expect(useStore.getState().active!.entries[0].linked).toBeUndefined()
+  })
+
+  it('bağ, kaydedilen antrenmanda korunur', () => {
+    const s = useStore.getState()
+    s.saveRoutine({ ...two, ex: [two.ex[0], { ...two.ex[1], superset: true }] })
+    s.startWorkout('r1')
+    useStore.getState().updateSet(0, 0, { done: true })
+    useStore.getState().updateSet(1, 0, { done: true })
+    const finished = useStore.getState().finishWorkout()
+    expect(finished?.entries.map((e) => !!e.linked)).toEqual([false, true])
+  })
+})

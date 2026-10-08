@@ -44,6 +44,7 @@ export interface Actions {
   updateSet(entry: number, set: number, patch: Partial<SetEntry>): void
   updateSide(entry: number, set: number, side: Side, patch: Partial<SideSet>): void
   toggleUnilateral(entry: number): void
+  toggleSuperset(entry: number): void
   addSet(entry: number): void
   addWarmup(entry: number): void
   addDrop(entry: number, set: number): void
@@ -138,6 +139,13 @@ export const useStore = create<Store>((set, get) => ({
             ? { ...e, unilateral: false, sets: toBilateral(e.sets) }
             : { ...e, unilateral: true, sets: toUnilateral(e.sets) },
       ),
+    })),
+
+  toggleSuperset: (entry) =>
+    withActive(set, (w) => ({
+      ...w,
+      // İlk egzersiz bağlanacak öncekine sahip değildir.
+      entries: w.entries.map((e, i) => (i !== entry || i === 0 ? e : { ...e, linked: !e.linked })),
     })),
 
   addSet: (entry) =>
