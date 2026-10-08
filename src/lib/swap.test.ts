@@ -89,16 +89,16 @@ describe('swapEntry', () => {
     expect(swapEntry(half, 'db', false, [])).toBeNull()
   })
 
-  it('geçmişi yoksa tekrarı korur, ağırlığı sıfırlar, yapıyı ve süpersetı korur, notu siler', () => {
+  it('geçmişi yoksa ağırlığı ve tekrarı korur, yapıyı ve süpersetı korur, notu siler', () => {
     const out = swapEntry(entry(), 'db', false, [])!
     expect(out.exId).toBe('db')
     expect(out.note).toBeUndefined()
     expect(out.linked).toBe(true)
     expect(out.sets.map((s) => [!!s.warmup, !!s.drop, s.w, s.r])).toEqual([
-      [true, false, 0, 8],
-      [false, false, 0, 5],
-      [false, false, 0, 5],
-      [false, true, 0, 5],
+      [true, false, 40, 8],
+      [false, false, 100, 5],
+      [false, false, 100, 5],
+      [false, true, 80, 5],
     ])
   })
 

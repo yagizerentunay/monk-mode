@@ -41,8 +41,8 @@ export function hasCompletedWork(entry: WorkoutEntry): boolean {
  * Henüz çalışılmamış bir egzersiz satırının yerine `exId` koyar; yapılmışsa null döner.
  *
  * - Çalışma seti sayısı korunur. Ağırlık/tekrar hedefi yeni egzersizin kendi geçmişinden (çift ilerleme,
- *   hedef tekrar = mevcut hedef) gelir; geçmişi yoksa tekrar korunur, ağırlık 0 olur (eski egzersizin
- *   yükü yenisine anlam taşımaz).
+ *   hedef tekrar = mevcut hedef) gelir; geçmişi yoksa mevcut ilk çalışma setinin ağırlığı ve tekrarı
+ *   korunur (kullanıcı başlangıç noktası olarak eskisini görür ve düzeltir; 0 kg'dan başlatmaktan iyidir).
  * - Satırın yapısı (ısınma / çalışma / drop sırası ve sayıları) korunur; ısınmalar yeni çalışma
  *   ağırlığından, dropsetler önceki setin %80'inden yeniden hesaplanır. Tek tek elle yazılmış hedefler
  *   yenisinde ortak hedefe döner.
@@ -53,7 +53,7 @@ export function swapEntry(entry: WorkoutEntry, exId: string, side: boolean, hist
   const work = entry.sets.filter((s) => !s.warmup && !s.drop)
   const reps = work[0]?.r ?? 8
   const p = nextPrescription(
-    { exId, sets: work.length, reps, weight: 0, prog: 'double', inc: 2.5, repsMax: reps },
+    { exId, sets: work.length, reps, weight: work[0]?.w ?? 0, prog: 'double', inc: 2.5, repsMax: reps },
     lastEntryFor(history, exId),
   )
   const rebuilt: SetEntry[] = []

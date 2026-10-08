@@ -496,7 +496,7 @@ describe('egzersiz değiştirme', () => {
     expect(e.note).toBeUndefined()
     expect(e.linked).toBe(true)
     expect(e.sets).toHaveLength(2)
-    expect(e.sets.every((x) => x.w === 0 && x.r === 8 && !x.done)).toBe(true)
+    expect(e.sets.every((x) => x.w === 40 && x.r === 8 && !x.done)).toBe(true)
     expect(useStore.getState().routines[0].ex[1].exId).toBe('row')
     expect(useStore.getState().active!.entries[0].exId).toBe('bench')
   })
@@ -510,7 +510,11 @@ describe('egzersiz değiştirme', () => {
     const sets = useStore.getState().active!.entries[0].sets
     expect(sets.filter((x) => x.warmup)).toHaveLength(1)
     expect(sets.filter((x) => !x.warmup)).toHaveLength(3)
-    expect(sets.every((x) => x.w === 0)).toBe(true)
+    // Geçmişi olmayan egzersizde mevcut çalışma ağırlığı (60) korunur; ısınma ondan türetilir, daha hafiftir.
+    expect(sets.filter((x) => !x.warmup).every((x) => x.w === 60)).toBe(true)
+    const warm = sets.find((x) => x.warmup)!
+    expect(warm.w).toBeGreaterThan(0)
+    expect(warm.w).toBeLessThan(60)
   })
 
   it('yeni egzersizin geçmişinden hedef alır', () => {
