@@ -1,6 +1,6 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
-const VERSION = 'v1'
+const VERSION = 'v2'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz görselleri
@@ -14,6 +14,7 @@ const MATCH = { ignoreVary: true }
 const scope = self.registration.scope
 const INDEX = new URL('./', scope).href
 const EXERCISES = new URL('data/exercises.json', scope).href
+const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
 
 function isImageCdn(url) {
   return url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('free-exercise-db')
@@ -124,7 +125,7 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(navigate(request))
-  } else if (url.pathname.includes('/assets/')) {
+  } else if (url.href.startsWith(ASSETS)) {
     event.respondWith(cacheFirst(request, SHELL))
   } else if (url.href === EXERCISES) {
     event.respondWith(staleWhileRevalidate(request, DATA))
