@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
+import { PlateauNote } from '../components/PlateauNote.tsx'
 import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
 import { Seal } from '../components/Brand.tsx'
@@ -206,6 +207,7 @@ export function Workout() {
                     Hedef {formatWeight(targetSet.w, unit)} {unit} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
                   </div>
                 )}
+                <PlateauNote exId={entry.exId} />
                 {lastNote && <div className="warntext">Not ({lastNote.d.slice(5)}): {lastNote.note}</div>}
               </div>
             </div>

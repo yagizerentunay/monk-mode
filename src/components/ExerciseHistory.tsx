@@ -6,6 +6,7 @@ import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { exerciseHistory } from '../lib/workout.ts'
 import { useStore } from '../store/useStore.ts'
 import { LineChart } from './LineChart.tsx'
+import { PlateauNote } from './PlateauNote.tsx'
 
 function shortDay(d: string): string {
   const date = parseDay(d)
@@ -52,6 +53,7 @@ export function ExerciseHistory({ exId }: { exId: string }) {
         <div className="eyebrow muted">Son seans · {shortDay(last.d)}</div>
         <div className="sub">{last.sets.map((s) => formatSet(s, formatWeight(s.w, unit))).join(' · ')}</div>
       </div>
+      <PlateauNote exId={exId} />
       {points.length >= 2 && <LineChart points={points} unit={unit} />}
     </div>
   )
