@@ -255,6 +255,23 @@ describe('Hevy', () => {
     expect(w.date).toBe('2024-03-26')
   })
 
+  it('Türkçe uygulama dilindeki tarihi okur ("1 Eki 2026, 19:52"), Türkçe harfli ay kısaltmalarıyla', () => {
+    const months: [string, number][] = [
+      ['1 Oca 2026, 08:00', 0], ['2 Şub 2026, 08:00', 1], ['3 Mar 2026, 08:00', 2], ['4 Nis 2026, 08:00', 3],
+      ['5 May 2026, 08:00', 4], ['6 Haz 2026, 08:00', 5], ['7 Tem 2026, 08:00', 6], ['8 Ağu 2026, 08:00', 7],
+      ['9 Eyl 2026, 08:00', 8], ['1 Eki 2026, 19:52', 9], ['11 Kas 2026, 08:00', 10], ['12 Ara 2026, 08:00', 11],
+    ]
+    for (const [text, month] of months) {
+      const dayStr = text.split(' ')[0]
+      const w = parseImport([HEVY, hv('A Day', text, text, 'Barfiks', '', 'normal', '0', '7')].join('\n')).workouts[0]
+      expect(w.date.slice(5, 7)).toBe(String(month + 1).padStart(2, '0'))
+      expect(w.date.endsWith(String(dayStr).padStart(2, '0'))).toBe(true)
+    }
+    const eki = parseImport([HEVY, hv('A Day', '1 Eki 2026, 19:52', '1 Eki 2026, 21:26', 'Barfiks', '', 'normal', '0', '7')].join('\n')).workouts[0]
+    expect(eki.start).toBe(new Date(2026, 9, 1, 19, 52, 0).getTime())
+    expect(eki.durationSec).toBe(94 * 60)
+  })
+
   it('tam ay adı, saniye ve ISO biçimlerini okur, saat dilimini yok sayar', () => {
     const c = [
       HEVY,

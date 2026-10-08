@@ -85,6 +85,8 @@ export function parseCsv(text: string): string[][] {
 const MONTHS: Record<string, number> = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
   jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  // Hevy tarihleri uygulama dilinde yazılabilir ("1 Eki 2026"); Türkçe ilk üç harf (mar ve may ortak).
+  oca: 1, şub: 2, nis: 4, haz: 6, tem: 7, ağu: 8, eyl: 9, eki: 10, kas: 11, ara: 12,
 }
 
 interface ParsedDate {
@@ -116,7 +118,7 @@ function parseIsoLocal(raw: string): ParsedDate | null {
 /** "26 Mar 2024, 17:26" (kısa/uzun İngilizce ay, saniye isteğe bağlı) ya da ISO. */
 function parseHevyDate(raw: string): ParsedDate | null {
   const s = raw.trim()
-  const m = /^(\d{1,2})\s+([A-Za-z]+)\.?,?\s+(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(s)
+  const m = /^(\d{1,2})\s+(\p{L}+)\.?,?\s+(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/u.exec(s)
   if (m) {
     const mo = MONTHS[m[2].slice(0, 3).toLowerCase()]
     if (!mo) return null
