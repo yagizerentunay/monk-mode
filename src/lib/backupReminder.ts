@@ -7,14 +7,20 @@ export const REMIND_CHOICES = [0, 7, 14, 30] as const
 export const SNOOZE_DAYS = 3
 
 /** Yedeğe giren veri alanları; ayarlar ve devam eden antrenman (`active`) yedeğin parçası sayılmaz. */
-type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'>
+type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'> & {
+  muscleFix?: State['muscleFix']
+}
 
 /**
  * Verinin kısa parmak izi (cyrb53, 53 bit; kriptografik değil). "Yedekten sonra bir şey değişti mi"
  * sorusu için yeter: aynı veri aynı izi verir, bir antrenman eklemek/silmek izi değiştirir.
+ * Kas düzeltmeleri yalnız varsa ize girer: hiç düzeltmesi olmayanın izi sürüm güncellemesiyle değişmez
+ * (aksi halde herkese bir kez yanlış "yedekten beri değişti" hatırlatması çıkardı).
  */
 export function fingerprint(data: Backed): string {
-  const text = JSON.stringify([data.workouts, data.routines, data.week, data.bodyweight, data.customEx])
+  const parts: unknown[] = [data.workouts, data.routines, data.week, data.bodyweight, data.customEx]
+  if (data.muscleFix && Object.keys(data.muscleFix).length > 0) parts.push(data.muscleFix)
+  const text = JSON.stringify(parts)
   let h1 = 0xdeadbeef
   let h2 = 0x41c6ce57
   for (let i = 0; i < text.length; i++) {

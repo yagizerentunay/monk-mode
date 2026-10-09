@@ -1,3 +1,4 @@
+import type { MuscleFix } from '../lib/muscleFix.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
 
@@ -131,6 +132,8 @@ export interface State {
   active: Workout | null
   bodyweight: BodyweightEntry[]
   customEx: CustomExercise[]
+  /** Egzersiz kimliği → kullanıcının kas düzeltmesi (bkz. lib/muscleFix.ts); yoksa kütüphane verisi geçerli. */
+  muscleFix: Record<string, MuscleFix>
 }
 
 export function defaultState(): State {
@@ -143,5 +146,6 @@ export function defaultState(): State {
     active: null,
     bodyweight: [],
     customEx: [],
+    muscleFix: {},
   }
 }

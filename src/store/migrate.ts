@@ -1,3 +1,4 @@
+import { normalizeMuscleFix } from '../lib/muscleFix.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
 import { defaultState, SCHEMA_VERSION, type State } from './schema.ts'
@@ -32,6 +33,17 @@ function migrateKit(raw: unknown, unit: Unit): PlateKit {
       ].sort((a, b) => b - a)
     : [...base.plates]
   return { bar, plates }
+}
+
+/** Bozuk kas düzeltmelerini atar; geçerli olanlar temizlenir. `fromEntries` `__proto__` anahtarına karşı güvenlidir. */
+function migrateMuscleFix(raw: unknown): State['muscleFix'] {
+  if (!isRecord(raw)) return {}
+  return Object.fromEntries(
+    Object.entries(raw).flatMap(([id, v]) => {
+      const fix = isRecord(v) ? normalizeMuscleFix(v) : undefined
+      return fix ? [[id, fix] as const] : []
+    }),
+  )
 }
 
 /**
@@ -87,5 +99,6 @@ export function migrate(raw: unknown): State {
     active: isRecord(raw.active) ? (raw.active as unknown as State['active']) : null,
     bodyweight: arr(raw.bodyweight),
     customEx: arr(raw.customEx),
+    muscleFix: migrateMuscleFix(raw.muscleFix),
   }
 }

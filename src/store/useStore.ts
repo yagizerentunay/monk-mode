@@ -4,6 +4,7 @@ import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
+import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
@@ -78,6 +79,10 @@ export interface Actions {
   addRoutinesFrom(incoming: { routines: unknown; customEx: unknown }): RoutineMerge
   logBodyweight(entry: BodyweightEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
+  /** Egzersizin kaslarını düzeltir (en az bir geçerli birincil kas yoksa yok sayılır, bkz. lib/muscleFix.ts). */
+  setMuscleFix(exId: string, fix: MuscleFix): void
+  /** Düzeltmeyi kaldırır; egzersiz kütüphanedeki kaslarına döner. */
+  clearMuscleFix(exId: string): void
   replaceAll(state: State): void
   /** Şu anki verinin yedeklendiğini işaretler (yedek indirilince ya da yedekten yüklenince). */
   markBackedUp(now: number): void
@@ -329,6 +334,18 @@ export const useStore = create<Store>((set, get) => ({
     return id
   },
 
+  setMuscleFix: (exId, raw) =>
+    set((s) => {
+      const fix = normalizeMuscleFix(raw)
+      return fix ? { muscleFix: { ...s.muscleFix, [exId]: fix } } : {}
+    }),
+
+  clearMuscleFix: (exId) =>
+    set((s) => {
+      if (!Object.hasOwn(s.muscleFix, exId)) return {}
+      return { muscleFix: Object.fromEntries(Object.entries(s.muscleFix).filter(([id]) => id !== exId)) }
+    }),
+
   replaceAll: (state) => set(() => ({ ...state })),
 
   markBackedUp: (now) =>
@@ -351,6 +368,7 @@ export function snapshot(s: Store): State {
     active: s.active,
     bodyweight: s.bodyweight,
     customEx: s.customEx,
+    muscleFix: s.muscleFix,
   }
 }
 
