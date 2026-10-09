@@ -31,6 +31,29 @@ export function sameMuscleFix(a: MuscleFix, b: MuscleFix): boolean {
   return eq(a.primary, b.primary) && eq(a.secondary, b.secondary)
 }
 
+/**
+ * Düzenleyicinin başlangıç seçimi: egzersizin kaslarından yalnız tanınanlar (özel egzersizin serbest metin
+ * kası listeye girmez). Birincil boş olabilir; kaydetmek için en az bir kas seçilmesi gerekir.
+ */
+export function selectionOf(muscles: { primary: string[]; secondary: string[] }): MuscleFix {
+  const primary = cleanList(muscles.primary)
+  const own = new Set(primary)
+  return { primary, secondary: cleanList(muscles.secondary).filter((m) => !own.has(m)) }
+}
+
+/**
+ * Bir kasa dokunmayı uygular: seçiliyse listeden çıkar, değilse ekle ve diğer listeden al (bir kas aynı anda
+ * hem birincil hem yardımcı olamaz). Sonuç `MUSCLES` sırasındadır.
+ */
+export function toggleMuscle(sel: MuscleFix, group: 'primary' | 'secondary', muscle: string): MuscleFix {
+  const other = group === 'primary' ? sel.secondary : sel.primary
+  const toggled = sel[group].includes(muscle) ? sel[group].filter((m) => m !== muscle) : [...sel[group], muscle]
+  const rest = other.filter((m) => m !== muscle)
+  return group === 'primary'
+    ? selectionOf({ primary: toggled, secondary: rest })
+    : selectionOf({ primary: rest, secondary: toggled })
+}
+
 /** Düzeltme uygulanmış egzersiz: kaslar yenisi, `original` düzeltmeden önceki hâli. */
 export type WithMuscleFix<T> = T & { original?: MuscleFix }
 

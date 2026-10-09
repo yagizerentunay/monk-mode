@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyMuscleFix, normalizeMuscleFix, sameMuscleFix } from './muscleFix.ts'
+import { applyMuscleFix, normalizeMuscleFix, sameMuscleFix, selectionOf, toggleMuscle } from './muscleFix.ts'
 
 describe('normalizeMuscleFix', () => {
   it('geçerli kasları MUSCLES sırasına dizer ve tekilleştirir', () => {
@@ -57,5 +57,31 @@ describe('sameMuscleFix', () => {
     expect(sameMuscleFix({ primary: ['chest'], secondary: [] }, { primary: ['chest'], secondary: [] })).toBe(true)
     expect(sameMuscleFix({ primary: ['chest'], secondary: [] }, { primary: ['chest'], secondary: ['triceps'] })).toBe(false)
     expect(sameMuscleFix({ primary: ['chest'], secondary: [] }, { primary: ['triceps'], secondary: [] })).toBe(false)
+  })
+})
+
+describe('selectionOf', () => {
+  it('yalnız tanınan kasları alır; birincil boş kalabilir', () => {
+    expect(selectionOf({ primary: ['kendi kasım'], secondary: ['chest', 'chest'] })).toEqual({ primary: [], secondary: ['chest'] })
+  })
+})
+
+describe('toggleMuscle', () => {
+  const base = { primary: ['quadriceps'], secondary: ['glutes'] }
+
+  it('seçili olmayan kası ekler, seçiliyi çıkarır', () => {
+    expect(toggleMuscle(base, 'primary', 'adductors').primary).toEqual(['adductors', 'quadriceps'])
+    expect(toggleMuscle(base, 'primary', 'quadriceps').primary).toEqual([])
+  })
+
+  it('bir kası birincile alınca yardımcıdan çıkar ve tersi', () => {
+    expect(toggleMuscle(base, 'primary', 'glutes')).toEqual({ primary: ['glutes', 'quadriceps'], secondary: [] })
+    expect(toggleMuscle(base, 'secondary', 'quadriceps')).toEqual({ primary: [], secondary: ['glutes', 'quadriceps'] })
+  })
+
+  it('sonuç her zaman MUSCLES sırasındadır ve girdiyi değiştirmez', () => {
+    const out = toggleMuscle(base, 'secondary', 'abdominals')
+    expect(out.secondary).toEqual(['abdominals', 'glutes'])
+    expect(base).toEqual({ primary: ['quadriceps'], secondary: ['glutes'] })
   })
 })
