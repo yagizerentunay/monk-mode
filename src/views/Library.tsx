@@ -2,12 +2,23 @@ import { useState } from 'react'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
+import { MuscleFixEditor } from '../components/MuscleFixEditor.tsx'
 import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
 import { MUSCLES } from '../lib/muscles.ts'
+import { useExercises } from '../lib/useExercises.ts'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useStore } from '../store/useStore.ts'
 
 function Detail({ ex }: { ex: Exercise }) {
+  const [editing, setEditing] = useState(false)
+  if (editing) {
+    return (
+      <div className="stack">
+        <div className="exname exdetail-name" lang={nameLang(ex)}>{ex.name}</div>
+        <MuscleFixEditor ex={ex} onClose={() => setEditing(false)} />
+      </div>
+    )
+  }
   return (
     <div className="stack">
       <div className="eyebrow">Egzersiz</div>
@@ -16,7 +27,9 @@ function Detail({ ex }: { ex: Exercise }) {
         {ex.primaryMuscles.map(muscleLabel).join(', ')}
         {ex.secondaryMuscles.length > 0 && ` · yardımcı: ${ex.secondaryMuscles.map(muscleLabel).join(', ')}`}
         {ex.equipment ? ` · ${equipmentLabel(ex.equipment)}` : ''}
+        {ex.original && ' · kaslar düzeltildi'}
       </div>
+      <button className="btn small" onClick={() => setEditing(true)}>Kasları düzelt</button>
       <ExerciseHistory exId={ex.id} />
       {ex.images.length > 0 && (
         <div className="row" style={{ overflowX: 'auto' }}>
@@ -75,7 +88,10 @@ function NewExercise({ onDone }: { onDone: () => void }) {
 }
 
 export function Library() {
-  const [selected, setSelected] = useState<Exercise | null>(null)
+  // Seçimi kimlikle tut: kas düzeltmesi listeyi yenileyince detay güncel kasları göstersin.
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const { byId } = useExercises()
+  const selected = selectedId ? (byId.get(selectedId) ?? null) : null
   const [adding, setAdding] = useState(false)
 
   return (
@@ -87,9 +103,9 @@ export function Library() {
         </div>
         <button className="btn small" onClick={() => setAdding(true)}>+ Özel</button>
       </div>
-      <ExerciseBrowser onSelect={setSelected} />
-      <BottomSheet open={!!selected} onClose={() => setSelected(null)}>
-        {selected && <Detail ex={selected} />}
+      <ExerciseBrowser onSelect={(e) => setSelectedId(e.id)} />
+      <BottomSheet open={!!selected} onClose={() => setSelectedId(null)}>
+        {selected && <Detail key={selected.id} ex={selected} />}
       </BottomSheet>
       <BottomSheet open={adding} onClose={() => setAdding(false)} title="Özel egzersiz">
         <NewExercise onDone={() => setAdding(false)} />

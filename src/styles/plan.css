@@ -72,6 +72,8 @@
 
 /* ayarlar, içe aktarma, antrenman düzenleme */
 .settings .chip, .importcard .chip { min-height: var(--tap); padding: 8px 16px; }
+/* egzersiz kas düzeltmesi: kaslar sarılır, dokunma hedefi korunur */
+.musclefix .chip { min-height: var(--tap); padding: 8px 14px; }
 .settings .card h2, .importcard h2 { margin-bottom: 0; }
 .eyebrow.danger { color: var(--danger); }
 .dangerzone { border-color: rgba(242, 101, 91, 0.45); background: rgba(242, 101, 91, 0.06); margin-top: 28px; }
