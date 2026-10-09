@@ -44,3 +44,29 @@
 .mrdelta { width: 36px; flex: none; text-align: right; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .mrdelta.up { color: var(--ok); }
 .underweek { padding: 10px 12px; border-radius: 10px; background: var(--card-2); border-left: 3px solid var(--warn); font-size: 14px; display: grid; gap: 4px; }
+
+/* Haftalık kas hedefleri (Ayarlar, tgt-): kas başına −/+ ile 0-40 set */
+.tgt-list { display: grid; }
+.tgt-row { display: flex; align-items: center; gap: 8px; min-height: var(--tap); padding: 2px 0; border-top: 1px solid var(--line); }
+.tgt-row:first-child { border-top: 0; }
+.tgt-name { flex: 1; min-width: 0; font-size: 15px; display: flex; flex-direction: column; }
+.tgt-row.custom .tgt-name { font-weight: 700; }
+.tgt-none { font-size: 12px; font-weight: 400; color: var(--muted); }
+.tgt-btn { flex: none; width: var(--tap); padding: 0; font-size: 20px; line-height: 1; }
+.tgt-val { flex: none; width: 36px; text-align: center; font-family: var(--display); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Bu hafta listesi: hedefin altındakiler ve özet (tgt-) */
+.musclerow.tgt-below:not(.on) { box-shadow: inset 3px 0 0 var(--warn); }
+.mrval .tgt-none { display: block; font-size: 10px; line-height: 1.1; }
+.tgt-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tgt-chip { min-height: var(--tap); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 13px; }
+.tgt-more { justify-self: start; min-height: var(--tap); padding: 6px 4px; border: 0; background: transparent; color: var(--accent); font-size: 14px; font-weight: 600; }
+
+/* Kas için egzersiz önerileri (tgt-) */
+.tgt-suggest { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--card-2); border-left: 3px solid var(--accent); font-size: 14px; }
+.tgt-sugg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tgt-sugg { padding: 8px 0; border-top: 1px solid var(--line); }
+.tgt-sugg:first-child { border-top: 0; }
+.tgt-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tgt-had { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 12px; color: var(--muted); font-size: 13px; }
+.tgt-notice { color: var(--ok); }

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { ImportCard } from '../components/ImportCard.tsx'
+import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { REMIND_CHOICES } from '../lib/backupReminder.ts'
@@ -167,6 +168,8 @@ export function Settings() {
           })}
         </div>
       </div>
+
+      <MuscleTargetsCard />
 
       <div className="card stack">
         <div className="eyebrow">Yedek</div>

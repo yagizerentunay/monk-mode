@@ -56,7 +56,53 @@ export const SECONDARY_WEIGHT = 0.5
 /** Haftalık hedef: kas başına 10 sert set (hipertrofi için yaygın alt-orta aralık). */
 export const WEEKLY_TARGET_SETS = 10
 
+/** Kas başına ayarlanabilir haftalık hedef (set). Anahtar yoksa varsayılan; 0 = o kasa hedef yok. */
+export type MuscleTargets = Partial<Record<MuscleId, number>>
+
+/** Ayarlanabilir en yüksek haftalık hedef; daha fazlası gerçekçi değil, bozuk yedek sayılır. */
+export const MAX_MUSCLE_TARGET = 40
+
 const MUSCLE_SET: ReadonlySet<string> = new Set(MUSCLES)
+
+/** Geçerli hedef: 0..MAX arası sonlu sayı (kesirli değer yuvarlanır); değilse undefined. */
+export function cleanTarget(v: unknown): number | undefined {
+  if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > MAX_MUSCLE_TARGET) return undefined
+  return Math.round(v)
+}
+
+/**
+ * Kasın haftalık hedefi (set). Ayar yoksa ya da geçersizse `fallback` (varsayılan 10) döner; 0 "hedef yok"
+ * demektir ve olduğu gibi döner. `Object.hasOwn`: kalıtsal anahtarlar (`toString` gibi) hedef sayılmaz.
+ */
+export function targetFor(
+  targets: MuscleTargets | undefined,
+  muscle: MuscleId,
+  fallback: number = WEEKLY_TARGET_SETS,
+): number {
+  if (!targets || !Object.hasOwn(targets, muscle)) return fallback
+  return cleanTarget(targets[muscle]) ?? fallback
+}
+
+/**
+ * Tek bir kasın hedefini ayarlar ve yeni nesneyi döndürür (girdiyi değiştirmez). Varsayılana eşit değer
+ * anahtarı siler; hiç özel hedef kalmazsa undefined döner (ayar hiç yokmuş gibi saklanır).
+ */
+export function withTarget(
+  targets: MuscleTargets | undefined,
+  muscle: MuscleId,
+  value: number,
+): MuscleTargets | undefined {
+  const next: MuscleTargets = { ...targets }
+  const v = cleanTarget(value)
+  if (v === undefined || v === WEEKLY_TARGET_SETS) delete next[muscle]
+  else next[muscle] = v
+  return Object.keys(next).length > 0 ? next : undefined
+}
+
+/** −/+ düğmesi: hedefi `delta` kadar kaydırır, 0..MAX arasında tutar. */
+export function stepTarget(current: number, delta: number): number {
+  return Math.min(MAX_MUSCLE_TARGET, Math.max(0, Math.round(current + delta)))
+}
 
 interface MuscleInfo {
   primaryMuscles: string[]
@@ -99,10 +145,18 @@ export function sinceDay(days: number, today: Date = new Date()): string {
   return dayString(d)
 }
 
-/** Isı değeri 0..1: haftalık hedefin dönem uzunluğuna ölçeklenmiş hâline oranı. */
-export function muscleLevel(sets: number, periodDays: number): number {
+/**
+ * Isı değeri 0..1: haftalık hedefin dönem uzunluğuna ölçeklenmiş hâline oranı. Hedef 0 ("hedef yok")
+ * ya da geçersizse harita ölçeksiz kalmasın diye varsayılan hedef ölçek olarak kullanılır.
+ */
+export function muscleLevel(
+  sets: number,
+  periodDays: number,
+  weeklyTarget: number = WEEKLY_TARGET_SETS,
+): number {
   if (!Number.isFinite(sets) || !Number.isFinite(periodDays) || periodDays <= 0) return 0
-  const target = (WEEKLY_TARGET_SETS * periodDays) / 7
+  const weekly = Number.isFinite(weeklyTarget) && weeklyTarget > 0 ? weeklyTarget : WEEKLY_TARGET_SETS
+  const target = (weekly * periodDays) / 7
   return Math.min(1, Math.max(0, sets / target))
 }
 
@@ -183,19 +237,26 @@ export interface UnderTarget {
 
 /**
  * Hedefin altındaki kaslar, hedefe en uzak olandan başlayarak (eşitlikte MUSCLES sırası).
+ * Hedef kas başına `targets`'tan gelir (yoksa `target`, o da yoksa 10); hedefi 0 olan kas hiç eksik sayılmaz.
  * `eligible` verilirse yalnız o kaslar değerlendirilir (ör. yakın zamanda çalışılmış olanlar).
  * Geçen (tam) hafta için doğrudan "hedefin altında" anlamına gelir; içinde bulunulan hafta için
  * arayüz bunu "hedefe ilerleme" olarak çerçevelemelidir.
  */
 export function underTargetMuscles(
   sets: MuscleSets,
-  options: { target?: number; limit?: number; eligible?: (m: MuscleId) => boolean } = {},
+  options: {
+    target?: number
+    targets?: MuscleTargets
+    limit?: number
+    eligible?: (m: MuscleId) => boolean
+  } = {},
 ): UnderTarget[] {
-  const target = options.target ?? WEEKLY_TARGET_SETS
+  const fallback = options.target ?? WEEKLY_TARGET_SETS
   const out: UnderTarget[] = []
   for (const m of MUSCLES) {
     if (options.eligible && !options.eligible(m)) continue
-    if (sets[m] < target) out.push({ muscle: m, sets: sets[m], target, gap: target - sets[m] })
+    const target = targetFor(options.targets, m, fallback)
+    if (target > 0 && sets[m] < target) out.push({ muscle: m, sets: sets[m], target, gap: target - sets[m] })
   }
   out.sort((a, b) => b.gap - a.gap)
   return options.limit === undefined ? out : out.slice(0, Math.max(0, options.limit))

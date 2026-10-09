@@ -1,4 +1,5 @@
 import type { MuscleFix } from '../lib/muscleFix.ts'
+import type { MuscleTargets } from '../lib/muscles.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
 
@@ -120,6 +121,11 @@ export interface Settings {
   backupSnoozedUntil?: number
   /** Hedef vücut ağırlığı değişim hızı, kg/hafta (+ kilo alma, − verme, 0 koruma); yoksa hedef yok. */
   bodyweightGoal?: number
+  /**
+   * Kas → haftalık hedef set (0-40, 0 = hedef yok). Yoksa her kas için varsayılan 10 geçerlidir.
+   * Kesin bilimsel hedef değil, ayarlanabilir bir kılavuzdur (bkz. lib/muscles.ts).
+   */
+  muscleTargets?: MuscleTargets
 }
 
 export interface State {

@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
-import { isBodyOnly, isUnilateralName } from '../lib/exercises.ts'
 import { MAX_DROPS, MAX_WARMUPS } from '../lib/intensity.ts'
+import { defaultExCfg } from '../lib/routineAdd.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
@@ -252,20 +252,7 @@ export function RoutineEdit() {
           onSelect={(ex) => {
             setDraft((d) => ({
               ...d,
-              ex: [
-                ...d.ex,
-                {
-                  exId: ex.id,
-                  sets: 3,
-                  reps: 8,
-                  weight: 0,
-                  prog: 'double',
-                  inc: 2.5,
-                  repsMax: 12,
-                  side: isUnilateralName(ex.name),
-                  ...(isBodyOnly(ex) ? { bw: true } : {}),
-                },
-              ],
+              ex: [...d.ex, defaultExCfg(ex)],
             }))
             setPicking(false)
           }}
