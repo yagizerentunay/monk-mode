@@ -5,6 +5,7 @@ import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { PlateauNote } from '../components/PlateauNote.tsx'
 import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
+import { RirSummary } from '../components/RirSummary.tsx'
 import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { SwapSheet } from '../components/SwapSheet.tsx'
@@ -17,6 +18,7 @@ import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
+import { applyRirToEntry, previousRir } from '../lib/rir.ts'
 import { formatSet } from '../lib/sets.ts'
 import { hasCompletedWork } from '../lib/swap.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
@@ -90,6 +92,7 @@ export function Workout() {
     addExerciseToActive,
     swapExercise,
     finishWorkout,
+    updateWorkout,
     discardWorkout,
   } = useStore.getState()
   const { byId } = useExercises()
@@ -109,6 +112,8 @@ export function Workout() {
   /** Plaka hesaplayıcısı açık olan egzersizin sırası. */
   const [plateEntry, setPlateEntry] = useState<number | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
+  /** Özetteki "RIR eksik" kartında "Atla" denmiş (hiçbir şey yazılmaz, yalnız kart gizlenir). */
+  const [rirSkipped, setRirSkipped] = useState(false)
   /** Not alanı elle açılan egzersizlerin sırası (notu olanlar zaten görünür). */
   const [noteOpen, setNoteOpen] = useState<Set<number>>(() => new Set())
 
@@ -141,6 +146,19 @@ export function Workout() {
           )}
           <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
         </div>
+        <RirSummary
+          workout={workout}
+          describeEx={(exId) => ({ name: byId.get(exId)?.name ?? exId, lang: nameLang(byId.get(exId)) })}
+          skipped={rirSkipped}
+          onApply={(entryIdx, rir) => {
+            // Kaydedilmiş antrenman güncellenir (id/sıra/tarih aynı); özet de yeni halini gösterir.
+            const next = applyRirToEntry(workout, entryIdx, rir)
+            if (next === workout) return
+            updateWorkout(next)
+            setSummary({ workout: next, prs })
+          }}
+          onSkip={() => setRirSkipped(true)}
+        />
         {prs.length > 0 && (
           <div className="card stack wk-pr">
             <div className="eyebrow">Yeni rekorlar</div>
@@ -166,6 +184,7 @@ export function Workout() {
       .map((e) => ({ name: byId.get(e.exId)?.name ?? e.exId, lang: nameLang(byId.get(e.exId)) }))
     const finished = finishWorkout()
     setRestEnds(null)
+    setRirSkipped(false)
     if (finished) setSummary({ workout: finished, prs })
     else navigate('/')
   }
@@ -253,6 +272,7 @@ export function Workout() {
                 <SetRow
                   key={si}
                   warnZero={zero[si]}
+                  prevRir={previousRir(entry.sets, si)}
                   active={si === nextSi}
                   name={meta[si].name}
                   badge={meta[si].badge}

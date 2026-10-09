@@ -1,11 +1,11 @@
 import type { SetKind } from '../lib/intensity.ts'
 import { SIDES, type Side } from '../lib/sets.ts'
 import { effectiveLoad } from '../lib/load.ts'
+import { RIR_CHOICES, rirLabel } from '../lib/rir.ts'
 import { formatWeight, kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import type { SetEntry, SideSet } from '../store/schema.ts'
 import { NumberField } from './NumberField.tsx'
 
-const RIR_CHOICES = [0, 1, 2, 3, 4]
 const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
 const KIND_LABEL: Record<SetKind, string> = { work: '', warmup: 'Isınma', drop: 'Dropset' }
 /** Ek yük alanında girilebilecek en büyük asist (kg); bunun altı yazılamaz. */
@@ -35,6 +35,11 @@ interface Props {
   active?: boolean
   /** Tamamlanmış setin ağırlığı 0 görünüyor (bkz. lib/zeroWeight.ts): alan işaretlenir, altına soru satırı çıkar. */
   warnZero?: boolean
+  /**
+   * Aynı egzersizde önceki tamamlanmış çalışma setinin RIR'i (bkz. lib/rir.ts). RIR'i boş set için
+   * "Aynı (N)" önerisi olarak gösterilir; değer yalnız kullanıcı dokununca yazılır, kendiliğinden hiç.
+   */
+  prevRir?: number
 }
 
 function CheckButton({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
@@ -62,6 +67,7 @@ export function SetRow({
   onCompleted,
   active = false,
   warnZero = false,
+  prevRir,
 }: Props) {
   // Isınma setleri her zaman tek satırdır; sol/sağ yalnız `sides` olan setlerde gösterilir.
   const sides = unilateral ? set.sides : undefined
@@ -146,19 +152,32 @@ export function SetRow({
         henüz yapılmamışken silmek anlamlıdır, tamamlanınca satırı sade tut.
       */}
       {(set.done || (kind !== 'work' && !set.done)) && (
-        <div className="rirrow">
+        <div className={`rirrow${kind === 'work' && set.done && set.rir === undefined ? ' rir-need' : ''}`}>
           {kind === 'work' && set.done && (
             <>
+              {/* RIR boşken satır hafifçe vurgulanır (rir-need); girilince sakinleşir. */}
               <span className="sub rirlabel">RIR</span>
               {RIR_CHOICES.map((r) => (
                 <button
                   key={r}
                   className={`chip${set.rir === r ? ' on' : ''}`}
+                  aria-label={`${name} RIR ${rirLabel(r)}`}
+                  aria-pressed={set.rir === r}
                   onClick={() => onChange({ rir: set.rir === r ? undefined : r })}
                 >
-                  {r === 4 ? '4+' : r}
+                  {rirLabel(r)}
                 </button>
               ))}
+              {/* Numaralı chip'lerin yerini kaydırmaması için sonda durur; yalnız dokununca yazılır. */}
+              {set.rir === undefined && prevRir !== undefined && (
+                <button
+                  className="chip rir-same"
+                  aria-label={`${name} RIR önceki set gibi ${rirLabel(prevRir)}`}
+                  onClick={() => onChange({ rir: prevRir })}
+                >
+                  Aynı ({rirLabel(prevRir)})
+                </button>
+              )}
             </>
           )}
           {set.done && canDrop && (
