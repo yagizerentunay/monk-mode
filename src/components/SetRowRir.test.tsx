@@ -1,9 +1,9 @@
-import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { SetKind } from '../lib/intensity.ts'
 import { makeSides } from '../lib/sets.ts'
 import type { SetEntry } from '../store/schema.ts'
+import { tapByLabel } from './reactTree.ts'
 import { SetRow } from './SetRow.tsx'
 
 type Props = Parameters<typeof SetRow>[0]
@@ -26,25 +26,8 @@ const baseProps = (set: SetEntry, extra: Partial<Props> = {}): Props => ({
 })
 const render = (set: SetEntry, extra: Partial<Props> = {}) => renderToStaticMarkup(<SetRow {...baseProps(set, extra)} />)
 
-/** SetRow kancasızdır: işlevi doğrudan çağırıp dönen ağaçta aria-label'a göre düğme bulunur (DOM gerekmez). */
-function findByLabel(node: ReactNode, label: string): ReactElement<{ onClick?: () => void }> | undefined {
-  if (Array.isArray(node)) {
-    for (const n of node) {
-      const hit = findByLabel(n, label)
-      if (hit) return hit
-    }
-    return undefined
-  }
-  if (!isValidElement<{ 'aria-label'?: string; children?: ReactNode; onClick?: () => void }>(node)) return undefined
-  if (node.props['aria-label'] === label) return node as ReactElement<{ onClick?: () => void }>
-  return findByLabel(node.props.children, label)
-}
-
-const tap = (props: Props, label: string) => {
-  const btn = findByLabel(SetRow(props), label)
-  expect(btn, label).toBeDefined()
-  btn!.props.onClick!()
-}
+/** SetRow kancasızdır: işlevi doğrudan çağırıp dönen ağaçta etiketli düğmeye "dokunulur" (DOM gerekmez). */
+const tap = (props: Props, label: string) => tapByLabel(SetRow(props), label)
 
 const doneNoRir: SetEntry = { w: 60, r: 8, done: true }
 
