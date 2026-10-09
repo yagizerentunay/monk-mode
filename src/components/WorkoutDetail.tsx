@@ -4,6 +4,7 @@ import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import { workoutVolume } from '../lib/workout.ts'
 import type { Workout } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
@@ -47,20 +48,29 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
     <div className="stack">
       <div className="eyebrow muted">{hideDate ? '' : `${formatDayTitle(workout.d)} · `}{formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
       {workout.note && <div className="note">{workout.note}</div>}
-      {workout.entries.map((e, i) => (
+      {workout.entries.map((e, i) => {
+        const zero = zeroWeightFlags(e, byId.get(e.exId)?.equipment)
+        return (
         <div key={i}>
           <div className="exname">{byId.get(e.exId)?.name ?? e.exId}</div>
           <div className="sub">
             {e.sets.length === 0
               ? 'Set yapılmadı'
               : e.sets
-                  .filter((s) => !s.warmup)
-                  .map((s) => formatSet(s, formatWeight(s.w, unit)))
-                  .join(' · ')}
+                  .map((s, si) => ({ s, si }))
+                  .filter(({ s }) => !s.warmup)
+                  .map(({ s, si }, i) => (
+                    <span key={si}>
+                      {i > 0 && ' · '}
+                      {formatSet(s, formatWeight(s.w, unit))}
+                      {zero[si] && <span className="zeromark"> {formatWeight(0, unit)} {unit}?</span>}
+                    </span>
+                  ))}
           </div>
           {e.note && <div className="note">{e.note}</div>}
         </div>
-      ))}
+        )
+      })}
       <div className="row">
         {canRepeat && (
           <button

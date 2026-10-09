@@ -4,6 +4,7 @@ import { describeSets } from '../lib/intensity.ts'
 import { NOTE_MAX } from '../lib/notes.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import type { Workout } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 import { NumberField } from './NumberField.tsx'
@@ -50,6 +51,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
       {draft.entries.map((entry, ei) => {
         const name = byId.get(entry.exId)?.name ?? entry.exId
         const meta = describeSets(entry.sets)
+        const zero = zeroWeightFlags(entry, byId.get(entry.exId)?.equipment)
         return (
           <div key={ei} className="stack editentry">
             <div className="row between">
@@ -69,7 +71,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
               <div key={si} className="setrow">
                 <span className="setno">{meta[si].badge}</span>
                 <NumberField
-                  className="grow"
+                  className={`grow${zero[si] ? ' warnfield' : ''}`}
                   label={`${name} ${meta[si].name} ağırlık`}
                   value={set.w}
                   toDisplay={(v) => kgToUnit(v, unit)}
@@ -113,6 +115,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 >
                   ✕
                 </button>
+                {zero[si] && <div className="zerowarn" role="note">Ağırlık 0 görünüyor. Yanlışlıkla mı girdin?</div>}
               </div>
             ))}
 
