@@ -85,6 +85,15 @@
 .rirrow.rir-need .rirlabel { color: var(--accent); }
 .rirrow .chip.rir-same { border-style: dashed; border-color: var(--accent); color: var(--accent); }
 
+/* antrenman özeti: RIR kapsaması ve eksikleri toplu doldurma kartı */
+.rir-coverage { margin-top: 2px; }
+.rir-card { border-color: rgba(235, 148, 98, 0.5); }
+.rir-exname { min-width: 0; overflow-wrap: anywhere; }
+.rir-exrow { display: grid; gap: 6px; }
+.rir-chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.rir-chips .chip { min-height: var(--tap); min-width: var(--tap); padding: 4px 12px; }
+.rir-skip { color: var(--muted); font-weight: 600; }
+
 /* sabit dinlenme çubuğu */
 .rest {
   position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + 10px); z-index: 30;
