@@ -36,3 +36,13 @@ export function addToRoutine(
   if (routineHas(routine, ex.id)) return null
   return { ...routine, ex: [...routine.ex, defaultExCfg(ex)] }
 }
+
+/** Kimliğiyle bulunan rutine ekler; rutin yoksa ya da egzersiz zaten ekliyse null (kaydedilecek bir şey yok). */
+export function addToRoutineById(
+  routines: Routine[],
+  routineId: string,
+  ex: Pick<Exercise, 'id' | 'name' | 'equipment'>,
+): Routine | null {
+  const routine = routines.find((r) => r.id === routineId)
+  return routine ? addToRoutine(routine, ex) : null
+}

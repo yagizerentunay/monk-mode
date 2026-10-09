@@ -15,6 +15,7 @@ import {
 import { useExercises } from '../lib/useExercises.ts'
 import { useStore } from '../store/useStore.ts'
 import { MuscleMap } from './MuscleMap.tsx'
+import { MuscleSuggestions } from './MuscleSuggestions.tsx'
 import { MuscleWeekList } from './MuscleWeekList.tsx'
 
 const PERIODS = [7, 30] as const
@@ -89,6 +90,8 @@ export function MuscleCard() {
         </div>
       )}
 
+      {selected && <MuscleSuggestions key={selected} muscle={selected} />}
+
       {cmp ? (
         <MuscleWeekList
           cmp={cmp}
@@ -124,7 +127,7 @@ export function MuscleCard() {
       )}
 
       <div className="sub">
-        Birincil kas 1, yardımcı kas 0,5 set sayılır; ısınma seti sayılmaz. Hedef, varsayılan olarak haftada kas başına {WEEKLY_TARGET_SETS} settir; kesin bilimsel bir hedef değil, ayarlanabilir bir kılavuzdur.{isWeek && ' Hafta, ayarlardaki hafta başlangıcına göre hesaplanır.'}{' '}
+        Birincil kas 1, yardımcı kas 0,5 set sayılır; ısınma seti sayılmaz. Hedef, varsayılan olarak haftada kas başına {WEEKLY_TARGET_SETS} settir; kesin bilimsel bir hedef değil, ayarlanabilir bir kılavuzdur. Bir kasa dokununca o kas için egzersiz önerisi çıkar.{isWeek && ' Hafta, ayarlardaki hafta başlangıcına göre hesaplanır.'}{' '}
         <Link to="/settings">Hedefleri ayarla</Link>
       </div>
     </div>

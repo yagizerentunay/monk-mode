@@ -61,3 +61,12 @@
 .tgt-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .tgt-chip { min-height: var(--tap); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 13px; }
 .tgt-more { justify-self: start; min-height: var(--tap); padding: 6px 4px; border: 0; background: transparent; color: var(--accent); font-size: 14px; font-weight: 600; }
+
+/* Kas için egzersiz önerileri (tgt-) */
+.tgt-suggest { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--card-2); border-left: 3px solid var(--accent); font-size: 14px; }
+.tgt-sugg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tgt-sugg { padding: 8px 0; border-top: 1px solid var(--line); }
+.tgt-sugg:first-child { border-top: 0; }
+.tgt-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tgt-had { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 12px; color: var(--muted); font-size: 13px; }
+.tgt-notice { color: var(--ok); }
