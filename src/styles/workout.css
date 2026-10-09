@@ -80,6 +80,11 @@
 .rirrow .chip { min-height: var(--tap); min-width: var(--tap); padding: 4px 12px; }
 .rirlabel { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; }
 
+/* RIR hızlı girişi: girilmemişse satır hafif vurgulanır, girilince sakinleşir */
+.rirrow.rir-need { background: var(--accent-soft); border-radius: 10px; margin-top: 6px; padding: 8px 8px 8px 44px; }
+.rirrow.rir-need .rirlabel { color: var(--accent); }
+.rirrow .chip.rir-same { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+
 /* sabit dinlenme çubuğu */
 .rest {
   position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + 10px); z-index: 30;

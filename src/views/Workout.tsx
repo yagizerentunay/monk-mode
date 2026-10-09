@@ -17,6 +17,7 @@ import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
+import { previousRir } from '../lib/rir.ts'
 import { formatSet } from '../lib/sets.ts'
 import { hasCompletedWork } from '../lib/swap.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
@@ -253,6 +254,7 @@ export function Workout() {
                 <SetRow
                   key={si}
                   warnZero={zero[si]}
+                  prevRir={previousRir(entry.sets, si)}
                   active={si === nextSi}
                   name={meta[si].name}
                   badge={meta[si].badge}
