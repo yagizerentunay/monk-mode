@@ -21,6 +21,7 @@ import { hasCompletedWork } from '../lib/swap.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import { doneSetCount, isPR, lastEntryFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
@@ -239,9 +240,11 @@ export function Workout() {
             )}
             {(() => {
               const meta = describeSets(entry.sets)
+              const zero = zeroWeightFlags(entry, ex?.equipment)
               return entry.sets.map((set, si) => (
                 <SetRow
                   key={si}
+                  warnZero={zero[si]}
                   active={si === nextSi}
                   name={meta[si].name}
                   badge={meta[si].badge}

@@ -64,6 +64,9 @@
 
 /* tamamlanan set: kutular sönük ama okunur; sıradaki set bakır çerçeveli */
 .set.done .input.num { background: transparent; color: var(--muted); border-color: var(--line); }
+/* sıfır ağırlık uyarısı: amber çerçeve + altında kısa soru; engellemez */
+.setrow .input.num.warnfield, .set.done .input.num.warnfield { border-color: var(--warn); color: var(--warn); }
+.zerowarn { grid-column: 1 / -1; font-size: 13px; color: var(--warn); padding: 4px 0 0 44px; }
 .set.active { border-color: var(--accent); background: var(--accent-soft); padding: 8px 6px; }
 .set.active .input.num { border-color: var(--accent); }
 .set.active .setno { color: var(--accent); }
