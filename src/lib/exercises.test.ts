@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { facetValues, filterExercises, fromCustom, isBodyOnly, isUnilateralName, nameLang, type Exercise } from './exercises.ts'
+import { muscleSets } from './muscles.ts'
+import { alternativesFor } from './swap.ts'
+import {
+  facetValues,
+  filterExercises,
+  fromCustom,
+  isBodyOnly,
+  isUnilateralName,
+  nameLang,
+  withMuscleFixes,
+  type Exercise,
+} from './exercises.ts'
 
 const ex = (id: string, name: string, muscle: string, equipment: string | null): Exercise => ({
   id,
@@ -82,5 +93,63 @@ describe('egzersiz filtreleri', () => {
   it('özel egzersizi kütüphane biçimine çevirir', () => {
     const e = fromCustom({ id: 'x', name: 'Sled Push', primaryMuscles: ['quadriceps'], equipment: '' })
     expect(e).toMatchObject({ id: 'x', custom: true, equipment: null })
+  })
+})
+
+describe('withMuscleFixes', () => {
+  const hip = ex('hip', 'Cable Hip Adduction', 'quadriceps', 'cable')
+  const fixes = { hip: { primary: ['adductors'], secondary: [] as string[] } }
+
+  it('düzeltilen egzersizin kaslarını değiştirir, eskisini original içinde saklar; diğerlerine dokunmaz', () => {
+    const out = withMuscleFixes([hip, list[0]], fixes)
+    expect(out[0].primaryMuscles).toEqual(['adductors'])
+    expect(out[0].original).toEqual({ primary: ['quadriceps'], secondary: [] })
+    expect(out[1]).toBe(list[0])
+  })
+
+  it('düzeltme yoksa listedeki nesneler aynen döner', () => {
+    const out = withMuscleFixes(list, {})
+    expect(out.every((e, i) => e === list[i])).toBe(true)
+  })
+
+  it('prototip anahtarlarını düzeltme sanmaz', () => {
+    const odd = ex('constructor', 'Odd', 'chest', null)
+    expect(withMuscleFixes([odd], {})[0]).toBe(odd)
+  })
+
+  it('özel egzersizlere de uygulanır', () => {
+    const custom = fromCustom({ id: 'custom-1', name: 'Mekik', primaryMuscles: ['abdominals'], equipment: '' })
+    const out = withMuscleFixes([custom], { 'custom-1': { primary: ['lower back'], secondary: ['abdominals'] } })
+    expect(out[0].primaryMuscles).toEqual(['lower back'])
+    expect(out[0].custom).toBe(true)
+  })
+
+  it('kas filtresi düzeltilmiş kasa göre çalışır', () => {
+    const out = withMuscleFixes([hip, list[0]], fixes)
+    expect(filterExercises(out, { query: '', muscle: 'adductors', equipment: '' }).map((e) => e.id)).toEqual(['hip'])
+    expect(filterExercises(out, { query: '', muscle: 'quadriceps', equipment: '' }).map((e) => e.id)).toEqual(['a'])
+  })
+
+  it('kas ve değiştirme önerisi düzeltilmiş kası kullanır', () => {
+    const adductor = ex('add', 'Adductor', 'adductors', 'machine')
+    const out = withMuscleFixes([hip, adductor, list[0]], fixes)
+    expect(alternativesFor(out[0], out, new Set()).map((e) => e.id)).toEqual(['add'])
+  })
+
+  it('kas haritası düzeltilmiş kasa set yazar', () => {
+    const workout = {
+      id: 'w',
+      d: '2026-10-06',
+      start: 0,
+      name: 'B',
+      entries: [{ exId: 'hip', sets: [{ w: 45, r: 8, done: true }, { w: 45, r: 8, done: true }] }],
+    }
+    const before = muscleSets([workout], new Map([[hip.id, hip]]), { from: '2026-10-05' })
+    const fixed = withMuscleFixes([hip], fixes)
+    const after = muscleSets([workout], new Map(fixed.map((e) => [e.id, e])), { from: '2026-10-05' })
+    expect(before.quadriceps).toBe(2)
+    expect(before.adductors).toBe(0)
+    expect(after.quadriceps).toBe(0)
+    expect(after.adductors).toBe(2)
   })
 })

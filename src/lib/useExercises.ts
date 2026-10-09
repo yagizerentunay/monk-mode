@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../store/useStore.ts'
-import { fromCustom, loadExercises, type Exercise } from './exercises.ts'
+import { fromCustom, loadExercises, withMuscleFixes, type Exercise } from './exercises.ts'
 
 export interface ExercisesResult {
   list: Exercise[]
@@ -12,6 +12,7 @@ export interface ExercisesResult {
 /** Kütüphane + kullanıcının özel egzersizleri. */
 export function useExercises(): ExercisesResult {
   const customEx = useStore((s) => s.customEx)
+  const muscleFix = useStore((s) => s.muscleFix)
   const [base, setBase] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +28,10 @@ export function useExercises(): ExercisesResult {
     }
   }, [])
 
-  const list = useMemo(() => [...customEx.map(fromCustom), ...base], [customEx, base])
+  const list = useMemo(
+    () => withMuscleFixes([...customEx.map(fromCustom), ...base], muscleFix),
+    [customEx, base, muscleFix],
+  )
   const byId = useMemo(() => new Map(list.map((e) => [e.id, e])), [list])
   return { list, byId, loading, error }
 }

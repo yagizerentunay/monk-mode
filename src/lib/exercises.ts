@@ -1,5 +1,6 @@
 import type { CustomExercise } from '../store/schema.ts'
 import { equipmentLabel, muscleLabel } from './labels.ts'
+import { applyMuscleFix, type MuscleFix } from './muscleFix.ts'
 
 /** free-exercise-db kaydı (kullandığımız alanlar). */
 export interface Exercise {
@@ -13,6 +14,8 @@ export interface Exercise {
   instructions: string[]
   images: string[]
   custom?: boolean
+  /** Kullanıcı kasları düzelttiyse düzeltmeden önceki kaslar (kas alanları o zaman düzeltilmiş hâldedir). */
+  original?: MuscleFix
 }
 
 const IMAGE_CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/'
@@ -50,6 +53,14 @@ export function fromCustom(c: CustomExercise): Exercise {
     images: [],
     custom: true,
   }
+}
+
+/**
+ * Kullanıcının kas düzeltmelerini listeye uygular. Kas haritası, filtre, arama ve değiştirme önerisi
+ * hep bu listeden beslendiği için düzeltme her yerde geçerli olur. Düzeltmesiz egzersiz aynı nesnedir.
+ */
+export function withMuscleFixes(list: Exercise[], fixes: Record<string, MuscleFix>): Exercise[] {
+  return list.map((e) => applyMuscleFix(e, Object.hasOwn(fixes, e.id) ? fixes[e.id] : undefined))
 }
 
 /**
