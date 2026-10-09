@@ -27,6 +27,8 @@ interface Props {
   onCompleted: () => void
   /** Sıradaki (yapılacak ilk) set: bakır çerçeveyle öne çıkar. */
   active?: boolean
+  /** Tamamlanmış setin ağırlığı 0 görünüyor (bkz. lib/zeroWeight.ts): alan işaretlenir, altına soru satırı çıkar. */
+  warnZero?: boolean
 }
 
 function CheckButton({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
@@ -51,13 +53,14 @@ export function SetRow({
   onRemove,
   onCompleted,
   active = false,
+  warnZero = false,
 }: Props) {
   // Isınma setleri her zaman tek satırdır; sol/sağ yalnız `sides` olan setlerde gösterilir.
   const sides = unilateral ? set.sides : undefined
 
   const weight = (
     <NumberField
-      className="grow"
+      className={`grow${warnZero ? ' warnfield' : ''}`}
       label={`${name} ağırlık`}
       value={set.w}
       toDisplay={(v) => kgToUnit(v, unit)}
@@ -123,6 +126,8 @@ export function SetRow({
           />
         </div>
       )}
+
+      {warnZero && <div className="zerowarn" role="note">Ağırlık 0 görünüyor. Yanlışlıkla mı girdin?</div>}
 
       {/*
         Çalışma setinde tamamlanınca RIR, drop ve sil; ısınma ve dropta RIR yok. Isınma/dropu yalnız
