@@ -1,4 +1,5 @@
 import type { SetEntry, Workout } from '../store/schema.ts'
+import { effectiveLoad } from './load.ts'
 import { estimate1RM } from './onerm.ts'
 import { workSets } from './workout.ts'
 
@@ -7,9 +8,12 @@ export interface ExerciseSummary {
   /** Bu egzersizde en az bir tamamlanmış çalışma seti olan seans sayısı. */
   sessions: number
   /** En son seans ve o seansın çalışma setleri (ısınma hariç); hiç yapılmadıysa yok. */
-  last?: { d: string; sets: SetEntry[] }
-  /** En yüksek tahmini 1RM'i veren set; eşitlikte ilk ulaşan seans korunur. */
-  best?: { d: string; w: number; r: number; e1rm: number }
+  last?: { d: string; sets: SetEntry[]; bw?: boolean }
+  /**
+   * En yüksek tahmini 1RM'i veren set; eşitlikte ilk ulaşan seans korunur. `w` setin kayıtlı ağırlığıdır
+   * (vücut ağırlığı egzersizinde `bw` ile birlikte ek yük); `e1rm` toplam yükten hesaplanır.
+   */
+  best?: { d: string; w: number; r: number; e1rm: number; bw?: boolean }
 }
 
 /** `workouts` eski→yeni sıralıdır (store'daki sıra). Veri yoksa değer uydurulmaz. */
@@ -21,10 +25,10 @@ export function exerciseSummary(workouts: Workout[], exId: string): ExerciseSumm
     const sets = workSets(entry.sets)
     if (sets.length === 0) continue
     summary.sessions++
-    summary.last = { d: wk.d, sets }
+    summary.last = { d: wk.d, sets, ...(entry.bw ? { bw: true } : {}) }
     for (const s of sets) {
-      const e1rm = estimate1RM(s.w, s.r)
-      if (e1rm > (summary.best?.e1rm ?? 0)) summary.best = { d: wk.d, w: s.w, r: s.r, e1rm }
+      const e1rm = estimate1RM(effectiveLoad(entry, s.w), s.r)
+      if (e1rm > (summary.best?.e1rm ?? 0)) summary.best = { d: wk.d, w: s.w, r: s.r, e1rm, ...(entry.bw ? { bw: true } : {}) }
     }
   }
   return summary
