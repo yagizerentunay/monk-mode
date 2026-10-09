@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { insertWorkout } from '../lib/backdate.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
+import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
@@ -61,9 +62,10 @@ export interface Actions {
   /**
    * Aktif antrenmanda henüz hiç set tamamlanmamış (done/partial yok) bir egzersizi `exId` ile değiştirir;
    * aksi hâlde hiçbir şey yapmaz. Yalnız bu seansı etkiler (rutin değişmez). `side`: yeni egzersiz tek
-   * taraflı mı (arayüz adından belirler, bkz. isUnilateralName); verilmezse bilateral.
+   * taraflı mı (arayüz adından belirler, bkz. isUnilateralName); verilmezse bilateral. `bw`: yeni egzersiz
+   * vücut ağırlığı egzersizi mi (arayüz ekipmandan belirler, bkz. isBodyOnly); verilmezse mutlak yük.
    */
-  swapExercise(entry: number, exId: string, side?: boolean): void
+  swapExercise(entry: number, exId: string, side?: boolean, bw?: boolean): void
   finishWorkout(): Workout | null
   discardWorkout(): void
   deleteWorkout(id: string): void
@@ -123,7 +125,7 @@ export const useStore = create<Store>((set, get) => ({
     const s = get()
     const routine = s.routines.find((r) => r.id === routineId)
     if (!routine || s.active) return
-    set(() => ({ active: buildWorkout(routine, s.workouts, Date.now()) }))
+    set(() => ({ active: buildWorkout(routine, s.workouts, Date.now(), s.bodyweight) }))
   },
 
   updateSet: (entry, setIdx, patch) =>
@@ -248,16 +250,18 @@ export const useStore = create<Store>((set, get) => ({
             r: cfg?.reps ?? 8,
             done: false,
           }))
-          return cfg?.side ? { exId, unilateral: true, sets: toUnilateral(sets) } : { exId, sets }
+          const bwKg = cfg?.bw ? bodyweightOn(get().bodyweight, w.d) : undefined
+          const load = cfg?.bw ? { bw: true, ...(bwKg !== undefined ? { bwKg } : {}) } : {}
+          return cfg?.side ? { exId, ...load, unilateral: true, sets: toUnilateral(sets) } : { exId, ...load, sets }
         })(),
       ],
     })),
 
-  swapExercise: (entry, exId, side = false) =>
+  swapExercise: (entry, exId, side = false, bw = false) =>
     set((s) => {
       const e = s.active?.entries[entry]
       if (!s.active || !e || e.exId === exId) return {}
-      const swapped = swapEntry(e, exId, side, s.workouts)
+      const swapped = swapEntry(e, exId, side, s.workouts, { bw, bwKg: bw ? bodyweightOn(s.bodyweight, s.active.d) : undefined })
       if (!swapped) return {}
       return { active: { ...s.active, entries: s.active.entries.map((x, i) => (i === entry ? swapped : x)) } }
     }),

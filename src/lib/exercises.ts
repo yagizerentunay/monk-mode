@@ -71,6 +71,11 @@ export function isUnilateralName(name: string): boolean {
   return UNILATERAL_NAME.test(name)
 }
 
+/** Ekipmanı "vücut ağırlığı" olan egzersiz: rutinde ve antrenmanda varsayılan olarak `bw` (ek yük) açılır. */
+export function isBodyOnly(ex: Pick<Exercise, 'equipment'>): boolean {
+  return ex.equipment === 'body only'
+}
+
 export interface ExerciseFilter {
   query: string
   muscle: string | null
