@@ -20,6 +20,8 @@ export interface ExCfg {
   drops?: number
   /** Önceki egzersizle süperset: bağlı ardışık egzersizler bir turda dönüşümlü yapılır. */
   superset?: boolean
+  /** Vücut ağırlığı egzersizi: setlerdeki ağırlık ek yüktür (negatif = asist), toplam yük vücut ağırlığını içerir. */
+  bw?: boolean
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -69,6 +71,10 @@ export interface WorkoutEntry {
   unilateral?: boolean
   /** Önceki egzersizle süperset; ilk egzersizde yok sayılır (bkz. lib/superset.ts). */
   linked?: boolean
+  /** Vücut ağırlığı egzersizi: `w` ek yüktür (negatif = asist); toplam yük `bwKg + w`. Yoksa `w` mutlak yüktür. */
+  bw?: boolean
+  /** Seans kurulurken geçerli vücut ağırlığı (kg); sonradan değişse de geçmiş hesapları kaymaz. Kayıt yoksa tanımsız. */
+  bwKg?: number
   /** Kısa not (ağrı, takılma, enerji…); aynı egzersizin sonraki seansında hatırlatılır (lib/notes.ts). */
   note?: string
 }
