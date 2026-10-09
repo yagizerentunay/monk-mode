@@ -11,6 +11,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 - 876 egzersizlik kütüphane (arama, kas ve ekipman filtreleri, özel egzersiz)
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
+- Ekran açık kalır: aktif antrenman sürerken ekran kapanmaz (Screen Wake Lock); tarayıcı desteklemiyorsa ya da pil tasarrufu reddederse sessizce atlanır
 - Tek taraflı egzersizler: sol ve sağ ayrı kaydedilir, ağırlık taraf başınadır. Hacim iki tarafın toplamıdır; 1RM ve ilerleme zayıf tarafın tekrarına göre hesaplanır. Antrenman bir taraf yapılmışken biterse set "yarım set" olarak kaydedilir: yapılan taraf hacme girer, ilerleme/1RM/PR'a girmez
 - Isınma setleri: rutinde sayısı ayarlanır (%40 → %60 → %80 rampası) veya seansta tek dokunuşla eklenir; hacim, ilerleme ve PR'a girmez, kısa dinlenme verir. İlk çalışma setinin ağırlığını değiştirince henüz yapılmamış ve elle dokunulmamış ısınmalar yeni rampaya güncellenir
 - Dropset: rutinde son sete otomatik, seansta her sete tek dokunuşla eklenir (önceki setin %80'i, zincirlenebilir); hacme ve geçmişe girer, ilerleme hesabında yok sayılır
