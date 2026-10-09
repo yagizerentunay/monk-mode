@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
-import { isUnilateralName } from '../lib/exercises.ts'
+import { isBodyOnly, isUnilateralName } from '../lib/exercises.ts'
 import { MAX_DROPS, MAX_WARMUPS } from '../lib/intensity.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -123,9 +123,10 @@ export function RoutineEdit() {
               <NumberField value={cfg.reps} min={1} onChange={(v) => patchEx(i, { reps: Math.max(1, Math.round(v)) })} />
             </label>
             <label className="field">
-              <span className="sub">Ağırlık ({unit})</span>
+              <span className="sub">{cfg.bw ? 'Ek yük' : 'Ağırlık'} ({unit})</span>
               <NumberField
                 value={cfg.weight}
+                min={cfg.bw ? -300 : undefined}
                 toDisplay={(v) => kgToUnit(v, unit)}
                 fromDisplay={(v) => unitToKg(v, unit)}
                 step={0.5}
@@ -141,6 +142,16 @@ export function RoutineEdit() {
               onChange={(e) => patchEx(i, { side: e.target.checked })}
             />
             <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
+          </label>
+
+          <label className="row">
+            <input
+              type="checkbox"
+              checked={!!cfg.bw}
+              // Ağırlığın anlamı değişir (mutlak yük ↔ ek yük); eski değer yeni anlamda yanlış olurdu.
+              onChange={(e) => patchEx(i, e.target.checked ? { bw: true, weight: 0 } : { bw: undefined, weight: 0 })}
+            />
+            <span>Vücut ağırlığı egzersizi <span className="sub">(ağırlık = ek yük)</span></span>
           </label>
 
           <details
@@ -252,6 +263,7 @@ export function RoutineEdit() {
                   inc: 2.5,
                   repsMax: 12,
                   side: isUnilateralName(ex.name),
+                  ...(isBodyOnly(ex) ? { bw: true } : {}),
                 },
               ],
             }))
