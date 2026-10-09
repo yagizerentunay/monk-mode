@@ -11,8 +11,9 @@ import { SwapSheet } from '../components/SwapSheet.tsx'
 import { formatClock } from '../lib/alert.ts'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { imageUrl, isUnilateralName, nameLang } from '../lib/exercises.ts'
+import { imageUrl, isBodyOnly, isUnilateralName, nameLang } from '../lib/exercises.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
+import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
@@ -206,14 +207,17 @@ export function Workout() {
                 </div>
                 <div className="exname exhead" lang={nameLang(ex)}>{ex?.name ?? entry.exId}</div>
                 <div className="sub">
-                  {lastTop ? `Önceki seans: ${formatSet(lastTop, `${formatWeight(lastTop.w, unit)} ${unit}`)}` : 'İlk kez'}
+                  {lastTop ? `Önceki seans: ${formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit))}` : 'İlk kez'}
                 </div>
                 {targetSet && lastTop && (
                   <div className="extarget">
-                    Hedef {formatWeight(targetSet.w, unit)} {unit} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
+                    Hedef {formatLoadWithUnit(entry.bw, targetSet.w, unit)} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
                   </div>
                 )}
                 <PlateauNote exId={entry.exId} />
+                {entry.bw && entry.bwKg === undefined && (
+                  <div className="warntext">Vücut ağırlığı kaydı yok: hacim ve 1RM yalnız ek yükle hesaplanır</div>
+                )}
                 {lastNote && <div className="warntext">Not ({formatShortDay(lastNote.d)}): {lastNote.note}</div>}
               </div>
             </div>
@@ -231,13 +235,13 @@ export function Workout() {
             {entry.unilateral ? (
               <div className="setcols side" aria-hidden="true">
                 <span>Set</span>
-                <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()} · Tekrar (taraf başına)</span>
+                <span>{entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()} · Tekrar (taraf başına)</span>
                 <span>Sonuç</span>
               </div>
             ) : (
               <div className="setcols" aria-hidden="true">
                 <span>Set</span>
-                <span>{unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
+                <span>{entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
                 <span>Tekrar</span>
                 <span>Sonuç</span>
               </div>
@@ -257,6 +261,8 @@ export function Workout() {
                   set={set}
                   unilateral={!!entry.unilateral}
                   unit={unit}
+                  bw={entry.bw}
+                  bwKg={entry.bwKg}
                   onChange={(patch) => updateSet(ei, si, patch)}
                   onSide={(side, patch) => updateSide(ei, si, side, patch)}
                   onDrop={() => addDrop(ei, si)}
@@ -329,7 +335,7 @@ export function Workout() {
         <ExerciseBrowser
           actionLabel="Ekle"
           onSelect={(ex) => {
-            addExerciseToActive(ex.id, { side: isUnilateralName(ex.name) })
+            addExerciseToActive(ex.id, { side: isUnilateralName(ex.name), bw: isBodyOnly(ex) })
             setPicking(false)
           }}
         />
@@ -341,7 +347,7 @@ export function Workout() {
             current={byId.get(active.entries[swapEntryIdx].exId)!}
             excludeIds={new Set(active.entries.map((e) => e.exId))}
             onSelect={(next) => {
-              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name))
+              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name), isBodyOnly(next))
               setSwapEntryIdx(null)
             }}
           />

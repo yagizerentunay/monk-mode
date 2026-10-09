@@ -51,6 +51,7 @@
 .setrow .input.num {
   min-height: 52px; padding: 6px 4px; font-size: 24px; font-weight: 700; text-align: center;
 }
+.bwhint { padding: 2px 0 0 44px; font-size: 12px; }
 .unitnote { grid-column: 4; font-size: 12px; text-align: center; line-height: 1.1; }
 .setrow:has(> .unitnote) > .numfield { grid-column: 2 / 4; }
 

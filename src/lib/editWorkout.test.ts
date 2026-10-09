@@ -140,6 +140,18 @@ describe('kaydetmeye hazırlama', () => {
     expect(finalizeEdit(w)!.entries.map((e) => e.exId)).toEqual(['a', 'c'])
   })
 
+  it('vücut ağırlığı egzersizinde negatif (asist) ek yükü kabul eder, diğerinde sıfıra çeker', () => {
+    const w = wk([
+      { exId: 'pullup', bw: true, bwKg: 67, sets: [set(0, 5)] },
+      { exId: 'row', sets: [set(40, 8)] },
+    ])
+    expect(editSet(w, 0, 0, { w: -20 }).entries[0].sets[0].w).toBe(-20)
+    expect(editSet(w, 0, 0, { w: NaN }).entries[0].sets[0].w).toBe(0)
+    expect(editSet(w, 1, 0, { w: -20 }).entries[1].sets[0].w).toBe(0)
+    // bw bayrakları düzenlemeden etkilenmez.
+    expect(editSet(w, 0, 0, { w: -20 }).entries[0]).toMatchObject({ bw: true, bwKg: 67 })
+  })
+
   it('hiç çalışma seti kalmadıysa null verir', () => {
     expect(finalizeEdit(wk([{ exId: 'a', sets: [set(1, 1, { warmup: true })] }]))).toBeNull()
     expect(finalizeEdit(wk([{ exId: 'a', sets: [], note: 'x' }]))).toBeNull()

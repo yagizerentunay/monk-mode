@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { facetValues, filterExercises, fromCustom, isUnilateralName, nameLang, type Exercise } from './exercises.ts'
+import { facetValues, filterExercises, fromCustom, isBodyOnly, isUnilateralName, nameLang, type Exercise } from './exercises.ts'
 
 const ex = (id: string, name: string, muscle: string, equipment: string | null): Exercise => ({
   id,
@@ -69,6 +69,14 @@ describe('egzersiz filtreleri', () => {
     for (const n of ['Barbell Bench Press - Medium Grip', 'Alternate Hammer Curl', 'Alternating Kettlebell Row', 'Cable Reverse Crunch', 'Chest Push (single response)', 'Barbell Squat']) {
       expect(isUnilateralName(n), n).toBe(false)
     }
+  })
+
+  it('ekipmanı "body only" olan (özel egzersiz dahil) egzersizi vücut ağırlığı sayar', () => {
+    expect(isBodyOnly({ equipment: 'body only' })).toBe(true)
+    expect(isBodyOnly({ equipment: 'barbell' })).toBe(false)
+    expect(isBodyOnly({ equipment: null })).toBe(false)
+    expect(isBodyOnly(fromCustom({ id: 'x', name: 'Dips', primaryMuscles: [], equipment: 'body only' }))).toBe(true)
+    expect(isBodyOnly(fromCustom({ id: 'y', name: 'Sled', primaryMuscles: [], equipment: '' }))).toBe(false)
   })
 
   it('özel egzersizi kütüphane biçimine çevirir', () => {

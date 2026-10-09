@@ -1,4 +1,4 @@
-import type { Routine, Workout } from '../store/schema.ts'
+import type { BodyweightEntry, Routine, Workout } from '../store/schema.ts'
 import { parseDay } from './calendar.ts'
 import { deriveSet } from './sets.ts'
 import { buildWorkout } from './workout.ts'
@@ -13,10 +13,16 @@ export function noonOf(date: string): number {
  * Geçmiş bir güne antrenman girmek için rutinden taslak kurar. Ağırlık ve tekrar önerisi yalnız o
  * günden ÖNCEKİ antrenmanlara bakar (sonradan yapılanlar geçmişteki öneriyi etkilemesin). Tüm setler
  * "yapıldı" gelir; kullanıcı düzenleyicide gerçek ağırlık/tekrarı düzeltir, yapılmayanı siler.
+ * Vücut ağırlığı egzersizlerine o günün (ya da öncesindeki en son) vücut ağırlığı kopyalanır.
  */
-export function draftForDate(routine: Routine, workouts: readonly Workout[], date: string): Workout {
+export function draftForDate(
+  routine: Routine,
+  workouts: readonly Workout[],
+  date: string,
+  bodyweight: readonly BodyweightEntry[] = [],
+): Workout {
   const before = workouts.filter((w) => w.d < date)
-  const draft = buildWorkout(routine, before, noonOf(date))
+  const draft = buildWorkout(routine, before, noonOf(date), bodyweight)
   return {
     ...draft,
     d: date,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
+import { formatLoad } from '../lib/load.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
@@ -51,24 +52,24 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
       {workout.entries.map((e, i) => {
         const zero = zeroWeightFlags(e, byId.get(e.exId)?.equipment)
         return (
-        <div key={i}>
-          <div className="exname">{byId.get(e.exId)?.name ?? e.exId}</div>
-          <div className="sub">
-            {e.sets.length === 0
-              ? 'Set yapılmadı'
-              : e.sets
-                  .map((s, si) => ({ s, si }))
-                  .filter(({ s }) => !s.warmup)
-                  .map(({ s, si }, i) => (
-                    <span key={si}>
-                      {i > 0 && ' · '}
-                      {formatSet(s, formatWeight(s.w, unit))}
-                      {zero[si] && <span className="zeromark"> {formatWeight(0, unit)} {unit}?</span>}
-                    </span>
-                  ))}
+          <div key={i}>
+            <div className="exname">{byId.get(e.exId)?.name ?? e.exId}</div>
+            <div className="sub">
+              {e.sets.length === 0
+                ? 'Set yapılmadı'
+                : e.sets
+                    .map((s, si) => ({ s, si }))
+                    .filter(({ s }) => !s.warmup)
+                    .map(({ s, si }, i) => (
+                      <span key={si}>
+                        {i > 0 && ' · '}
+                        {formatSet(s, formatLoad(e.bw, s.w, unit))}
+                        {zero[si] && <span className="zeromark"> {formatWeight(0, unit)} {unit}?</span>}
+                      </span>
+                    ))}
+            </div>
+            {e.note && <div className="note">{e.note}</div>}
           </div>
-          {e.note && <div className="note">{e.note}</div>}
-        </div>
         )
       })}
       <div className="row">

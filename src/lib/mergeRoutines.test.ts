@@ -88,6 +88,14 @@ describe('rutin ekleme', () => {
     expect(m).toMatchObject({ added: 0, skipped: 0, invalid: 0 })
   })
 
+  it('vücut ağırlığı bayrağını ve negatif (asist) plan ağırlığını korur', () => {
+    const r = sanitizeRoutine({ id: 'r', name: 'x', ex: [ex('pullup', { bw: true, weight: -15 }), ex('row', { bw: 'yes', weight: -5 })] })
+    expect(r?.ex[0]).toMatchObject({ bw: true, weight: -15 })
+    // Bayrak yoksa (ya da geçersizse) ağırlık eskisi gibi negatif olamaz.
+    expect(r?.ex[1]).not.toHaveProperty('bw')
+    expect(r?.ex[1].weight).toBe(0)
+  })
+
   it('girdiyi değiştirmez', () => {
     const mine = [routine('mine', 'Bacak')]
     mergeRoutines(have(mine), { routines: [routine('new', 'A')], customEx: [] })

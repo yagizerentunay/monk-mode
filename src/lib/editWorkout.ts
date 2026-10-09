@@ -30,11 +30,15 @@ function mapSet(w: Workout, ei: number, si: number, fn: (s: SetEntry) => SetEntr
   }
 }
 
-/** Bir setin ağırlığını ya da tekrarını düzeltir; tek taraflıda sol/sağ ayrı düzeltilir. */
+/**
+ * Bir setin ağırlığını ya da tekrarını düzeltir; tek taraflıda sol/sağ ayrı düzeltilir. Vücut ağırlığı
+ * egzersizinde ağırlık ek yüktür ve negatif (asist) olabilir.
+ */
 export function editSet(workout: Workout, ei: number, si: number, patch: SetPatch): Workout {
+  const signed = !!workout.entries[ei]?.bw
   return mapSet(workout, ei, si, (s) => {
     let next: SetEntry = { ...s }
-    if (patch.w !== undefined) next.w = nonNegative(patch.w)
+    if (patch.w !== undefined) next.w = signed ? (Number.isFinite(patch.w) ? patch.w : 0) : nonNegative(patch.w)
     if (next.sides) {
       const sides = { L: { ...next.sides.L }, R: { ...next.sides.R } }
       if (patch.L !== undefined) sides.L.r = reps(patch.L)

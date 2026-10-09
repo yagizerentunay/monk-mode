@@ -1,5 +1,6 @@
-import type { Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import type { BodyweightEntry, Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { dropChain, warmupSets } from './intensity.ts'
+import { bodyweightOn, comparableLast, effectiveLoad } from './load.ts'
 import { estimate1RM } from './onerm.ts'
 import { nextPrescription } from './progression.ts'
 import { setReps, toUnilateral } from './sets.ts'
@@ -29,20 +30,36 @@ export function lastEntryFor(workouts: Workout[], exId: string): WorkoutEntry | 
   return undefined
 }
 
-/** Rutinden yeni bir seans kurar; ağırlık/tekrar progression önerisinden dolar. */
-export function buildWorkout(routine: Routine, history: Workout[], now: number): Workout {
+/**
+ * Rutinden yeni bir seans kurar; ağırlık/tekrar progression önerisinden dolar. Vücut ağırlığı
+ * egzersizlerine (`cfg.bw`) o günün vücut ağırlığı (`bodyweight` günlüğünden) anlık kopyalanır; ağırlık
+ * ek yük olarak ilerler. Geçmiş kayıt farklı ağırlık anlamındaysa (`comparableLast`) yok sayılır.
+ */
+export function buildWorkout(
+  routine: Routine,
+  history: Workout[],
+  now: number,
+  bodyweight: readonly BodyweightEntry[] = [],
+): Workout {
+  const d = dayString(new Date(now))
   return {
     id: newId(),
-    d: dayString(new Date(now)),
+    d,
     start: now,
     routineId: routine.id,
     name: routine.name,
     entries: routine.ex.map((cfg, i) => {
-      const p = nextPrescription(cfg, lastEntryFor(history, cfg.exId))
+      const bw = !!cfg.bw
+      const p = nextPrescription(cfg, comparableLast(lastEntryFor(history, cfg.exId), bw))
       const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
       const warmups = warmupSets(p.w, cfg.warmups ?? 0)
       const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
       if (cfg.superset && i > 0) entry.linked = true
+      if (bw) {
+        entry.bw = true
+        const bwKg = bodyweightOn(bodyweight, d)
+        if (bwKg !== undefined) entry.bwKg = bwKg
+      }
       if (cfg.side) {
         entry.unilateral = true
         entry.sets = toUnilateral(entry.sets)
@@ -58,6 +75,8 @@ export function buildWorkout(routine: Routine, history: Workout[], now: number):
 /**
  * Tamamlanan çalışma setlerinde toplam hacim (kg × tekrar). Tek taraflı setlerde sol + sağ
  * tekrarların toplamı kullanılır; ağırlık taraf başına olduğundan her iki tarafın işi sayılır.
+ * Vücut ağırlığı egzersizlerinde yük, vücut ağırlığı + ek yüktür (bkz. `effectiveLoad`); asist yükü
+ * vücut ağırlığını aşarsa hacim negatife inmez.
  */
 export function workoutVolume(workout: Workout): number {
   return workout.entries.reduce(
@@ -65,7 +84,7 @@ export function workoutVolume(workout: Workout): number {
       sum +
       e.sets
         .filter((s) => !s.warmup && (s.done || s.partial))
-        .reduce((s, set) => s + set.w * setReps(set), 0),
+        .reduce((s, set) => s + Math.max(0, effectiveLoad(e, set.w)) * setReps(set), 0),
     0,
   )
 }
@@ -119,8 +138,8 @@ export function exerciseHistory(workouts: Workout[], exId: string): ExercisePoin
     if (sets.length === 0) continue
     points.push({
       d: wk.d,
-      topW: Math.max(...sets.map((s) => s.w)),
-      e1rm: Math.max(...sets.map((s) => estimate1RM(s.w, s.r))),
+      topW: Math.max(0, ...sets.map((s) => effectiveLoad(entry, s.w))),
+      e1rm: Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r))),
     })
   }
   return points
@@ -129,6 +148,6 @@ export function exerciseHistory(workouts: Workout[], exId: string): ExercisePoin
 /** Bu seansın bir egzersizinde tahmini 1RM, önceki tüm seansları geçti mi? */
 export function isPR(previous: Workout[], entry: WorkoutEntry): boolean {
   const best = Math.max(0, ...exerciseHistory(previous, entry.exId).map((p) => p.e1rm))
-  const now = Math.max(0, ...workSets(entry.sets).map((s) => estimate1RM(s.w, s.r)))
+  const now = Math.max(0, ...workSets(entry.sets).map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r)))
   return now > 0 && now > best
 }
