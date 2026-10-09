@@ -4,6 +4,7 @@ import {
   MAX_MUSCLE_TARGET,
   MUSCLES,
   MUSCLE_LABEL,
+  MUSCLE_PRIORITY,
   WEEKLY_TARGET_SETS,
   emptyMuscleSets,
   muscleLevel,
@@ -338,5 +339,19 @@ describe('kas başına haftalık hedef', () => {
     // targets'ta olmayan kas `target` yedeğine düşer.
     const r2 = underTargetMuscles(sets, { target: 8, targets: { lats: 3 }, eligible: (m) => m === 'chest' || m === 'lats' })
     expect(r2.map((u) => [u.muscle, u.target])).toEqual([['lats', 3]])
+  })
+
+  it('eşit açıkta büyük kas grupları öne gelir; boyun ve ön kol en sonda', () => {
+    // Hiçbir kas çalışılmamış: hepsi 10 açık. Alfabetik sıra karın/kalça dışı ile başlardı.
+    const r = underTargetMuscles(emptyMuscleSets())
+    expect(r.slice(0, 3).map((u) => u.muscle)).toEqual(['glutes', 'hamstrings', 'quadriceps'])
+    expect(r.slice(-2).map((u) => u.muscle)).toEqual(['forearms', 'neck'])
+    // Daha büyük açık öncelikten önce gelir.
+    const r2 = underTargetMuscles({ ...emptyMuscleSets(), glutes: 9 }, { limit: 2 })
+    expect(r2[0].muscle).toBe('hamstrings')
+  })
+
+  it('MUSCLE_PRIORITY her kası tam bir kez içerir', () => {
+    expect([...MUSCLE_PRIORITY].sort()).toEqual([...MUSCLES].sort())
   })
 })

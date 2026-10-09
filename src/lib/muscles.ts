@@ -64,6 +64,36 @@ export const MAX_MUSCLE_TARGET = 40
 
 const MUSCLE_SET: ReadonlySet<string> = new Set(MUSCLES)
 
+/**
+ * Eşit durumdaki kaslar (ör. hiç çalışılmamış on yedi kas) için gösterim önceliği: büyük kas grupları önce,
+ * boyun ve ön kol gibi küçükler sonra. Bilimsel bir sıralama değil; "hedefin altında" özeti alfabetik sıra
+ * yüzünden boyun gibi kasları öne çıkarmasın diye.
+ */
+export const MUSCLE_PRIORITY: readonly MuscleId[] = [
+  'glutes',
+  'hamstrings',
+  'quadriceps',
+  'chest',
+  'lats',
+  'middle back',
+  'shoulders',
+  'biceps',
+  'triceps',
+  'abdominals',
+  'calves',
+  'lower back',
+  'traps',
+  'adductors',
+  'abductors',
+  'forearms',
+  'neck',
+]
+
+/** `MUSCLE_PRIORITY` içindeki sıra (küçük = önce). */
+export function muscleRank(m: MuscleId): number {
+  return MUSCLE_PRIORITY.indexOf(m)
+}
+
 /** Geçerli hedef: 0..MAX arası sonlu sayı (kesirli değer yuvarlanır); değilse undefined. */
 export function cleanTarget(v: unknown): number | undefined {
   if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > MAX_MUSCLE_TARGET) return undefined
@@ -236,7 +266,7 @@ export interface UnderTarget {
 }
 
 /**
- * Hedefin altındaki kaslar, hedefe en uzak olandan başlayarak (eşitlikte MUSCLES sırası).
+ * Hedefin altındaki kaslar, hedefe en uzak olandan başlayarak (eşitlikte `MUSCLE_PRIORITY` sırası).
  * Hedef kas başına `targets`'tan gelir (yoksa `target`, o da yoksa 10); hedefi 0 olan kas hiç eksik sayılmaz.
  * `eligible` verilirse yalnız o kaslar değerlendirilir (ör. yakın zamanda çalışılmış olanlar).
  * Geçen (tam) hafta için doğrudan "hedefin altında" anlamına gelir; içinde bulunulan hafta için
@@ -258,6 +288,6 @@ export function underTargetMuscles(
     const target = targetFor(options.targets, m, fallback)
     if (target > 0 && sets[m] < target) out.push({ muscle: m, sets: sets[m], target, gap: target - sets[m] })
   }
-  out.sort((a, b) => b.gap - a.gap)
+  out.sort((a, b) => b.gap - a.gap || muscleRank(a.muscle) - muscleRank(b.muscle))
   return options.limit === undefined ? out : out.slice(0, Math.max(0, options.limit))
 }

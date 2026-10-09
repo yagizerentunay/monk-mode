@@ -103,8 +103,12 @@ describe('MuscleWeekList', () => {
   it('özet hedefe en uzak kastan başlar', () => {
     const out = html(makeCmp({ abdominals: 9, abductors: 8, adductors: 7, biceps: 1 }))
     const first = out.match(/class="tgt-chip"[^>]*>([^<]*)</g) ?? []
-    // Gap sırası: 10'luklar (MUSCLES sırasıyla) önce, biceps (9) sonra; ilk üç hepsi 10 açık.
-    expect(first[0]).toContain('Baldır')
+    // Gap sırası: 10 açığı olanlar önce, biceps (9) sonra. Eşitlikte büyük kas grupları öne gelir
+    // (MUSCLE_PRIORITY): boyun/ön kol gibi küçük kaslar değil, kalça ve arka bacak.
+    expect(first.length).toBe(UNDER_TARGET_LIMIT)
+    expect(first[0]).toContain('Kalça 0/10')
+    expect(first[1]).toContain('Arka bacak')
+    expect(first[2]).toContain('Ön bacak')
   })
 
   it('satıra, özet çipine ve "Tümünü gör"e dokunmak işleyicileri çağırır', () => {
@@ -114,8 +118,8 @@ describe('MuscleWeekList', () => {
     const tree = MuscleWeekList(
       props(cmp, { onSelect: (m) => picked.push(m), onToggleAll: () => toggled++ }),
     )
-    click(byLabel(tree, 'Karın 0/10 set'))
-    expect(picked).toEqual(['abdominals'])
+    click(byLabel(tree, 'Kalça 0/10 set'))
+    expect(picked).toEqual(['glutes'])
     click(byText(tree, `Tümünü gör (${MUSCLES.length})`))
     expect(toggled).toBe(1)
   })

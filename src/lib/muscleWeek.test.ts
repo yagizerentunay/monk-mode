@@ -19,9 +19,11 @@ describe('weekRows', () => {
     expect(glutes).toMatchObject({ sets: 0, lastWeek: 0, target: 10, below: true })
   })
 
-  it('sıra: bu hafta çok olan, eşitlikte geçen hafta çok olan, sonra MUSCLES sırası', () => {
+  it('sıra: bu hafta çok olan, eşitlikte geçen hafta çok olan, sonra MUSCLE_PRIORITY sırası', () => {
     const { rows } = weekRows(cmp({ lats: 6, chest: 6, biceps: 2 }, { chest: 3, triceps: 9 }), undefined)
-    expect(rows.slice(0, 5).map((r) => r.muscle)).toEqual(['chest', 'lats', 'biceps', 'triceps', 'abdominals'])
+    expect(rows.slice(0, 5).map((r) => r.muscle)).toEqual(['chest', 'lats', 'biceps', 'triceps', 'glutes'])
+    // Hiç çalışılmamış kaslar arasında küçükler en sonda: boyun listenin dibinde.
+    expect(rows[rows.length - 1].muscle).toBe('neck')
   })
 
   it('hedefe ulaşan ya da aşan kas "below" değildir', () => {

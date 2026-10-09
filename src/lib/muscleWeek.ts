@@ -1,4 +1,4 @@
-import { MUSCLES, targetFor, type MuscleId, type MuscleTargets, type WeekComparison } from './muscles.ts'
+import { MUSCLES, muscleRank, targetFor, type MuscleId, type MuscleTargets, type WeekComparison } from './muscles.ts'
 
 export interface WeekRow {
   muscle: MuscleId
@@ -16,7 +16,7 @@ export interface WeekRow {
 /**
  * "Bu hafta" listesinin satırları: bu ya da geçen hafta çalışılmış kaslar ve hedefi olan (0'dan büyük) kaslar,
  * hiç çalışılmamış olsalar bile. Hedefi 0 olup iki haftada da çalışılmamış kaslar `hidden`'dadır.
- * Sıra: bu hafta çok olan önce, eşitlikte geçen hafta çok olan, sonra `MUSCLES` sırası (deterministik).
+ * Sıra: bu hafta çok olan önce, eşitlikte geçen hafta çok olan, sonra `MUSCLE_PRIORITY` sırası (deterministik).
  */
 export function weekRows(
   cmp: Pick<WeekComparison, 'thisWeek' | 'lastWeek' | 'delta'>,
@@ -33,8 +33,7 @@ export function weekRows(
       hidden.push(m)
     }
   }
-  // Array.prototype.sort kararlıdır: eşitlikte MUSCLES sırası kalır.
-  rows.sort((a, b) => b.sets - a.sets || b.lastWeek - a.lastWeek)
+  rows.sort((a, b) => b.sets - a.sets || b.lastWeek - a.lastWeek || muscleRank(a.muscle) - muscleRank(b.muscle))
   return { rows, hidden }
 }
 
