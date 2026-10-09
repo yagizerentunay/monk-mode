@@ -21,6 +21,7 @@ import { hasCompletedWork } from '../lib/swap.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { useWakeLock } from '../lib/useWakeLock.ts'
 import { doneSetCount, isPR, lastEntryFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
@@ -114,6 +115,9 @@ export function Workout() {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [active])
+
+  /** Aktif seans sürerken ekran kapanmasın; seans bitince/iptal edilince ya da ekrandan çıkılınca bırakılır. */
+  useWakeLock(active != null)
 
   if (summary) {
     const { workout, prs } = summary
