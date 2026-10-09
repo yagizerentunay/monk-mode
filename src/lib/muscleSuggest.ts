@@ -12,6 +12,16 @@ export const MAX_SUGGESTIONS = 5
  */
 const SUGGEST_CATEGORIES: ReadonlySet<string> = new Set(['strength', 'powerlifting'])
 
+/**
+ * Yapılmamış egzersizler yalnız standart salon ekipmanıyla önerilir. Kettlebell, lastik bant, top gibi
+ * ekipmanlar ve ekipmanı bilinmeyenler (partnerli germe vb.) çeşitlilik kuralı yüzünden öne çıkıp
+ * "arka bacak için hang clean" gibi öneriler üretiyordu.
+ */
+const SUGGEST_EQUIPMENT: ReadonlySet<string> = new Set(['barbell', 'dumbbell', 'machine', 'cable', 'body only', 'e-z curl bar'])
+
+/** Teknik olimpik hareketler (clean, snatch, jerk) kategorisi "strength" olsa da rutine "3×8" diye eklenmez. */
+const TECHNICAL_LIFT = /\b(clean|snatch|jerk)\b/i
+
 const LEVEL_RANK: Record<string, number> = { beginner: 0, intermediate: 1, expert: 2 }
 
 export interface Suggestion {
@@ -72,7 +82,15 @@ export function suggestExercises(
     .slice(0, max)
   const picked: Suggestion[] = used.map((ex) => ({ ex, timesDone: past.get(ex.id)!.count }))
 
-  const pool = forMuscle.filter((e) => !past.has(e.id) && (e.custom || SUGGEST_CATEGORIES.has(e.category)))
+  const pool = forMuscle.filter(
+    (e) =>
+      !past.has(e.id) &&
+      (e.custom ||
+        (SUGGEST_CATEGORIES.has(e.category) &&
+          e.equipment !== null &&
+          SUGGEST_EQUIPMENT.has(e.equipment) &&
+          !TECHNICAL_LIFT.test(e.name))),
+  )
   const key = (e: Exercise) => e.equipment ?? ''
   const common = new Map<string, number>()
   for (const e of pool) common.set(key(e), (common.get(key(e)) ?? 0) + 1)

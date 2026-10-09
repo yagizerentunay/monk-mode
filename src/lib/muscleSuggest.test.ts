@@ -113,6 +113,24 @@ describe('suggestExercises', () => {
     expect(ids(suggestExercises('glutes', list, [workout('2026-09-01', ['s'])]))[0]).toBe('s')
   })
 
+  it('yeni öneriler yalnız standart salon ekipmanıyla gelir; teknik clean/snatch/jerk hareketleri girmez', () => {
+    const list = [
+      ex('kb', { name: 'Kettlebell Hang Clean', equipment: 'kettlebells' }),
+      ex('band', { equipment: 'bands' }),
+      ex('ball', { equipment: 'exercise ball' }),
+      ex('none', { equipment: null }),
+      ex('clean', { name: 'Power Clean', equipment: 'barbell' }),
+      ex('snatch', { name: 'Dumbbell Snatch', equipment: 'dumbbell' }),
+      ex('cur', { name: 'Seated Leg Curl', equipment: 'machine' }),
+      ex('ok', { name: 'Stiff-Legged Dumbbell Deadlift', equipment: 'dumbbell' }),
+      ex('body', { equipment: 'body only' }),
+      ex('mine', { equipment: null, custom: true }),
+    ]
+    expect(ids(suggestExercises('glutes', list, [])).sort()).toEqual(['body', 'cur', 'mine', 'ok'])
+    // Daha önce yapılmış olan, ekipmanı ne olursa olsun önerilir.
+    expect(ids(suggestExercises('glutes', list, [workout('2026-09-01', ['kb'])]))[0]).toBe('kb')
+  })
+
   it('kolay seviye ve ad sırası eşitliği bozar', () => {
     const list = [
       ex('z', { name: 'Zeta', level: 'beginner' }),
