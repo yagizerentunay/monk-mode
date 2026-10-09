@@ -1,12 +1,15 @@
 import type { SetKind } from '../lib/intensity.ts'
 import { SIDES, type Side } from '../lib/sets.ts'
-import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
+import { effectiveLoad } from '../lib/load.ts'
+import { formatWeight, kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import type { SetEntry, SideSet } from '../store/schema.ts'
 import { NumberField } from './NumberField.tsx'
 
 const RIR_CHOICES = [0, 1, 2, 3, 4]
 const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
 const KIND_LABEL: Record<SetKind, string> = { work: '', warmup: 'Isınma', drop: 'Dropset' }
+/** Ek yük alanında girilebilecek en büyük asist (kg); bunun altı yazılamaz. */
+const MAX_ASSIST = 300
 
 interface Props {
   /** Erişilebilir ad ve alan etiketlerinin öneki: "Set 1", "Isınma 1", "Drop 1". */
@@ -17,6 +20,9 @@ interface Props {
   set: SetEntry
   unilateral: boolean
   unit: Unit
+  /** Vücut ağırlığı egzersizi: ağırlık ek yüktür (negatif = asist); `bwKg` o günün vücut ağırlığı. */
+  bw?: boolean
+  bwKg?: number
   /** "↓ Drop" düğmesi gösterilsin mi (yalnız tamamlanmış ve zincirin son setinde). */
   canDrop: boolean
   onChange: (patch: Partial<SetEntry>) => void
@@ -44,6 +50,8 @@ export function SetRow({
   set,
   unilateral,
   unit,
+  bw = false,
+  bwKg,
   canDrop,
   onChange,
   onSide,
@@ -58,8 +66,9 @@ export function SetRow({
   const weight = (
     <NumberField
       className="grow"
-      label={`${name} ağırlık`}
+      label={`${name} ${bw ? 'ek yük' : 'ağırlık'}`}
       value={set.w}
+      min={bw ? -MAX_ASSIST : undefined}
       toDisplay={(v) => kgToUnit(v, unit)}
       fromDisplay={(v) => unitToKg(v, unit)}
       step={0.5}
@@ -122,6 +131,10 @@ export function SetRow({
             }}
           />
         </div>
+      )}
+
+      {bw && bwKg !== undefined && (
+        <div className="sub bwhint">Toplam {formatWeight(Math.max(0, effectiveLoad({ bw, bwKg }, set.w)), unit)} {unit}</div>
       )}
 
       {/*

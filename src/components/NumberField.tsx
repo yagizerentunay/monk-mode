@@ -32,7 +32,8 @@ export function NumberField({
   return (
     <input
       className={`input num numfield ${className}`}
-      inputMode="decimal"
+      // Eksi işareti için tuş takımı: ondalık sayı tuş takımında (özellikle iOS'ta) eksi yoktur.
+      inputMode={min < 0 ? 'text' : 'decimal'}
       aria-label={label}
       value={text ?? String(shown)}
       step={step}
