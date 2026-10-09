@@ -9,6 +9,7 @@ Yerelde çalışan, sunucusuz bir antrenman takip uygulaması. Veriler yalnızca
 ## Özellikler
 
 - 876 egzersizlik kütüphane (arama, kas ve ekipman filtreleri, özel egzersiz)
+- Kas düzeltme: egzersiz detayında "Kasları düzelt" ile birincil ve yardımcı kaslar değiştirilir (ör. veritabanında yanlış etiketli bir egzersiz). Düzeltme kas haritasında, kas filtresinde ve değiştirme önerilerinde geçerli olur, yedeğe girer; "Orijinale dön" kütüphane kaslarını geri getirir
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
 - Ekran açık kalır: aktif antrenman sürerken ekran kapanmaz (Screen Wake Lock); tarayıcı desteklemiyorsa ya da pil tasarrufu reddederse sessizce atlanır
