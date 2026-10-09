@@ -1,4 +1,5 @@
 import { normalizeMuscleFix } from '../lib/muscleFix.ts'
+import { cleanTarget, MUSCLES, type MuscleTargets } from '../lib/muscles.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
 import { defaultState, SCHEMA_VERSION, type State } from './schema.ts'
@@ -47,6 +48,21 @@ function migrateMuscleFix(raw: unknown): State['muscleFix'] {
 }
 
 /**
+ * Kas hedeflerinden yalnız bilinen kasların geçerli (0-40) değerlerini tutar; bozuk değerler ve bilinmeyen
+ * anahtarlar atılır. Anahtarlar `MUSCLES` listesinden okunur, bu yüzden `__proto__` gibi anahtarlar sızamaz.
+ * Hiç geçerli hedef kalmazsa undefined (varsayılanlar geçerli).
+ */
+function migrateMuscleTargets(raw: unknown): MuscleTargets | undefined {
+  if (!isRecord(raw)) return undefined
+  const out: MuscleTargets = {}
+  for (const m of MUSCLES) {
+    const v = Object.hasOwn(raw, m) ? cleanTarget(raw[m]) : undefined
+    if (v !== undefined) out[m] = v
+  }
+  return Object.keys(out).length > 0 ? out : undefined
+}
+
+/**
  * Kayıtlı veya içe aktarılan ham veriyi geçerli State'e çevirir.
  * Eksik alanlar varsayılanlarla tamamlanır, bozuk alanlar atılır; uygulama asla çökmez.
  */
@@ -92,6 +108,7 @@ export function migrate(raw: unknown): State {
         Math.abs(settings.bodyweightGoal) <= 2
           ? settings.bodyweightGoal
           : undefined,
+      muscleTargets: migrateMuscleTargets(settings.muscleTargets),
     },
     routines: arr(raw.routines),
     week: isRecord(raw.week) ? (raw.week as State['week']) : base.week,

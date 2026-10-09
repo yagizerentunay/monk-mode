@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout } from '../store/schema.ts'
 import {
+  MAX_MUSCLE_TARGET,
   MUSCLES,
   MUSCLE_LABEL,
+  WEEKLY_TARGET_SETS,
   emptyMuscleSets,
   muscleLevel,
   muscleSets,
   sinceDay,
+  stepTarget,
+  targetFor,
   underTargetMuscles,
   weekComparison,
   weekRanges,
+  withTarget,
 } from './muscles.ts'
 
 const set = (over: Partial<SetEntry> = {}): SetEntry => ({ w: 50, r: 8, done: true, ...over })
@@ -262,5 +267,76 @@ describe('hedefin altındaki kaslar', () => {
 
   it('uygunluk süzgeci verilmezse tüm kaslar değerlendirilir', () => {
     expect(underTargetMuscles(base())).toHaveLength(MUSCLES.length - 2)
+  })
+})
+
+describe('kas başına haftalık hedef', () => {
+  it('ayar yoksa, kas yoksa ya da geçersizse varsayılan 10 (ya da verilen yedek) döner', () => {
+    expect(targetFor(undefined, 'chest')).toBe(WEEKLY_TARGET_SETS)
+    expect(targetFor({}, 'chest')).toBe(10)
+    expect(targetFor({ lats: 14 }, 'chest')).toBe(10)
+    expect(targetFor({ chest: -1 }, 'chest')).toBe(10)
+    expect(targetFor({ chest: Number.NaN }, 'chest')).toBe(10)
+    expect(targetFor({ chest: 41 }, 'chest')).toBe(10)
+    expect(targetFor({}, 'chest', 12)).toBe(12)
+  })
+
+  it('ayarlı hedefi döndürür; 0 "hedef yok" olarak korunur', () => {
+    expect(targetFor({ chest: 16 }, 'chest')).toBe(16)
+    expect(targetFor({ chest: 0 }, 'chest')).toBe(0)
+    expect(targetFor({ chest: MAX_MUSCLE_TARGET }, 'chest')).toBe(40)
+  })
+
+  it('kalıtsal anahtarları hedef saymaz', () => {
+    const inherited = Object.create({ chest: 25 }) as Record<string, number>
+    expect(targetFor(inherited, 'chest')).toBe(10)
+  })
+
+  it('withTarget girdiyi değiştirmez, varsayılana eşit değeri siler, boşalınca undefined döner', () => {
+    const before = { chest: 14 }
+    const a = withTarget(before, 'lats', 12)
+    expect(a).toEqual({ chest: 14, lats: 12 })
+    expect(before).toEqual({ chest: 14 })
+    expect(withTarget(a, 'lats', 10)).toEqual({ chest: 14 })
+    expect(withTarget({ chest: 14 }, 'chest', 10)).toBeUndefined()
+    expect(withTarget(undefined, 'chest', 0)).toEqual({ chest: 0 })
+    expect(withTarget(undefined, 'chest', 99)).toBeUndefined()
+  })
+
+  it('stepTarget 0 ile 40 arasında kalır', () => {
+    expect(stepTarget(10, 1)).toBe(11)
+    expect(stepTarget(0, -1)).toBe(0)
+    expect(stepTarget(40, 1)).toBe(40)
+    expect(stepTarget(39.6, 1)).toBe(40)
+  })
+
+  it('muscleLevel hedefe göre ölçeklenir; hedef 0 ya da geçersizse varsayılan ölçek kullanılır', () => {
+    expect(muscleLevel(10, 7, 20)).toBe(0.5)
+    expect(muscleLevel(10, 7, 5)).toBe(1)
+    expect(muscleLevel(5, 7, 0)).toBe(0.5)
+    expect(muscleLevel(5, 7, Number.NaN)).toBe(0.5)
+    expect(muscleLevel(5, 7)).toBe(0.5)
+  })
+
+  it('underTargetMuscles kas başına hedefi kullanır ve hedefi 0 olan kası eksik saymaz', () => {
+    const sets = { ...emptyMuscleSets(), chest: 8, lats: 3, biceps: 0 }
+    const r = underTargetMuscles(sets, {
+      targets: { chest: 6, lats: 0, biceps: 12 },
+      eligible: (m) => m === 'chest' || m === 'lats' || m === 'biceps' || m === 'calves',
+    })
+    // chest 8 >= 6 hedefte, lats hedefsiz; calves varsayılan 10, biceps 12.
+    expect(r.map((u) => [u.muscle, u.target, u.gap])).toEqual([
+      ['biceps', 12, 12],
+      ['calves', 10, 10],
+    ])
+  })
+
+  it('targets verilmezse eski davranış: tek global ya da özel `target`', () => {
+    const sets = { ...emptyMuscleSets(), chest: 8 }
+    const r = underTargetMuscles(sets, { target: 8, eligible: (m) => m === 'chest' || m === 'lats' })
+    expect(r.map((u) => u.muscle)).toEqual(['lats'])
+    // targets'ta olmayan kas `target` yedeğine düşer.
+    const r2 = underTargetMuscles(sets, { target: 8, targets: { lats: 3 }, eligible: (m) => m === 'chest' || m === 'lats' })
+    expect(r2.map((u) => [u.muscle, u.target])).toEqual([['lats', 3]])
   })
 })
