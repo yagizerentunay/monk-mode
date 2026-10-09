@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
+import { formatLoad } from '../lib/load.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { workoutVolume } from '../lib/workout.ts'
@@ -55,7 +56,7 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
               ? 'Set yapılmadı'
               : e.sets
                   .filter((s) => !s.warmup)
-                  .map((s) => formatSet(s, formatWeight(s.w, unit)))
+                  .map((s) => formatSet(s, formatLoad(e.bw, s.w, unit)))
                   .join(' · ')}
           </div>
           {e.note && <div className="note">{e.note}</div>}

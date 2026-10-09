@@ -42,3 +42,8 @@ export function formatLoad(bw: boolean | undefined, w: number, unit: Unit): stri
   if (Number(text) === 0) return 'Vücut ağırlığı'
   return `${w > 0 ? '+' : '−'}${text} ${unit}`
 }
+
+/** `formatLoad` ile aynı, ama normal egzersizde de birim eklenir: "60 kg" (cümle içi gösterimler için). */
+export function formatLoadWithUnit(bw: boolean | undefined, w: number, unit: Unit): string {
+  return bw ? formatLoad(true, w, unit) : `${formatWeight(w, unit)} ${unit}`
+}

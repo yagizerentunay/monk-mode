@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Workout, WorkoutEntry } from '../store/schema.ts'
 import { exerciseSummary } from './exerciseStats.ts'
-import { bodyweightOn, comparableLast, effectiveLoad, formatLoad } from './load.ts'
+import { bodyweightOn, comparableLast, effectiveLoad, formatLoad, formatLoadWithUnit } from './load.ts'
 import { detectPlateau } from './plateau.ts'
 import { epley } from './onerm.ts'
 import { exerciseHistory, isPR, workoutVolume } from './workout.ts'
@@ -97,6 +97,15 @@ describe('formatLoad', () => {
   it('lb biriminde kg değerini dönüştürür', () => {
     expect(formatLoad(true, 10, 'lb')).toBe('+22 lb')
     expect(formatLoad(true, -10, 'lb')).toBe('−22 lb')
+  })
+})
+
+describe('formatLoadWithUnit', () => {
+  it('normal egzersizde birim ekler, bw egzersizinde formatLoad gibi davranır', () => {
+    expect(formatLoadWithUnit(false, 60, 'kg')).toBe('60 kg')
+    expect(formatLoadWithUnit(undefined, 132.5, 'lb')).toBe('292.1 lb')
+    expect(formatLoadWithUnit(true, 10, 'kg')).toBe('+10 kg')
+    expect(formatLoadWithUnit(true, 0, 'lb')).toBe('Vücut ağırlığı')
   })
 })
 

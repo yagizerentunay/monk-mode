@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { exerciseSummary } from '../lib/exerciseStats.ts'
+import { formatLoad } from '../lib/load.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { exerciseHistory } from '../lib/workout.ts'
@@ -41,12 +42,12 @@ export function ExerciseHistory({ exId }: { exId: string }) {
             <span className="bignum">{formatWeight(best.e1rm, unit)}</span>
             <span className="statunit">{unit} · en iyi tahmini 1RM</span>
           </div>
-          <div className="sub">{formatSet({ w: best.w, r: best.r, done: true }, formatWeight(best.w, unit))} · {formatShortDay(best.d)}</div>
+          <div className="sub">{formatSet({ w: best.w, r: best.r, done: true }, formatLoad(best.bw, best.w, unit))} · {formatShortDay(best.d)}</div>
         </div>
       )}
       <div>
         <div className="eyebrow muted">Son seans · {formatShortDay(last.d)}</div>
-        <div className="sub">{last.sets.map((s) => formatSet(s, formatWeight(s.w, unit))).join(' · ')}</div>
+        <div className="sub">{last.sets.map((s) => formatSet(s, formatLoad(last.bw, s.w, unit))).join(' · ')}</div>
       </div>
       <PlateauNote exId={exId} />
       {points.length >= 2 && <LineChart points={points} unit={unit} />}

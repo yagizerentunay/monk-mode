@@ -70,8 +70,9 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 <span className="setno">{meta[si].badge}</span>
                 <NumberField
                   className="grow"
-                  label={`${name} ${meta[si].name} ağırlık`}
+                  label={`${name} ${meta[si].name} ${entry.bw ? 'ek yük' : 'ağırlık'}`}
                   value={set.w}
+                  min={entry.bw ? -300 : undefined}
                   toDisplay={(v) => kgToUnit(v, unit)}
                   fromDisplay={(v) => unitToKg(v, unit)}
                   step={0.5}
