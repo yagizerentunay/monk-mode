@@ -55,3 +55,7 @@ button.wday { color: var(--text); font: inherit; font-size: 13px; }
 .badge.ok { background: var(--ok); color: var(--ok-ink); }
 .banner-title { color: var(--warn); }
 .card.banner.ok { color: var(--ok); font-weight: 700; }
+
+/* render hatası kurtarma ekranı (components/ErrorBoundary.tsx) */
+.error-fallback { margin-top: 12px; }
+.error-detail pre { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; color: var(--muted); }
