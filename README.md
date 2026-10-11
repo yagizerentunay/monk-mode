@@ -35,16 +35,14 @@ Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri ol
 
 ## Ekran görüntüleri
 
-<table>
-  <tr>
-    <td align="center"><img src="public/screenshots/home.png" alt="Ana ekran: haftalık plan, seri ve vücut ağırlığı trendi" width="200" /><br /><sub>Ana ekran</sub></td>
-    <td align="center"><img src="public/screenshots/workout.png" alt="Antrenman ekranı: ısınma, hedef ağırlık ve RIR girişi" width="200" /><br /><sub>Antrenman</sub></td>
-    <td align="center"><img src="public/screenshots/stats.png" alt="Analiz ekranı: tahmini 1RM ilerlemesi ve kilo trendi" width="200" /><br /><sub>Analiz</sub></td>
-    <td align="center"><img src="public/screenshots/exercise-library.png" alt="Egzersiz kütüphanesi: kas ve ekipman filtreleri" width="200" /><br /><sub>Egzersiz kütüphanesi</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="public/screenshots/home.png" alt="Ana ekran: haftalık plan, seri ve vücut ağırlığı trendi" width="23%" />
+  <img src="public/screenshots/workout.png" alt="Antrenman ekranı: ısınma, hedef ağırlık ve RIR girişi" width="23%" />
+  <img src="public/screenshots/stats.png" alt="Analiz ekranı: tahmini 1RM ilerlemesi ve kilo trendi" width="23%" />
+  <img src="public/screenshots/exercise-library.png" alt="Egzersiz kütüphanesi: kas ve ekipman filtreleri" width="23%" />
+</p>
 
-Görüntüler örnek verilerle alınmıştır.
+Soldan sağa: ana ekran, antrenman, analiz ve egzersiz kütüphanesi. Görüntüler örnek verilerle alınmıştır.
 
 ## Verin ve çevrimdışı kullanım
 
