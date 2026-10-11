@@ -32,18 +32,18 @@ export default function App() {
         <StorageWarnings />
         <Toast />
         <RouteErrorBoundary>
-        <Suspense fallback={null}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/plan" element={<Plan />} />
-            <Route path="/plan/r/:id" element={<RoutineEdit />} />
-            <Route path="/workout" element={<Workout />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+          <Suspense fallback={null}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/plan" element={<Plan />} />
+              <Route path="/plan/r/:id" element={<RoutineEdit />} />
+              <Route path="/workout" element={<Workout />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </RouteErrorBoundary>
       </main>
       <TabBar />
