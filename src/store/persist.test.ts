@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { CORRUPT_PREFIX, dismissCorrupt, loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
+import { CORRUPT_PREFIX, dismissCorrupt, dismissSanitized, loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
 import { defaultState } from './schema.ts'
 
 /** Bellekte çalışan sahte localStorage; `full` iken (kota dolu) setItem fırlatır. */
@@ -25,7 +25,7 @@ const corruptKeys = (s: ReturnType<typeof fakeStorage>) => [...s.data.keys()].fi
 const NOW = new Date('2026-10-11T10:00:00.000Z')
 
 beforeEach(() => {
-  useStorageStatus.setState({ saveFailed: false, corrupt: null, blocked: false })
+  useStorageStatus.setState({ saveFailed: false, corrupt: null, sanitized: null, blocked: false })
 })
 
 describe('bozuk veri karantinası', () => {
@@ -91,6 +91,62 @@ describe('bozuk veri karantinası', () => {
     dismissCorrupt()
     expect(useStorageStatus.getState().corrupt).toBeNull()
     expect(corruptKeys(s)).toHaveLength(1)
+  })
+})
+
+describe('bozuk kayıtların karantinası', () => {
+  const GOOD = { id: 'ok', d: '2026-10-02', start: 2, name: 'Sağlam', entries: [{ exId: 'bench', sets: [{ w: 50, r: 5, done: true }] }] }
+  const BROKEN = { id: 'x', d: '2026-10-01', start: 1, name: 'Bozuk' }
+  const raw = JSON.stringify({ ...defaultState(), workouts: [BROKEN, GOOD] })
+
+  it('bozuk kaydı atar, sağlamı yükler, ham metni aynen yan kopyaya alır ve uyarır', () => {
+    const s = fakeStorage({ [STORAGE_KEY]: raw })
+    const state = loadState(s, NOW)
+    expect(state.workouts.map((w) => w.id)).toEqual(['ok'])
+
+    const key = `${CORRUPT_PREFIX}${NOW.toISOString()}`
+    expect(s.data.get(key)).toBe(raw)
+    expect(s.data.get(STORAGE_KEY)).toBe(raw) // yükleme ana anahtara dokunmaz
+    expect(useStorageStatus.getState().sanitized).toEqual({ dropped: 1, repaired: 0, raw, key })
+    expect(useStorageStatus.getState().corrupt).toBeNull()
+    expect(useStorageStatus.getState().blocked).toBe(false)
+
+    saveState(s, state) // temizlenmiş veri güvenle yazılır; kopya kalır
+    expect(s.data.get(key)).toBe(raw)
+    expect(JSON.parse(s.data.get(STORAGE_KEY) ?? '').workouts).toHaveLength(1)
+  })
+
+  it('yeniden açılışta kopya çoğalmaz; uyarıyı kapatmak kopyayı silmez', () => {
+    const s = fakeStorage({ [STORAGE_KEY]: raw })
+    loadState(s, NOW)
+    loadState(s, new Date(NOW.getTime() + 1000))
+    expect(corruptKeys(s)).toHaveLength(1)
+    dismissSanitized()
+    expect(useStorageStatus.getState().sanitized).toBeNull()
+    expect(corruptKeys(s)).toHaveLength(1)
+  })
+
+  it('kopya yazılamazsa onaylanana dek ana anahtarın üstüne yazmaz', () => {
+    const s = fakeStorage({ [STORAGE_KEY]: raw })
+    s.full = true
+    const state = loadState(s, NOW)
+    expect(state.workouts).toHaveLength(1)
+    expect(useStorageStatus.getState().blocked).toBe(true)
+    expect(useStorageStatus.getState().sanitized?.key).toBeNull()
+
+    s.full = false
+    saveState(s, state)
+    expect(s.data.get(STORAGE_KEY)).toBe(raw)
+    dismissSanitized()
+    saveState(s, state)
+    expect(JSON.parse(s.data.get(STORAGE_KEY) ?? '').workouts).toHaveLength(1)
+  })
+
+  it('yalnız onarım gerekiyorsa karantina ve uyarı olmaz', () => {
+    const s = fakeStorage({ [STORAGE_KEY]: JSON.stringify({ ...defaultState(), workouts: [{ ...GOOD, note: 5 }] }) })
+    loadState(s, NOW)
+    expect(corruptKeys(s)).toEqual([])
+    expect(useStorageStatus.getState().sanitized).toBeNull()
   })
 })
 
