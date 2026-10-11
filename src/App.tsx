@@ -1,4 +1,5 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { useOnline } from './lib/useOnline.ts'
 import { Home } from './views/Home.tsx'
@@ -19,6 +20,7 @@ export default function App() {
         </div>
       )}
       <main className="app">
+        <StorageWarnings />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/plan" element={<Plan />} />
