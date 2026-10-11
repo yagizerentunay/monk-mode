@@ -12,6 +12,10 @@ export interface Exercise {
   primaryMuscles: string[]
   secondaryMuscles: string[]
   images: string[]
+  /** Monk-mode generated local exercise reference art. */
+  illustration?: string
+  /** Curated Turkish setup and movement cues shown in the exercise detail. */
+  instructions?: string[]
   custom?: boolean
   /** Kullanıcı kasları düzelttiyse düzeltmeden önceki kaslar (kas alanları o zaman düzeltilmiş hâldedir). */
   original?: MuscleFix
@@ -36,6 +40,7 @@ export function loadExercises(): Promise<Exercise[]> {
       if (!r.ok) throw new Error(`Egzersiz verisi yüklenemedi (${r.status})`)
       return r.json() as Promise<Exercise[]>
     })
+    .then((list) => import('./curatedExercises.ts').then(({ mergeCuratedExercises }) => mergeCuratedExercises(list)))
     .catch((e) => {
       cache = null
       throw e

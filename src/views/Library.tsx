@@ -26,7 +26,8 @@ function useInstructions(id: string): string[] {
 
 function Detail({ ex }: { ex: Exercise }) {
   const [editing, setEditing] = useState(false)
-  const instructions = useInstructions(ex.id)
+  const sourceInstructions = useInstructions(ex.id)
+  const instructions = ex.instructions ?? sourceInstructions
   if (editing) {
     return (
       <div className="stack">
@@ -47,7 +48,9 @@ function Detail({ ex }: { ex: Exercise }) {
       </div>
       <button className="btn small" onClick={() => setEditing(true)}>Kasları düzelt</button>
       <ExerciseHistory exId={ex.id} />
-      {ex.images.length > 0 && (
+      {ex.illustration ? (
+        <img className="exdetail-img" src={ex.illustration} alt={ex.name} loading="lazy" />
+      ) : ex.images.length > 0 && (
         <div className="row" style={{ overflowX: 'auto' }}>
           {ex.images.map((p) => (
             <img key={p} className="exdetail-img" src={imageUrl(p)} alt={ex.name} loading="lazy" />
