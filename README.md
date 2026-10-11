@@ -33,6 +33,12 @@ Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri ol
 
 [Tüm özelliklerin ayrıntıları →](docs/features.md)
 
+## Ekran görüntüsü
+
+Canlı demodaki egzersiz kütüphanesinden bir görünüm:
+
+![Monk Mode egzersiz kütüphanesi](public/screenshots/exercise-library.png)
+
 ## Verin ve çevrimdışı kullanım
 
 - Veriler yalnızca kullandığın tarayıcının `localStorage` alanında saklanır. Hesap, bulut eşitlemesi veya sunucu yoktur.
