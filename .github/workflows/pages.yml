@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run lint
+      # E2E kendi derlemesini taban yol olmadan yapar; Pages derlemesi bundan sonra gelmeli.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
       - run: npm run build
         env:
           BASE_PATH: /monk-mode/
