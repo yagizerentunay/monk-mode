@@ -259,7 +259,7 @@ export function Settings() {
       <ImportCard />
 
       <p className="sub">
-        monk-mode · MIT lisanslı. Egzersiz verisi: free-exercise-db (kamu malı).
+        monk-mode v{__APP_VERSION__} · MIT lisanslı. Egzersiz verisi: free-exercise-db (kamu malı).
       </p>
     </div>
   )
