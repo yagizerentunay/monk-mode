@@ -65,10 +65,13 @@ describe('buildWorkout: vücut ağırlığı egzersizi', () => {
     expect(w.entries[0].sets[0]).toEqual({ w: 12.5, r: 5, done: false })
   })
 
-  it('asist azaltılarak ilerler (−20 → −17,5)', () => {
+  it('asistli harekette asist aynı kalır, yalnız tekrar artar', () => {
     const history = [wk('2026-10-01', entry({ bw: true, bwKg: 68 }, -20))]
     const w = buildWorkout(routine(cfg({ bw: true, weight: -20 })), history, NOW, BW_LOG, 'fast')
-    expect(w.entries[0].sets[0].w).toBe(-17.5)
+    const [first] = w.entries[0].sets
+    const [done] = history[0].entries[0].sets
+    expect(first.w).toBe(-20)
+    expect(first.r).toBe(done.r + 1)
   })
 
   it('eski mutlak yüklü kaydın ağırlığını ön doldurmada KULLANMAZ (67 kg ek yük olmaz)', () => {

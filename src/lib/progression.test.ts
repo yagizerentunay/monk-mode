@@ -163,3 +163,40 @@ describe('prescriptionHint', () => {
     expect(prescriptionHint('increase', 'fast')).toMatch(/geçen seans/)
   })
 })
+
+describe('asistli hareket: yalnız tekrar artar', () => {
+  const assisted = (r: number, rir?: number): WorkoutEntry => ({
+    exId: 'pullup',
+    bw: true,
+    bwKg: 80,
+    sets: [
+      { w: -20, r, done: true, ...(rir !== undefined ? { rir } : {}) },
+      { w: -20, r, done: true, ...(rir !== undefined ? { rir } : {}) },
+    ],
+  })
+  const c = cfg({ exId: 'pullup', sets: 2, reps: 5, repsMax: 8, weight: -20, prog: 'double', inc: 2.5, bw: true })
+
+  it('kural artış derken asist aynı kalır, bir tekrar eklenir', () => {
+    expect(prescribe(c, assisted(8, 2), { prev: assisted(8, 2) })).toEqual({ w: -20, r: 9, reason: 'assist-rep' })
+    expect(prescribe(c, assisted(8), { rule: 'fast' })).toEqual({ w: -20, r: 9, reason: 'assist-rep' })
+  })
+
+  it('aralığın üstüne çıkmış tekrar hedefi geri düşmez ve sürer', () => {
+    expect(prescribe(c, assisted(10, 3), { prev: assisted(10, 3) })).toEqual({ w: -20, r: 11, reason: 'assist-rep' })
+    expect(prescribe(c, assisted(10, 3), { prev: assisted(7, 3) })).toMatchObject({ w: -20, r: 10, reason: 'confirm' })
+  })
+
+  it('aralık içinde çift ilerleme aynen tekrar ekler', () => {
+    expect(prescribe(c, assisted(6))).toEqual({ w: -20, r: 7, reason: 'add-rep' })
+  })
+
+  it('ek yüklü ya da saf vücut ağırlığı hareketinde ağırlık yine artar', () => {
+    const weighted: WorkoutEntry = { exId: 'dips', bw: true, bwKg: 80, sets: [{ w: 10, r: 8, done: true, rir: 2 }, { w: 10, r: 8, done: true, rir: 2 }] }
+    const cw = cfg({ exId: 'dips', sets: 2, reps: 5, repsMax: 8, weight: 10, prog: 'double', inc: 2.5, bw: true })
+    expect(prescribe(cw, weighted, { prev: weighted }).reason).toBe('increase')
+  })
+
+  it('gerekçe metni', () => {
+    expect(prescriptionHint('assist-rep')).toMatch(/asist aynı kalır/)
+  })
+})
