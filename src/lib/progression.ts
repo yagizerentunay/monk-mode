@@ -9,12 +9,21 @@ export interface Prescription {
   reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'confirm' | 'need-rir'
 }
 
-/** Önerinin kısa Türkçe ipucu; `plan` ve `repeat` ek açıklama gerektirmez. */
-export const REASON_HINT: Partial<Record<Prescription['reason'], string>> = {
-  increase: 'Ağırlık artışı: iki seans üst sınırda kaldın',
-  'add-rep': 'Bir tekrar ekle',
-  confirm: 'Bir seans daha üst sınırda kalırsan ağırlığı artır',
-  'need-rir': 'Artış için RIR gir (en az 2)',
+/**
+ * Antrenman ekranında egzersiz başlığının altındaki kısa gerekçe. Yalnız ağırlık kararını açıklayan
+ * durumlar gösterilir; `plan`, `repeat` ve `add-rep` hedef satırından zaten anlaşılır.
+ */
+export function prescriptionHint(reason: Prescription['reason'], rule?: ProgressionRule): string | null {
+  switch (reason) {
+    case 'increase':
+      return rule === 'fast' ? 'Ağırlık artırıldı: geçen seans üst sınırdaydın' : 'Ağırlık artırıldı: iki seans üst sınırda kaldın'
+    case 'confirm':
+      return 'Bir seans daha üst sınırda kalırsan ağırlık artar'
+    case 'need-rir':
+      return 'Ağırlık artışı için setlere RIR gir (en az 2)'
+    default:
+      return null
+  }
 }
 
 /** Artış için her çalışma setinde istenen en düşük RIR (kullanıcının koçluk kuralı). */

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
@@ -20,6 +20,7 @@ import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { requestPersistOnce } from '../lib/persistStorage.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { plateTargets } from '../lib/plates.ts'
+import { nextPrescription, prescriptionHint } from '../lib/progression.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
 import { applyRirToEntry, previousRir } from '../lib/rir.ts'
 import { formatSet } from '../lib/sets.ts'
@@ -29,7 +30,7 @@ import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { useWakeLock } from '../lib/useWakeLock.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
-import { doneSetCount, isPR, lastEntryFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
+import { doneSetCount, isPR, lastEntryFor, lastTwoEntriesFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -121,6 +122,24 @@ export function Workout() {
 
   /** Aktif seans sürerken ekran kapanmasın; seans bitince/iptal edilince ya da ekrandan çıkılınca bırakılır. */
   useWakeLock(active != null)
+
+  const routines = useStore((s) => s.routines)
+  const rule = useStore((s) => s.settings.progressionRule)
+  const routineId = active?.routineId
+  const exIds = active?.entries.map((e) => e.exId).join('|') ?? ''
+  /**
+   * Egzersiz başına ağırlık kararının gerekçesi (bkz. lib/progression.ts): seans kurulurken verilen kararı
+   * geçmişten yeniden hesaplar. Rutinde olmayan (sonradan eklenen/değiştirilen) egzersizde gösterilmez.
+   */
+  const hints = useMemo(() => {
+    const routine = routines.find((r) => r.id === routineId)
+    return exIds.split('|').map((exId) => {
+      const cfg = routine?.ex.find((c) => c.exId === exId)
+      if (!cfg) return null
+      const { last, prev } = lastTwoEntriesFor(workouts, exId, !!cfg.bw)
+      return prescriptionHint(nextPrescription(cfg, last, { prev, rule }).reason, rule)
+    })
+  }, [routines, routineId, exIds, workouts, rule])
 
   if (summary) {
     const { workout, prs } = summary
@@ -233,6 +252,7 @@ export function Workout() {
                     Hedef {formatLoadWithUnit(entry.bw, targetSet.w, unit)} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
                   </div>
                 )}
+                {hints[ei] && <div className="sub exhint">{hints[ei]}</div>}
                 <PlateauNote exId={entry.exId} />
                 {entry.bw && entry.bwKg === undefined && (
                   <div className="warntext">Vücut ağırlığı kaydı yok: hacim ve 1RM yalnız ek yükle hesaplanır</div>

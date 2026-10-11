@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ExCfg, SetEntry, WorkoutEntry } from '../store/schema.ts'
-import { nextPrescription as prescribe, type PrescribeOptions } from './progression.ts'
+import { nextPrescription as prescribe, prescriptionHint, type PrescribeOptions } from './progression.ts'
 
 const cfg = (over: Partial<ExCfg> = {}): ExCfg => ({
   exId: 'squat',
@@ -146,5 +146,20 @@ describe('nextPrescription: temkinli kural (varsayılan)', () => {
     expect(nextPrescription(d, three(60, 8, 2), {})).toEqual({ w: 60, r: 8, reason: 'confirm' })
     expect(nextPrescription(d, three(60, 8, 2), { prev: three(60, 8, 3) })).toEqual({ w: 62.5, r: 5, reason: 'increase' })
     expect(nextPrescription(d, three(60, 8, 1), { prev: three(60, 8, 3) })).toEqual({ w: 60, r: 8, reason: 'repeat' })
+  })
+})
+
+describe('prescriptionHint', () => {
+  it('yalnız ağırlık kararını açıklayan durumlarda metin verir', () => {
+    expect(prescriptionHint('plan')).toBeNull()
+    expect(prescriptionHint('repeat')).toBeNull()
+    expect(prescriptionHint('add-rep')).toBeNull()
+    expect(prescriptionHint('confirm')).toMatch(/bir seans daha/i)
+    expect(prescriptionHint('need-rir')).toMatch(/RIR/)
+  })
+
+  it('artış metni kurala göre değişir', () => {
+    expect(prescriptionHint('increase')).toMatch(/iki seans/)
+    expect(prescriptionHint('increase', 'fast')).toMatch(/geçen seans/)
   })
 })

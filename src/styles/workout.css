@@ -35,6 +35,7 @@
 /* egzersiz kartı */
 .excard { padding: 16px; }
 .exhead { font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.01em; margin: 2px 0; }
+.exhint { margin-top: 2px; }
 .extarget { color: var(--accent); font-size: 14px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
 .exactions { gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
 .exactions .btn.small { color: var(--muted); font-weight: 600; }
