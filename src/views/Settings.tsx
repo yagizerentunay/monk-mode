@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { REMIND_CHOICES } from '../lib/backupReminder.ts'
 import { formatRate } from '../lib/bodyweight.ts'
+import { getPersistStatus, requestPersist, type PersistStatus } from '../lib/persistStorage.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
 import { unitToKg, type Unit } from '../lib/units.ts'
 import { importBackup } from '../store/backup.ts'
@@ -31,6 +32,23 @@ export function Settings() {
   const fileRef = useRef<HTMLInputElement>(null)
   const routineFileRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [persist, setPersist] = useState<PersistStatus | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    void getPersistStatus().then((s) => {
+      if (alive) setPersist(s)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const askPersist = async () => {
+    const s = await requestPersist()
+    setPersist(s)
+    if (s !== 'persisted') setMessage('Tarayıcı kalıcı depolamaya izin vermedi; yedek almayı sürdür.')
+  }
 
   const download = () => {
     downloadBackup()
@@ -180,6 +198,24 @@ export function Settings() {
         <div className="sub" style={{ margin: 0 }}>
           Son yedek: {lastBackupAt ? new Date(lastBackupAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : 'hiç alınmadı'}
         </div>
+        {persist && (
+          <>
+            <div className="row between">
+              <span>Kalıcı depolama</span>
+              <span className="sub" style={{ margin: 0 }}>
+                {persist === 'persisted' ? 'açık' : persist === 'not-persisted' ? 'kapalı' : 'desteklenmiyor'}
+              </span>
+            </div>
+            {persist === 'not-persisted' && (
+              <>
+                <p className="sub" style={{ margin: 0 }}>
+                  Kapalıyken tarayıcı yer daralınca veriyi silebilir. iPhone'da siteyi ana ekrana ekle ve yedek almayı unutma.
+                </p>
+                <button className="btn block" onClick={() => void askPersist()}>Kalıcı depolamayı iste</button>
+              </>
+            )}
+          </>
+        )}
         <button className="btn block" onClick={download}>Yedeği indir (JSON)</button>
         <div className="row between">
           <span>Yedek hatırlatması</span>
