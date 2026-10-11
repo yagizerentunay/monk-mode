@@ -1,4 +1,6 @@
 import { fingerprint } from '../lib/backupReminder.ts'
+import { workoutsToCsv } from '../lib/exportCsv.ts'
+import { loadExercises } from '../lib/exercises.ts'
 import { dayString } from '../lib/workout.ts'
 import { exportBackup } from './backup.ts'
 import { snapshot, useStore } from './useStore.ts'
@@ -35,6 +37,16 @@ function canShareFile(file: File): boolean {
   )
 }
 
+/** Dosyayı paylaşım menüsüne verir; kullanıcı vazgeçerse ya da paylaşım başarısız olursa 'cancelled'. */
+async function shareFile(file: File, title: string): Promise<'shared' | 'cancelled'> {
+  try {
+    await navigator.share({ files: [file], title })
+    return 'shared'
+  } catch {
+    return 'cancelled'
+  }
+}
+
 /**
  * Yedeği cihaz dışına alır: telefonda paylaşım menüsü (Dosyalar, iCloud/Drive, kendine mesaj),
  * yoksa indirme. Paylaşım iptal edilirse "yedeklendi" işaretlenmez. Dosyadaki ayarlar, indirmede
@@ -53,14 +65,34 @@ export async function shareBackup(now: Date = new Date()): Promise<SaveResult> {
     downloadBackup(now)
     return 'downloaded'
   }
-  try {
-    await navigator.share({ files: [file], title: 'monk-mode yedeği' })
-  } catch {
-    // Kullanıcı vazgeçti (AbortError) ya da paylaşım başarısız: yedek alınmış sayılmaz.
-    return 'cancelled'
-  }
+  // Kullanıcı vazgeçti (AbortError) ya da paylaşım başarısız: yedek alınmış sayılmaz.
+  if ((await shareFile(file, 'monk-mode yedeği')) === 'cancelled') return 'cancelled'
   useStore.getState().markBackedUp(now.getTime())
   return 'shared'
+}
+
+/**
+ * Antrenman geçmişini Türkçe Excel'in açabileceği CSV olarak kaydeder (bkz. lib/exportCsv.ts): telefonda
+ * paylaşım menüsü, yoksa indirme. Egzersiz adları için kütüphane yüklenir; yüklenemezse (çevrimdışı)
+ * özel egzersiz adları ve kimlikler kullanılır. Kullanıcı dokunuşuyla çağrılmalı.
+ */
+export async function exportCsv(now: Date = new Date()): Promise<SaveResult> {
+  const { workouts, customEx, settings } = useStore.getState()
+  const byId = new Map<string, string>()
+  try {
+    for (const e of await loadExercises()) byId.set(e.id, e.name)
+  } catch {
+    // Kütüphane yok: kimliğe düşülür.
+  }
+  for (const c of customEx) byId.set(c.id, c.name)
+  const csv = workoutsToCsv(workouts, { unit: settings.unit, names: (id) => byId.get(id) ?? id })
+  const name = `monk-mode-antrenmanlar-${dayString(now)}.csv`
+  const file = new File([csv], name, { type: 'text/csv' })
+  if (!canShareFile(file)) {
+    saveFile(name, csv, 'text/csv')
+    return 'downloaded'
+  }
+  return shareFile(file, 'monk-mode antrenmanları')
 }
 
 /** Okunamayan kayıtlı verinin ham metnini olduğu gibi indirir (kurtarma ya da inceleme için). */
