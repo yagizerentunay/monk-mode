@@ -150,6 +150,8 @@ self.addEventListener('fetch', (event) => {
     return
   }
   if (url.origin !== self.location.origin) return
+  // Yeni sürüm kontrolü hep ağdan okunmalı (src/lib/updateCheck.ts); önbelleğe alınmaz.
+  if (url.pathname.endsWith('/version.json')) return
 
   if (request.mode === 'navigate') {
     event.respondWith(navigate(request))

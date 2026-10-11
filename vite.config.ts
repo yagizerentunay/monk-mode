@@ -39,12 +39,32 @@ function prefetchChunks(): Plugin {
   }
 }
 
+/**
+ * `version.json`: sürüm ve giriş betiğinin hash'li adı. Açık uygulama bunu ağdan okuyup kendi giriş
+ * betiğiyle karşılaştırır; farklıysa "Yeni sürüm hazır" bandı çıkar (src/lib/updateCheck.ts).
+ */
+function versionFile(): Plugin {
+  return {
+    name: 'monk-version-file',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      const entry = Object.values(bundle).find((f) => f.type === 'chunk' && f.isEntry)
+      if (!entry) return
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ version: pkg.version, entry: entry.fileName }) + '\n',
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: normalizeBase(process.env.BASE_PATH),
   // Ayarlar'da gösterilen sürüm; tek kaynak package.json (GitHub release etiketi v<sürüm>).
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
-  plugins: [react(), prefetchChunks()],
+  plugins: [react(), prefetchChunks(), versionFile()],
   build: {
     rolldownOptions: {
       output: {

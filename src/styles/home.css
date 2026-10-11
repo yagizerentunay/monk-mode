@@ -14,7 +14,8 @@ button.wday { color: var(--text); font: inherit; font-size: 13px; }
 /* yedek hatırlatma */
 .card.banner { border-left: 3px solid var(--warn); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
 .card.banner.ok { border-left-color: var(--ok); }
-.storage-warnings { margin-bottom: 12px; }
+.storage-warnings,
+.update-banner { margin-bottom: 12px; }
 
 /* takvim */
 .calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
