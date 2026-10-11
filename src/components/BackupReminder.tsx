@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { backupStatus, SNOOZE_DAYS } from '../lib/backupReminder.ts'
-import { downloadBackup } from '../store/downloadBackup.ts'
+import { shareBackup } from '../store/downloadBackup.ts'
 import { useStore } from '../store/useStore.ts'
 
 /**
@@ -24,7 +24,7 @@ export function BackupReminder() {
   )
 
   if (done) {
-    return <div className="card banner ok" role="status">✓ Yedek indirildi.</div>
+    return <div className="card banner ok" role="status">✓ Yedek alındı.</div>
   }
   if (!status.due) return null
 
@@ -41,12 +41,9 @@ export function BackupReminder() {
       <div className="row">
         <button
           className="btn primary small grow"
-          onClick={() => {
-            downloadBackup()
-            setDone(true)
-          }}
+          onClick={() => void shareBackup().then((r) => setDone(r !== 'cancelled'))}
         >
-          Yedeği indir
+          Yedeği kaydet
         </button>
         <button className="btn small grow" onClick={() => snoozeBackup(Date.now())}>
           {SNOOZE_DAYS} gün sonra hatırlat
