@@ -5,6 +5,7 @@ import { BackupReminder } from '../components/BackupReminder.tsx'
 import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { CalendarSheet } from '../components/CalendarSheet.tsx'
+import { DeloadHint } from '../components/DeloadHint.tsx'
 import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
@@ -102,6 +103,7 @@ export function Home() {
       </div>
 
       <BackupReminder />
+      <DeloadHint />
 
       <div className="weekstrip">
         {days.map((d) => {
