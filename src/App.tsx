@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
+import { Toast } from './components/Toast.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
 import { useOnline } from './lib/useOnline.ts'
 import { Home } from './views/Home.tsx'
@@ -28,6 +29,7 @@ export default function App() {
       <main className="app">
         <UpdateBanner />
         <StorageWarnings />
+        <Toast />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
