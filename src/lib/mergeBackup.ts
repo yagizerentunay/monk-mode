@@ -168,3 +168,23 @@ export function mergeState(local: State, incoming: State): { state: State; repor
   }
   return { state, report }
 }
+
+/** Birleştirme sonucunu kısa bir Türkçe durum satırına çevirir. */
+export function describeMerge(r: MergeReport): string {
+  const added = [
+    r.workouts.added && `${r.workouts.added} antrenman`,
+    r.routines.added && `${r.routines.added} rutin`,
+    r.bodyweight.added && `${r.bodyweight.added} kilo kaydı`,
+    r.customEx.added && `${r.customEx.added} özel egzersiz`,
+    r.muscleFix.added && `${r.muscleFix.added} kas düzeltmesi`,
+  ].filter(Boolean)
+  const kinds = [r.workouts, r.routines, r.bodyweight, r.customEx, r.muscleFix]
+  const identical = kinds.reduce((n, c) => n + c.identical, 0)
+  const conflicting = kinds.reduce((n, c) => n + c.conflicting, 0)
+  const parts = [
+    added.length ? `${added.join(', ')} eklendi` : 'yeni kayıt yok',
+    identical ? `${identical} kayıt zaten vardı` : '',
+    conflicting ? `${conflicting} kayıt farklı, yereldeki korundu` : '',
+  ].filter(Boolean)
+  return `${parts.join('; ')}.`
+}

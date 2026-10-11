@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { defaultState, type CustomExercise, type Routine, type State, type Workout } from '../store/schema.ts'
-import { mergeState, totalAdded } from './mergeBackup.ts'
+import { describeMerge, mergeState, totalAdded } from './mergeBackup.ts'
 
 const wk = (id: string, d: string, start: number, over: Partial<Workout> = {}): Workout => ({
   id,
@@ -206,5 +206,23 @@ describe('mergeState: diğer veriler', () => {
     const { state, report } = mergeState(local, st())
     expect(state).toEqual(local)
     expect(totalAdded(report)).toBe(0)
+  })
+})
+
+describe('describeMerge', () => {
+  it('eklenen, zaten var olan ve çakışan kayıtları özetler', () => {
+    const a = wk('a', '2026-01-02', 200)
+    const r = mergeState(
+      st({ workouts: [a, wk('c', '2026-01-03', 1)], bodyweight: [{ d: '2026-01-01', w: 80 }] }),
+      st({
+        workouts: [a, wk('b', '2026-01-04', 5), { ...wk('c', '2026-01-03', 1), note: 'x' }],
+        bodyweight: [{ d: '2026-01-02', w: 81 }],
+      }),
+    ).report
+    expect(describeMerge(r)).toBe('1 antrenman, 1 kilo kaydı eklendi; 1 kayıt zaten vardı; 1 kayıt farklı, yereldeki korundu.')
+  })
+
+  it('hiçbir şey eklenmediyse bunu söyler', () => {
+    expect(describeMerge(mergeState(st(), st()).report)).toBe('yeni kayıt yok.')
   })
 })
