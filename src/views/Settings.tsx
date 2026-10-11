@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CsvExportCard } from '../components/CsvExportCard.tsx'
+import { DiagnosticsCard } from '../components/DiagnosticsCard.tsx'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { MergeImportCard } from '../components/MergeImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
@@ -258,6 +259,8 @@ export function Settings() {
       <CsvExportCard />
 
       <SnapshotsCard />
+
+      <DiagnosticsCard />
 
       <div className="card stack dangerzone">
         <div className="eyebrow danger">Tehlikeli bölge</div>

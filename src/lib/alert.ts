@@ -98,6 +98,11 @@ function playBeep(ctx: AudioContext): void {
   }
 }
 
+/** Tanılama için ses bağlamının durumu; henüz oluşturulmadıysa (hiç dokunulmadı) 'none'. */
+export function audioState(): string {
+  return sharedCtx ? sharedCtx.state : 'none'
+}
+
 export function restDoneAlert(): void {
   try {
     navigator.vibrate?.([200, 100, 200])
