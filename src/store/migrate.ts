@@ -2,11 +2,8 @@ import { normalizeMuscleFix } from '../lib/muscleFix.ts'
 import { cleanTarget, MUSCLES, type MuscleTargets } from '../lib/muscles.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
 import type { Unit } from '../lib/units.ts'
+import { emptyReport, isRecord, sanitizeRecords, type SanitizeReport } from './sanitize.ts'
 import { defaultState, SCHEMA_VERSION, type State } from './schema.ts'
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
 
 /** Pozitif, sonlu sayı; değilse undefined (bozuk yedek alanı atılır). */
 function positive(v: unknown): number | undefined {
@@ -36,12 +33,16 @@ function migrateKit(raw: unknown, unit: Unit): PlateKit {
   return { bar, plates }
 }
 
-/** Bozuk kas düzeltmelerini atar; geçerli olanlar temizlenir. `fromEntries` `__proto__` anahtarına karşı güvenlidir. */
-function migrateMuscleFix(raw: unknown): State['muscleFix'] {
-  if (!isRecord(raw)) return {}
+/** Bozuk kas düzeltmelerini atar (atılan sayı rapora girer); geçerli olanlar temizlenir. `fromEntries` `__proto__` anahtarına karşı güvenlidir. */
+function migrateMuscleFix(raw: unknown, rep: SanitizeReport): State['muscleFix'] {
+  if (!isRecord(raw)) {
+    if (raw !== undefined) rep.dropped.muscleFix++
+    return {}
+  }
   return Object.fromEntries(
     Object.entries(raw).flatMap(([id, v]) => {
       const fix = isRecord(v) ? normalizeMuscleFix(v) : undefined
+      if (!fix) rep.dropped.muscleFix++
       return fix ? [[id, fix] as const] : []
     }),
   )
@@ -62,18 +63,34 @@ function migrateMuscleTargets(raw: unknown): MuscleTargets | undefined {
   return Object.keys(out).length > 0 ? out : undefined
 }
 
+export interface MigrateResult {
+  state: State
+  /** Atılan ve onarılan kayıtların sayıları (bkz. sanitize.ts). */
+  report: SanitizeReport
+}
+
+/** Raporsuz migrate: mevcut çağıranlar için. */
+export function migrate(raw: unknown): State {
+  return migrateWithReport(raw).state
+}
+
 /**
  * Kayıtlı veya içe aktarılan ham veriyi geçerli State'e çevirir.
- * Eksik alanlar varsayılanlarla tamamlanır, bozuk alanlar atılır; uygulama asla çökmez.
+ * Eksik alanlar varsayılanlarla tamamlanır, bozuk alanlar onarılır, kullanılamayan kayıtlar atılır;
+ * uygulama asla çökmez. Ne atıldığını ve onarıldığını `report` söyler.
  */
-export function migrate(raw: unknown): State {
+export function migrateWithReport(raw: unknown): MigrateResult {
   const base = defaultState()
-  if (!isRecord(raw)) return base
+  const report = emptyReport()
+  if (!isRecord(raw)) {
+    report.dropped.root++
+    return { state: base, report }
+  }
 
   const settings = isRecord(raw.settings) ? raw.settings : {}
-  const arr = <T>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : [])
+  const records = sanitizeRecords(raw, report)
 
-  return {
+  const state: State = {
     version: SCHEMA_VERSION,
     settings: {
       unit: settings.unit === 'lb' ? 'lb' : 'kg',
@@ -112,12 +129,8 @@ export function migrate(raw: unknown): State {
       progressionRule: settings.progressionRule === 'fast' ? 'fast' : undefined,
       deloadSnoozedUntil: positive(settings.deloadSnoozedUntil),
     },
-    routines: arr(raw.routines),
-    week: isRecord(raw.week) ? (raw.week as State['week']) : base.week,
-    workouts: arr(raw.workouts),
-    active: isRecord(raw.active) ? (raw.active as unknown as State['active']) : null,
-    bodyweight: arr(raw.bodyweight),
-    customEx: arr(raw.customEx),
-    muscleFix: migrateMuscleFix(raw.muscleFix),
+    ...records,
+    muscleFix: migrateMuscleFix(raw.muscleFix, report),
   }
+  return { state, report }
 }

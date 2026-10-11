@@ -1,4 +1,4 @@
-import { migrate } from './migrate.ts'
+import { migrateWithReport, type MigrateResult } from './migrate.ts'
 import type { State } from './schema.ts'
 
 const APP_MARK = 'monk-mode'
@@ -16,6 +16,11 @@ export function exportBackup(state: State, now: Date = new Date()): string {
 
 /** Yedek metnini State'e çevirir; geçersizse anlaşılır bir hata fırlatır. */
 export function importBackup(text: string): State {
+  return importBackupWithReport(text).state
+}
+
+/** importBackup ve atılan/onarılan kayıt sayıları: arayüz "N bozuk kayıt atlandı" diyebilsin. */
+export function importBackupWithReport(text: string): MigrateResult {
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
@@ -25,5 +30,5 @@ export function importBackup(text: string): State {
   if (typeof parsed !== 'object' || parsed === null || (parsed as { app?: unknown }).app !== APP_MARK) {
     throw new Error('Bu dosya bir monk-mode yedeği değil.')
   }
-  return migrate((parsed as { state?: unknown }).state)
+  return migrateWithReport((parsed as { state?: unknown }).state)
 }
