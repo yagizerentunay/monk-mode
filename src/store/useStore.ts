@@ -11,6 +11,7 @@ import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
 import { loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
+import { createSaveScheduler } from './saveScheduler.ts'
 import {
   defaultState,
   type BodyweightEntry,
@@ -393,4 +394,19 @@ export function snapshot(s: Store): State {
   }
 }
 
-useStore.subscribe((s) => save(snapshot(s)))
+/** Kayıt en fazla yarım saniyede bir yapılır; ayrıntı ve ölçüm: saveScheduler.ts. */
+const SAVE_EVERY_MS = 500
+const saver = createSaveScheduler(() => save(snapshot(useStore.getState())), SAVE_EVERY_MS)
+
+/** Bekleyen kaydı hemen yazar (sayfa gizlenir/kapanırken ve gerektiğinde dışarıdan). */
+export const flushSave = (): void => saver.flush()
+
+useStore.subscribe(() => saver.notify())
+
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  // Telefonda uygulama arka plana atılıp sistemce kapatılabilir: gizlenirken bekleyen kayıt yazılsın.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushSave()
+  })
+  window.addEventListener('pagehide', flushSave)
+}

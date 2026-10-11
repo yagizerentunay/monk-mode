@@ -39,3 +39,17 @@ test('antrenman sayacı saniye saniye ilerler', async ({ page }) => {
   const first = await clock.textContent()
   await expect(clock).not.toHaveText(first ?? '', { timeout: 2500 })
 })
+
+test('hızlı yazıp hemen yenileyince son değer kaybolmaz (kısılmış kayıt kapanışta yazılır)', async ({ page }) => {
+  await seed(page, JSON.stringify(stateWithRoutine()))
+  await page.goto('./#/workout')
+  await page.getByRole('button', { name: /E2E Push/ }).click()
+
+  const field = page.getByRole('textbox', { name: /Set 1 ağırlık/ }).first()
+  await field.fill('72.5')
+  await field.blur()
+  await page.reload()
+
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('monk_state_v1') ?? 'null'))
+  expect(stored.active.entries[0].sets[0].w).toBe(72.5)
+})
