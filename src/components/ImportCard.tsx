@@ -5,6 +5,7 @@ import { buildImport } from '../lib/importWorkouts.ts'
 import { buildMatcher } from '../lib/matchExercise.ts'
 import type { Unit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { snapshotNow } from '../store/autoSnapshot.ts'
 import { useStore } from '../store/useStore.ts'
 
 const FORMAT_LABEL = { strong: 'Strong', hevy: 'Hevy' } as const
@@ -47,6 +48,7 @@ export function ImportCard() {
 
   const commit = () => {
     if (!plan) return
+    void snapshotNow('İçe aktarmadan önce')
     importWorkouts(plan.workouts, plan.newCustom)
     setMessage(
       `${plan.workouts.length} antrenman (${plan.sets} set) içe aktarıldı` +

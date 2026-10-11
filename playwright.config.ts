@@ -20,7 +20,8 @@ export default defineConfig({
   webServer: {
     command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
-    reuseExistingServer: !process.env.CI,
+    // Hep taze derleme: açık kalmış eski bir preview sunucusu eski paketle test ettirmesin.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 })

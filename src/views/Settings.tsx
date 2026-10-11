@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { SnapshotsCard } from '../components/SnapshotsCard.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { REMIND_CHOICES } from '../lib/backupReminder.ts'
 import { formatRate } from '../lib/bodyweight.ts'
@@ -9,7 +10,8 @@ import { getPersistStatus, requestPersist, type PersistStatus } from '../lib/per
 import { PLATE_CHOICES } from '../lib/plates.ts'
 import { unitToKg, type Unit } from '../lib/units.ts'
 import { importBackup } from '../store/backup.ts'
-import { downloadBackup } from '../store/downloadBackup.ts'
+import { snapshotNow } from '../store/autoSnapshot.ts'
+import { shareBackup } from '../store/downloadBackup.ts'
 import { defaultState } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -50,9 +52,9 @@ export function Settings() {
     if (s !== 'persisted') setMessage('Tarayıcı kalıcı depolamaya izin vermedi; yedek almayı sürdür.')
   }
 
-  const download = () => {
-    downloadBackup()
-    setMessage('Yedek indirildi.')
+  const download = async () => {
+    const r = await shareBackup()
+    if (r !== 'cancelled') setMessage(r === 'shared' ? 'Yedek kaydedildi.' : 'Yedek indirildi.')
   }
 
   const kit = plateKit[unit]
@@ -68,6 +70,7 @@ export function Settings() {
     try {
       const state = importBackup(await file.text())
       if (!confirm('Mevcut tüm veriler yedekteki verilerle değiştirilsin mi?')) return
+      void snapshotNow('Yedek yüklemeden önce')
       replaceAll(state)
       // Veri az önce bir yedek dosyasından geldi; hemen ardından "yedekle" demek anlamsız olur.
       useStore.getState().markBackedUp(Date.now())
@@ -84,6 +87,7 @@ export function Settings() {
     if (!file) return
     try {
       const incoming = importBackup(await file.text())
+      void snapshotNow('Rutin eklemeden önce')
       const m = useStore.getState().addRoutinesFrom(incoming)
       const parts = [`${m.added} rutin eklendi`]
       if (m.skipped > 0) parts.push(`${m.skipped} zaten vardı`)
@@ -216,7 +220,7 @@ export function Settings() {
             )}
           </>
         )}
-        <button className="btn block" onClick={download}>Yedeği indir (JSON)</button>
+        <button className="btn block" onClick={() => void download()}>Yedeği kaydet (JSON)</button>
         <div className="row between">
           <span>Yedek hatırlatması</span>
           <div className="chips">
@@ -240,6 +244,8 @@ export function Settings() {
         {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
       </div>
 
+      <SnapshotsCard />
+
       <div className="card stack dangerzone">
         <div className="eyebrow danger">Tehlikeli bölge</div>
         <p className="sub" style={{ margin: 0 }}>Tüm antrenmanlar, rutinler ve ayarlar bu tarayıcıdan silinir. Önce yedek al.</p>
@@ -247,6 +253,7 @@ export function Settings() {
           className="btn danger block"
           onClick={() => {
             if (confirm('Tüm veriler silinecek. Emin misin?')) {
+              void snapshotNow('Sıfırlamadan önce')
               replaceAll(defaultState())
               setMessage('Tüm veriler sıfırlandı.')
             }

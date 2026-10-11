@@ -5,6 +5,7 @@ import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { PlateauNote } from '../components/PlateauNote.tsx'
 import { PlateCalculator } from '../components/PlateCalculator.tsx'
 import { RestTimer } from '../components/RestTimer.tsx'
+import { BackupNudge } from '../components/BackupNudge.tsx'
 import { RirSummary } from '../components/RirSummary.tsx'
 import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
@@ -17,6 +18,7 @@ import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { requestPersistOnce } from '../lib/persistStorage.ts'
+import { snapshotNow } from '../store/autoSnapshot.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
 import { applyRirToEntry, previousRir } from '../lib/rir.ts'
@@ -166,6 +168,7 @@ export function Workout() {
             {prs.map((p) => <div key={p.name} className="wk-pr-item" lang={p.lang}>{p.name}</div>)}
           </div>
         )}
+        <BackupNudge />
         <button className="btn primary block" onClick={() => navigate('/')}>Ana sayfaya dön</button>
       </div>
     )
@@ -186,6 +189,8 @@ export function Workout() {
     const finished = finishWorkout()
     // Veri artık değerli: tarayıcıdan kalıcı depolama iste (bu tıklama kullanıcı jesti sayılır). Sonucu beklemeyiz.
     if (finished) void requestPersistOnce()
+    // Otomatik iç kopya: tarayıcı içinde, sessizce (bkz. store/snapshots.ts).
+    if (finished) void snapshotNow('Antrenman bitti')
     setRestEnds(null)
     setRirSkipped(false)
     if (finished) setSummary({ workout: finished, prs })
