@@ -56,12 +56,22 @@ async function all(db: IDBDatabase): Promise<SnapshotRecord[]> {
  * kopya değişiklikten önceki hâli taşır. Son kopyayla aynı veriyse yazılmaz. IndexedDB yoksa ya da
  * yazma başarısızsa sessizce false döner: kopya bir güvenlik ağıdır, asıl işi engellememeli.
  */
+/**
+ * "Aynı veri" denetimi için iz. Yedek parmak izi devam eden antrenmanı içermez; o yüzden ayrıca eklenir:
+ * yoksa "devam eden antrenman silinmeden önce" kopyası, bir önceki kopyayla aynı sayılıp yazılmazdı.
+ */
+function snapshotHash(state: State): string {
+  const base = fingerprint(state)
+  if (!state.active) return base
+  return `${base}+${fingerprint({ workouts: [state.active], routines: [], week: {}, bodyweight: [], customEx: [] })}`
+}
+
 export function saveSnapshot(state: State, reason: string, now: Date = new Date()): Promise<boolean> {
   const record: SnapshotRecord = {
     at: now.getTime(),
     reason,
     workouts: state.workouts.length,
-    hash: fingerprint(state),
+    hash: snapshotHash(state),
     text: exportBackup(state, now),
   }
   return (async () => {

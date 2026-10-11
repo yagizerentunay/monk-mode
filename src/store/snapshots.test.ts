@@ -56,4 +56,12 @@ describe('otomatik anlık kopyalar', () => {
   it('olmayan kopya için anlaşılır hata verir', async () => {
     await expect(loadSnapshot(123)).rejects.toThrow('Kopya bulunamadı.')
   })
+
+  it('devam eden antrenman farklıysa aynı kayıtlı veriyle de yeni kopya yazılır', async () => {
+    const plain = withWorkouts(1)
+    await saveSnapshot(plain, 'Antrenman bitti', new Date(1_000))
+    const withActive = { ...withWorkouts(1), active: { id: 'a', d: '2026-10-02', start: 5, name: 'Devam', entries: [] } }
+    expect(await saveSnapshot(withActive, 'Devam eden antrenman silinmeden önce', new Date(2_000))).toBe(true)
+    expect((await loadSnapshot(2_000)).active?.id).toBe('a')
+  })
 })
