@@ -69,10 +69,11 @@ export function swapEntry(
     comparableLast(lastEntryFor(history, exId), bw),
   )
   const rebuilt: SetEntry[] = []
+  const bwKg = bw ? opts.bwKg : undefined
   let warm = 0
   for (const s of entry.sets) {
-    if (s.warmup) rebuilt.push(warmupSet(p.w, warm++))
-    else if (s.drop && rebuilt.length > 0) rebuilt.push(dropSet(rebuilt[rebuilt.length - 1]))
+    if (s.warmup) rebuilt.push(warmupSet(p.w, warm++, bwKg))
+    else if (s.drop && rebuilt.length > 0) rebuilt.push(dropSet(rebuilt[rebuilt.length - 1], bwKg))
     else rebuilt.push({ w: p.w, r: p.r, done: false })
   }
   const { note: _note, unilateral: _uni, bw: _bw, bwKg: _bwKg, ...rest } = entry

@@ -98,6 +98,22 @@ export function setEntryNoteIn(workout: Workout, ei: number, text: string): Work
   }
 }
 
+/**
+ * Vücut ağırlığı egzersizinde o günün vücut ağırlığı (kg). Toplam yük `bwKg + w` olduğundan hacim,
+ * PR ve grafikler kayıttan yeniden hesaplanır. 0 ya da geçersiz değer kaydı kaldırır ("bilinmiyor").
+ */
+export function setEntryBwKgIn(workout: Workout, ei: number, kg: number): Workout {
+  return {
+    ...workout,
+    entries: workout.entries.map((e, i) => {
+      if (i !== ei || !e.bw) return e
+      if (Number.isFinite(kg) && kg > 0) return { ...e, bwKg: kg }
+      const { bwKg: _bwKg, ...rest } = e
+      return rest
+    }),
+  }
+}
+
 export function setWorkoutNoteIn(workout: Workout, text: string): Workout {
   return { ...workout, note: text.slice(0, NOTE_MAX) }
 }

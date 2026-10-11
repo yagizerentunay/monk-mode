@@ -52,12 +52,12 @@ export function buildWorkout(
       const bw = !!cfg.bw
       const p = nextPrescription(cfg, comparableLast(lastEntryFor(history, cfg.exId), bw))
       const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
-      const warmups = warmupSets(p.w, cfg.warmups ?? 0)
+      const bwKg = bw ? bodyweightOn(bodyweight, d) : undefined
+      const warmups = warmupSets(p.w, cfg.warmups ?? 0, bwKg)
       const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
       if (cfg.superset && i > 0) entry.linked = true
       if (bw) {
         entry.bw = true
-        const bwKg = bodyweightOn(bodyweight, d)
         if (bwKg !== undefined) entry.bwKg = bwKg
       }
       if (cfg.side) {
@@ -66,7 +66,7 @@ export function buildWorkout(
       }
       // Dropsetler son çalışma setinden zincirlenir (tek taraflıysa sol/sağ hedefleri de taşınır).
       const lastWork = entry.sets[entry.sets.length - 1]
-      if (lastWork && cfg.drops) entry.sets = [...entry.sets, ...dropChain(lastWork, cfg.drops)]
+      if (lastWork && cfg.drops) entry.sets = [...entry.sets, ...dropChain(lastWork, cfg.drops, bwKg)]
       return entry
     }),
   }
