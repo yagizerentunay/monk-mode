@@ -101,8 +101,13 @@ describe('swapEntry', () => {
     ])
   })
 
-  it('yeni egzersizin geçmişinden hedef çıkarır; ısınma ve drop yeniden hesaplanır', () => {
+  it('temkinli kuralda tek başarılı seans ağırlığı artırmaz (RIR de girilmemiş)', () => {
     const out = swapEntry(entry(), 'db', false, history('db', 30, 5, true))!
+    expect(out.sets.filter((s) => !s.warmup && !s.drop).every((s) => s.w === 30)).toBe(true)
+  })
+
+  it('yeni egzersizin geçmişinden hedef çıkarır; ısınma ve drop yeniden hesaplanır', () => {
+    const out = swapEntry(entry(), 'db', false, history('db', 30, 5, true), { rule: 'fast' })!
     const work = out.sets.filter((s) => !s.warmup && !s.drop)
     expect(work).toHaveLength(2)
     // tüm setler hedef tekrara ulaştı → ağırlık artar

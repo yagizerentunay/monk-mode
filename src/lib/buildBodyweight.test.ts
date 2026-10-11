@@ -61,13 +61,13 @@ describe('buildWorkout: vücut ağırlığı egzersizi', () => {
 
   it('ilerleme ek yük üzerinden çalışır', () => {
     const history = [wk('2026-10-01', entry({ bw: true, bwKg: 68 }, 10))]
-    const w = buildWorkout(routine(cfg({ bw: true })), history, NOW, BW_LOG)
+    const w = buildWorkout(routine(cfg({ bw: true })), history, NOW, BW_LOG, 'fast')
     expect(w.entries[0].sets[0]).toEqual({ w: 12.5, r: 5, done: false })
   })
 
   it('asist azaltılarak ilerler (−20 → −17,5)', () => {
     const history = [wk('2026-10-01', entry({ bw: true, bwKg: 68 }, -20))]
-    const w = buildWorkout(routine(cfg({ bw: true, weight: -20 })), history, NOW, BW_LOG)
+    const w = buildWorkout(routine(cfg({ bw: true, weight: -20 })), history, NOW, BW_LOG, 'fast')
     expect(w.entries[0].sets[0].w).toBe(-17.5)
   })
 
@@ -98,7 +98,7 @@ describe('buildWorkout: vücut ağırlığı egzersizi', () => {
 
   it('bw bayrağı kapalıyken mutlak kayıt eskisi gibi ilerler (davranış korunur)', () => {
     const history = [wk('2026-10-01', entry({}, 60))]
-    const w = buildWorkout(routine(cfg({ weight: 20 })), history, NOW, BW_LOG)
+    const w = buildWorkout(routine(cfg({ weight: 20 })), history, NOW, BW_LOG, 'fast')
     expect(w.entries[0].sets[0].w).toBe(62.5)
   })
 

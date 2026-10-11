@@ -247,8 +247,9 @@ interface RecordProps {
 /** Rutinden o güne ait taslağı kurar; tüm setler "yapıldı" gelir, kullanıcı gerçek değerleri düzeltir. */
 function RecordView({ date, routine, workouts, onSave, onCancel }: RecordProps) {
   const bodyweight = useStore((s) => s.bodyweight)
+  const progressionRule = useStore((s) => s.settings.progressionRule)
   // Taslak yalnız rutin/tarih değişince kurulur; düzenleyici kendi taslağını tutar.
-  const draft = useMemo(() => (routine ? draftForDate(routine, workouts, date, bodyweight) : null), [routine, date]) // eslint-disable-line react-hooks/exhaustive-deps
+  const draft = useMemo(() => (routine ? draftForDate(routine, workouts, date, bodyweight, progressionRule) : null), [routine, date]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!draft) return <p className="sub">Rutin bulunamadı.</p>
   return (
     <>

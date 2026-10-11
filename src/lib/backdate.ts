@@ -1,4 +1,4 @@
-import type { BodyweightEntry, Routine, Workout } from '../store/schema.ts'
+import type { BodyweightEntry, ProgressionRule, Routine, Workout } from '../store/schema.ts'
 import { parseDay } from './calendar.ts'
 import { deriveSet } from './sets.ts'
 import { buildWorkout } from './workout.ts'
@@ -20,9 +20,10 @@ export function draftForDate(
   workouts: readonly Workout[],
   date: string,
   bodyweight: readonly BodyweightEntry[] = [],
+  rule?: ProgressionRule,
 ): Workout {
   const before = workouts.filter((w) => w.d < date)
-  const draft = buildWorkout(routine, before, noonOf(date), bodyweight)
+  const draft = buildWorkout(routine, before, noonOf(date), bodyweight, rule)
   return {
     ...draft,
     d: date,

@@ -130,7 +130,7 @@ export const useStore = create<Store>((set, get) => ({
     const s = get()
     const routine = s.routines.find((r) => r.id === routineId)
     if (!routine || s.active) return
-    set(() => ({ active: buildWorkout(routine, s.workouts, Date.now(), s.bodyweight) }))
+    set(() => ({ active: buildWorkout(routine, s.workouts, Date.now(), s.bodyweight, s.settings.progressionRule) }))
   },
 
   updateSet: (entry, setIdx, patch) =>
@@ -266,7 +266,11 @@ export const useStore = create<Store>((set, get) => ({
     set((s) => {
       const e = s.active?.entries[entry]
       if (!s.active || !e || e.exId === exId) return {}
-      const swapped = swapEntry(e, exId, side, s.workouts, { bw, bwKg: bw ? bodyweightOn(s.bodyweight, s.active.d) : undefined })
+      const swapped = swapEntry(e, exId, side, s.workouts, {
+        bw,
+        bwKg: bw ? bodyweightOn(s.bodyweight, s.active.d) : undefined,
+        rule: s.settings.progressionRule,
+      })
       if (!swapped) return {}
       return { active: { ...s.active, entries: s.active.entries.map((x, i) => (i === entry ? swapped : x)) } }
     }),

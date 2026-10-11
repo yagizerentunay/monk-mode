@@ -9,6 +9,7 @@ import {
   finalizeSet,
   isPR,
   lastEntryFor,
+  lastTwoEntriesFor,
   partialSetCount,
   workoutVolume,
 } from './workout.ts'
@@ -38,7 +39,7 @@ describe('workout yardımcıları', () => {
 
   it('başarılı geçmişte progression ağırlığı artırır', () => {
     const history = [wk('2026-10-01', 'bench', [done(60, 5), done(60, 5), done(60, 5)])]
-    const w = buildWorkout(routine, history, Date.UTC(2026, 9, 8, 12))
+    const w = buildWorkout(routine, history, Date.UTC(2026, 9, 8, 12), [], 'fast')
     expect(w.entries[0].sets[0].w).toBe(62.5)
   })
 
@@ -95,7 +96,7 @@ describe('ısınma ve dropset', () => {
 
   it('ısınma ağırlığı progression önerisinden hesaplanır', () => {
     const history = [wk('2026-10-01', 'bench', [done(100, 5), done(100, 5)])]
-    const [e] = buildWorkout(heavy, history, Date.UTC(2026, 9, 8, 12)).entries
+    const [e] = buildWorkout(heavy, history, Date.UTC(2026, 9, 8, 12), [], 'fast').entries
     expect(e.sets[3].w).toBe(102.5)
     expect(e.sets[2].w).toBe(82.5) // 102,5 × 0,8 = 82 → 2,5 adıma yuvarlanır
   })
@@ -233,5 +234,55 @@ describe('yarım tek taraflı set', () => {
     expect(lastEntryFor([wk], 'split')).toBeUndefined()
     expect(partialSetCount(wk)).toBe(1)
     expect(doneSetCount(wk).done).toBe(0)
+  })
+})
+
+describe('lastTwoEntriesFor', () => {
+  const bwWk = (d: string, w: number): Workout => ({
+    id: d,
+    d,
+    start: 0,
+    name: 't',
+    entries: [{ exId: 'bench', bw: true, bwKg: 70, sets: [done(w, 5)] }],
+  })
+
+  it('son iki kaydı verir, tamamlanmamış seansı atlar', () => {
+    const history = [
+      wk('2026-09-28', 'bench', [done(55, 5)]),
+      wk('2026-10-01', 'bench', [done(57.5, 5)]),
+      wk('2026-10-03', 'bench', [done(60, 5)]),
+      wk('2026-10-05', 'bench', [{ w: 70, r: 5, done: false }]),
+    ]
+    const { last, prev } = lastTwoEntriesFor(history, 'bench', false)
+    expect(last?.sets[0].w).toBe(60)
+    expect(prev?.sets[0].w).toBe(57.5)
+  })
+
+  it('tek kayıt varsa prev yoktur; kayıt yoksa ikisi de yok', () => {
+    expect(lastTwoEntriesFor([wk('2026-10-01', 'bench', [done(60, 5)])], 'bench', false).prev).toBeUndefined()
+    expect(lastTwoEntriesFor([], 'bench', false)).toEqual({ last: undefined, prev: undefined })
+  })
+
+  it('bw anlamı uyuşmayan kayıt last/prev olmaz (comparableLast ile aynı kural)', () => {
+    const history = [wk('2026-10-01', 'bench', [done(60, 5)]), bwWk('2026-10-03', 10), bwWk('2026-10-05', 12.5)]
+    const asBw = lastTwoEntriesFor(history, 'bench', true)
+    expect(asBw.last?.sets[0].w).toBe(12.5)
+    expect(asBw.prev?.sets[0].w).toBe(10)
+    // Mutlak yük istenirken en yeni kayıt ek yükse hiçbiri kullanılmaz.
+    expect(lastTwoEntriesFor(history, 'bench', false)).toEqual({ last: undefined, prev: undefined })
+    // Ek yük istenirken önceki kayıt mutlaksa prev yoktur.
+    const mixed = lastTwoEntriesFor([wk('2026-10-01', 'bench', [done(60, 5)]), bwWk('2026-10-05', 12.5)], 'bench', true)
+    expect(mixed.last?.sets[0].w).toBe(12.5)
+    expect(mixed.prev).toBeUndefined()
+  })
+
+  it('buildWorkout temkinli kuralda iki başarılı seansla artırır, hızlıda tek seansla', () => {
+    const rir = (w: number, r: number) => ({ w, r, done: true, rir: 2 })
+    const one = [wk('2026-10-03', 'bench', [rir(60, 5), rir(60, 5), rir(60, 5)])]
+    const two = [wk('2026-10-01', 'bench', [rir(60, 5), rir(60, 5), rir(60, 5)]), ...one]
+    const at = Date.UTC(2026, 9, 8, 12)
+    expect(buildWorkout(routine, one, at).entries[0].sets[0].w).toBe(60)
+    expect(buildWorkout(routine, two, at).entries[0].sets[0].w).toBe(62.5)
+    expect(buildWorkout(routine, one, at, [], 'fast').entries[0].sets[0].w).toBe(62.5)
   })
 })

@@ -387,6 +387,7 @@ describe('kaydedilmiş antrenmanı güncelleme', () => {
 
   it('düzeltme sonraki seansın ilerleme önerisini değiştirir (türetilmiş veri)', () => {
     const s = useStore.getState()
+    s.setSettings({ progressionRule: 'fast' })
     s.saveRoutine({ ...routine, ex: [{ ...routine.ex[0], reps: 5, prog: 'linear' as const, inc: 2.5 }] })
     s.importWorkouts([{ ...mk('a', '2026-10-01', 60), routineId: 'r1', entries: [{ exId: 'bench', sets: [{ w: 60, r: 5, done: true }, { w: 60, r: 5, done: true }] }] }], [])
     useStore.getState().startWorkout('r1')

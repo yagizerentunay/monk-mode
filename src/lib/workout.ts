@@ -1,4 +1,4 @@
-import type { BodyweightEntry, Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import type { BodyweightEntry, ProgressionRule, Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { dropChain, warmupSets } from './intensity.ts'
 import { bodyweightOn, comparableLast, effectiveLoad } from './load.ts'
 import { estimate1RM } from './onerm.ts'
@@ -31,6 +31,25 @@ export function lastEntryFor(workouts: Workout[], exId: string): WorkoutEntry | 
 }
 
 /**
+ * Egzersizin son iki karşılaştırılabilir kaydı. `last`, `lastEntryFor` ile aynıdır ve `comparableLast`
+ * gibi yalnız aynı ağırlık anlamındaysa (`bw`) döner; `prev` bir önceki kayıttır ve farklı anlamdaysa
+ * yoktur (ek yükle girilmiş ile mutlak yükle girilmiş seans onay sayılmaz).
+ */
+export function lastTwoEntriesFor(
+  workouts: Workout[],
+  exId: string,
+  bw: boolean,
+): { last?: WorkoutEntry; prev?: WorkoutEntry } {
+  const found: WorkoutEntry[] = []
+  for (let i = workouts.length - 1; i >= 0 && found.length < 2; i--) {
+    const entry = workouts[i].entries.find((e) => e.exId === exId)
+    if (entry && workSets(entry.sets).length > 0) found.push(entry)
+  }
+  const last = comparableLast(found[0], bw)
+  return { last, prev: last ? comparableLast(found[1], bw) : undefined }
+}
+
+/**
  * Rutinden yeni bir seans kurar; ağırlık/tekrar progression önerisinden dolar. Vücut ağırlığı
  * egzersizlerine (`cfg.bw`) o günün vücut ağırlığı (`bodyweight` günlüğünden) anlık kopyalanır; ağırlık
  * ek yük olarak ilerler. Geçmiş kayıt farklı ağırlık anlamındaysa (`comparableLast`) yok sayılır.
@@ -40,6 +59,7 @@ export function buildWorkout(
   history: Workout[],
   now: number,
   bodyweight: readonly BodyweightEntry[] = [],
+  rule?: ProgressionRule,
 ): Workout {
   const d = dayString(new Date(now))
   return {
@@ -50,7 +70,8 @@ export function buildWorkout(
     name: routine.name,
     entries: routine.ex.map((cfg, i) => {
       const bw = !!cfg.bw
-      const p = nextPrescription(cfg, comparableLast(lastEntryFor(history, cfg.exId), bw))
+      const { last, prev } = lastTwoEntriesFor(history, cfg.exId, bw)
+      const p = nextPrescription(cfg, last, { prev, rule })
       const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
       const bwKg = bw ? bodyweightOn(bodyweight, d) : undefined
       const warmups = warmupSets(p.w, cfg.warmups ?? 0, bwKg)
