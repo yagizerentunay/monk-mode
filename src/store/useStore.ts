@@ -48,6 +48,12 @@ export interface Actions {
   setSettings(patch: Partial<Settings>): void
   saveRoutine(routine: Routine): void
   deleteRoutine(id: string): void
+  /**
+   * Silinen rutini eski sırasına koyar (silme geri alma, bkz. undoDelete.ts) ve silmenin temizlediği
+   * hafta günlerini (gün -> rutin kimliği) geri verir; o arada başka rutine atanmış günlere dokunmaz.
+   * Aynı kimlikli rutin varsa hiçbir şey yapmaz.
+   */
+  restoreRoutine(routine: Routine, index: number, days: number[]): void
   assignDay(day: number, routineId: string | null): void
   startWorkout(routineId: string): void
   updateSet(entry: number, set: number, patch: Partial<SetEntry>): void
@@ -71,6 +77,8 @@ export interface Actions {
   swapExercise(entry: number, exId: string, side?: boolean, bw?: boolean): void
   finishWorkout(): Workout | null
   discardWorkout(): void
+  /** Atılan aktif antrenmanı geri koyar; o arada başka bir antrenman başladıysa dokunmaz. */
+  restoreActive(workout: Workout): void
   deleteWorkout(id: string): void
   /** Kaydedilmiş bir antrenmanı (kimliğiyle) düzeltilmiş hâliyle değiştirir; sıra ve tarih korunur. */
   updateWorkout(updated: Workout): void
@@ -121,6 +129,16 @@ export const useStore = create<Store>((set, get) => ({
       routines: s.routines.filter((r) => r.id !== id),
       week: Object.fromEntries(Object.entries(s.week).filter(([, rid]) => rid !== id)),
     })),
+
+  restoreRoutine: (routine, index, days) =>
+    set((s) => {
+      if (s.routines.some((r) => r.id === routine.id)) return {}
+      const routines = [...s.routines]
+      routines.splice(Math.min(Math.max(index, 0), routines.length), 0, routine)
+      const week = { ...s.week }
+      for (const day of days) if (week[day] === undefined) week[day] = routine.id
+      return { routines, week }
+    }),
 
   assignDay: (day, routineId) =>
     set((s) => {
@@ -303,6 +321,8 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   discardWorkout: () => set(() => ({ active: null })),
+
+  restoreActive: (workout) => set((s) => (s.active ? {} : { active: workout })),
 
   deleteWorkout: (id) => set((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })),
 

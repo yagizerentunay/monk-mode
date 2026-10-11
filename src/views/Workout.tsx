@@ -19,6 +19,7 @@ import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { requestPersistOnce } from '../lib/persistStorage.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
+import { discardActiveWithUndo } from '../store/undoDelete.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { nextPrescription, prescriptionHint } from '../lib/progression.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
@@ -38,6 +39,9 @@ interface Summary {
   workout: WorkoutT
   prs: { name: string; lang?: 'en' }[]
 }
+
+/** Kayıtlı dinlenme sayacının bitişi (süresi dolduysa null). */
+const savedRest = (workoutId: string) => loadRest(workoutId, Date.now())
 
 function Starter() {
   const routines = useStore((s) => s.routines)
@@ -97,7 +101,6 @@ export function Workout() {
     swapExercise,
     finishWorkout,
     updateWorkout,
-    discardWorkout,
   } = useStore.getState()
   const { byId } = useExercises()
   const navigate = useNavigate()
@@ -107,6 +110,12 @@ export function Workout() {
   const setRestEnds = (endsAt: number | null) => {
     setRestEndsState(endsAt)
     if (active) saveRest(active.id, endsAt)
+  }
+  // Atılan antrenman geri alınınca (bkz. undoDelete.ts) dinlenme sayacı yeniden okunur.
+  const [seenId, setSeenId] = useState(active?.id)
+  if (active?.id !== seenId) {
+    setSeenId(active?.id)
+    if (active) setRestEndsState(savedRest(active.id))
   }
   const [picking, setPicking] = useState(false)
   /** Değiştir sayfası açık olan egzersizin sırası. */
@@ -419,7 +428,7 @@ export function Workout() {
             className="btn danger block"
             onClick={() => {
               if (confirm('Bu antrenman silinsin mi? Kaydedilmeyecek.')) {
-                discardWorkout()
+                discardActiveWithUndo(restEnds)
                 setRestEnds(null)
                 setMenu(false)
               }

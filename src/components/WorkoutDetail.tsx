@@ -8,6 +8,7 @@ import { useExercises } from '../lib/useExercises.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import { workoutVolume } from '../lib/workout.ts'
 import type { Workout } from '../store/schema.ts'
+import { deleteWorkoutWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
 import { WorkoutEditor } from './WorkoutEditor.tsx'
 
@@ -26,7 +27,6 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
   const routines = useStore((s) => s.routines)
   const hasActive = useStore((s) => s.active !== null)
   const startWorkout = useStore((s) => s.startWorkout)
-  const deleteWorkout = useStore((s) => s.deleteWorkout)
   const updateWorkout = useStore((s) => s.updateWorkout)
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
@@ -89,7 +89,7 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
           className="btn danger grow"
           onClick={() => {
             if (confirm('Bu antrenman geçmişten silinsin mi?')) {
-              deleteWorkout(workout.id)
+              deleteWorkoutWithUndo(workout.id)
               onClose()
             }
           }}
