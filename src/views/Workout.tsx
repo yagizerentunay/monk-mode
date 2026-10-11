@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
@@ -10,7 +10,7 @@ import { RirSummary } from '../components/RirSummary.tsx'
 import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { SwapSheet } from '../components/SwapSheet.tsx'
-import { formatClock } from '../lib/alert.ts'
+import { WorkoutClock } from '../components/WorkoutClock.tsx'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { imageUrl, isBodyOnly, isUnilateralName, nameLang } from '../lib/exercises.ts'
@@ -107,7 +107,6 @@ export function Workout() {
     setRestEndsState(endsAt)
     if (active) saveRest(active.id, endsAt)
   }
-  const [now, setNow] = useState(() => Date.now())
   const [picking, setPicking] = useState(false)
   /** Değiştir sayfası açık olan egzersizin sırası. */
   const [swapEntryIdx, setSwapEntryIdx] = useState<number | null>(null)
@@ -119,12 +118,6 @@ export function Workout() {
   const [rirSkipped, setRirSkipped] = useState(false)
   /** Not alanı elle açılan egzersizlerin sırası (notu olanlar zaten görünür). */
   const [noteOpen, setNoteOpen] = useState<Set<number>>(() => new Set())
-
-  useEffect(() => {
-    if (!active) return
-    const t = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(t)
-  }, [active])
 
   /** Aktif seans sürerken ekran kapanmasın; seans bitince/iptal edilince ya da ekrandan çıkılınca bırakılır. */
   useWakeLock(active != null)
@@ -177,7 +170,6 @@ export function Workout() {
   if (!active) return <Starter />
 
   const { done, total } = doneSetCount(active)
-  const elapsed = (now - active.start) / 1000
   const groups = supersetInfo(active.entries.map((e) => e.linked))
 
   const finish = () => {
@@ -208,7 +200,7 @@ export function Workout() {
       </div>
       <h1 className="wk-title">{active.name}</h1>
       <div className="row between wk-meta">
-        <span className="wk-clock bignum">{formatClock(elapsed)}</span>
+        <WorkoutClock start={active.start} />
         <span className="sub"><b>{done} / {total}</b> çalışma seti</span>
       </div>
       <div className="progress"><div style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
