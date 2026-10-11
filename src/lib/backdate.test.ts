@@ -40,7 +40,7 @@ describe('geçmiş gün taslağı', () => {
   it('ilerleme önerisini yalnız o günden ÖNCEKİ antrenmanlardan alır', () => {
     // 1 Ekim'de 60 kg başarılı → öneri 62,5. 20 Ekim'de 100 kg yapılmış olsa da 5 Ekim'i etkilemez.
     const history = [wk('a', '2026-10-01', 60), wk('b', '2026-10-20', 100)]
-    const d = draftForDate(routine, history, '2026-10-05')
+    const d = draftForDate(routine, history, '2026-10-05', [], 'fast')
     expect(d.entries[0].sets.find((s) => !s.warmup)!.w).toBe(62.5)
   })
 

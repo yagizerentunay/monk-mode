@@ -1,9 +1,8 @@
-import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import type { ProgressionRule, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import type { Exercise } from './exercises.ts'
 import { dropSet, warmupSet } from './intensity.ts'
-import { comparableLast } from './load.ts'
 import { toUnilateral } from './sets.ts'
-import { lastEntryFor } from './workout.ts'
+import { lastTwoEntriesFor } from './workout.ts'
 import { nextPrescription } from './progression.ts'
 
 /** Değiştir listesinde en fazla gösterilen alternatif sayısı. */
@@ -57,16 +56,18 @@ export function swapEntry(
   exId: string,
   side: boolean,
   history: Workout[],
-  opts: { bw?: boolean; bwKg?: number } = {},
+  opts: { bw?: boolean; bwKg?: number; rule?: ProgressionRule } = {},
 ): WorkoutEntry | null {
   if (hasCompletedWork(entry)) return null
   const bw = !!opts.bw
   const work = entry.sets.filter((s) => !s.warmup && !s.drop)
   const reps = work[0]?.r ?? 8
   const carried = !!entry.bw === bw ? (work[0]?.w ?? 0) : 0
+  const { last, prev } = lastTwoEntriesFor(history, exId, bw)
   const p = nextPrescription(
     { exId, sets: work.length, reps, weight: carried, prog: 'double', inc: 2.5, repsMax: reps },
-    comparableLast(lastEntryFor(history, exId), bw),
+    last,
+    { prev, rule: opts.rule },
   )
   const rebuilt: SetEntry[] = []
   const bwKg = bw ? opts.bwKg : undefined
