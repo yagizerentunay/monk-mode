@@ -6,8 +6,10 @@ import './styles/workout.css'
 import './styles/stats.css'
 import './styles/plan.css'
 import App from './App.tsx'
+import { installAudioUnlock } from './lib/alert.ts'
 import { registerSW } from './lib/registerSW.ts'
 
+installAudioUnlock()
 registerSW()
 
 createRoot(document.getElementById('root')!).render(
