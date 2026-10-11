@@ -76,6 +76,7 @@ Geliştirme sunucusu `http://localhost:5173` adresinde açılır.
 |---|---|
 | `npm run dev` | Geliştirme sunucusunu başlatır |
 | `npm test` | Birim testlerini çalıştırır |
+| `npm run test:e2e` | Uçtan uca testleri (Playwright, mobil Chrome) çalıştırır; ilk seferde `npx playwright install chromium` gerekir |
 | `npm run lint` | Kod denetimini çalıştırır |
 | `npm run build` | Tür kontrolü ve üretim derlemesi yapar |
 
