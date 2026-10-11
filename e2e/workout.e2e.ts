@@ -27,3 +27,15 @@ test('antrenman bitirilir ve yeniden yüklemeden sonra geçmişte kalır', async
   await page.goto('./#/')
   await expect(page.locator('.stat', { hasText: 'toplam' })).toContainText('01')
 })
+
+test('antrenman sayacı saniye saniye ilerler', async ({ page }) => {
+  await seed(page, JSON.stringify(stateWithRoutine()))
+
+  await page.goto('./#/workout')
+  await page.getByRole('button', { name: /E2E Push/ }).click()
+
+  const clock = page.locator('.wk-clock')
+  await expect(clock).toHaveText(/^0:0\d$/)
+  const first = await clock.textContent()
+  await expect(clock).not.toHaveText(first ?? '', { timeout: 2500 })
+})
