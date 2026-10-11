@@ -16,6 +16,7 @@ import { imageUrl, isBodyOnly, isUnilateralName, nameLang } from '../lib/exercis
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
+import { requestPersistOnce } from '../lib/persistStorage.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
 import { applyRirToEntry, previousRir } from '../lib/rir.ts'
@@ -183,6 +184,8 @@ export function Workout() {
       .filter((e) => isPR(workouts, { ...e, sets: e.sets.filter((x) => x.done) }))
       .map((e) => ({ name: byId.get(e.exId)?.name ?? e.exId, lang: nameLang(byId.get(e.exId)) }))
     const finished = finishWorkout()
+    // Veri artık değerli: tarayıcıdan kalıcı depolama iste (bu tıklama kullanıcı jesti sayılır). Sonucu beklemeyiz.
+    if (finished) void requestPersistOnce()
     setRestEnds(null)
     setRirSkipped(false)
     if (finished) setSummary({ workout: finished, prs })
