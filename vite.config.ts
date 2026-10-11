@@ -45,4 +45,17 @@ export default defineConfig({
   // Ayarlar'da gösterilen sürüm; tek kaynak package.json (GitHub release etiketi v<sürüm>).
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [react(), prefetchChunks()],
+  build: {
+    rolldownOptions: {
+      output: {
+        // Vendor parçası Rolldown çalışma zamanı yardımcılarını (__commonJSMin) uygulama parçasından alır;
+        // bu döngüde vendor önce çalışıp "not a function" ile çöküyordu. Katı sıra yardımcıları ayrı parçaya ayırır.
+        strictExecutionOrder: true,
+        // React ve yönlendirici ayrı parçada: uygulama kodu değişince hash'i değişmez, güncellemede yeniden inmez.
+        advancedChunks: {
+          groups: [{ name: 'vendor', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler|zustand)[\\/]/ }],
+        },
+      },
+    },
+  },
 })
