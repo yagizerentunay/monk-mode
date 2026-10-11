@@ -59,12 +59,43 @@ function versionFile(): Plugin {
   }
 }
 
+/**
+ * İçerik güvenlik politikası (savunma derinliği): sayfa yalnız kendi dosyalarını ve jsDelivr'deki egzersiz
+ * görsellerini yükleyebilir; eklenti, form gönderimi ve <base> değişimi kapalı. Yalnız üretim derlemesine
+ * eklenir: geliştirme sunucusu (React yenileme) satır içi betik enjekte eder ve CSP onu engellerdi.
+ * Not: React'in `style={{…}}` ile verdiği stiller DOM özelliğiyle yazıldığından 'unsafe-inline' gerekmez.
+ */
+export const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data: blob: https://cdn.jsdelivr.net",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'none'",
+].join('; ')
+
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: 'monk-csp',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler: () => [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP }, injectTo: 'head-prepend' }],
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: normalizeBase(process.env.BASE_PATH),
   // Ayarlar'da gösterilen sürüm; tek kaynak package.json (GitHub release etiketi v<sürüm>).
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
-  plugins: [react(), prefetchChunks(), versionFile()],
+  plugins: [react(), prefetchChunks(), versionFile(), contentSecurityPolicy()],
   build: {
     rolldownOptions: {
       output: {
