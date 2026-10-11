@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { RouteErrorBoundary } from './components/ErrorBoundary.tsx'
 import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
@@ -28,6 +29,7 @@ export default function App() {
       <main className="app">
         <UpdateBanner />
         <StorageWarnings />
+        <RouteErrorBoundary>
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        </RouteErrorBoundary>
       </main>
       <TabBar />
     </HashRouter>
