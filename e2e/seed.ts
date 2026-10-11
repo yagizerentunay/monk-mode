@@ -25,6 +25,13 @@ export async function seed(page: Page, raw: string): Promise<void> {
   await page.reload()
 }
 
+/**
+ * Kayıtlı state'i okur. Uygulama kaydı kısar (src/store/saveScheduler.ts); okumadan önce sayfa kapanıyormuş
+ * gibi `pagehide` gönderilir, uygulama bekleyen kaydı yazar (gerçek telefondaki kapanış yolu).
+ */
 export async function readState(page: Page): Promise<State> {
-  return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? 'null'), STORAGE_KEY)
+  return page.evaluate((key) => {
+    window.dispatchEvent(new Event('pagehide'))
+    return JSON.parse(localStorage.getItem(key) ?? 'null')
+  }, STORAGE_KEY)
 }

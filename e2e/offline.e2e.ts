@@ -45,3 +45,16 @@ test('service worker önbelleğiyle çevrimdışı açılır, veri ve egzersizle
     await expect(page.locator('main.app').filter({ hasText: text }).first()).toBeVisible()
   }
 })
+
+test('manifest ikonları ayrı any ve maskable; dosyalar sunuluyor', async ({ page, request }) => {
+  await page.goto('./')
+  const href = await page.locator('link[rel="manifest"]').getAttribute('href')
+  const manifest = await (await request.get(new URL(href!, page.url()).href)).json()
+  const purposes = manifest.icons.map((i: { purpose: string }) => i.purpose)
+  expect(purposes).not.toContain('any maskable')
+  expect(purposes).toContain('maskable')
+  for (const icon of manifest.icons) {
+    const res = await request.get(new URL(icon.src, new URL(href!, page.url())).href)
+    expect(res.ok(), icon.src).toBe(true)
+  }
+})
