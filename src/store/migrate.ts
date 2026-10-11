@@ -109,6 +109,8 @@ export function migrate(raw: unknown): State {
           ? settings.bodyweightGoal
           : undefined,
       muscleTargets: migrateMuscleTargets(settings.muscleTargets),
+      progressionRule: settings.progressionRule === 'fast' ? 'fast' : undefined,
+      deloadSnoozedUntil: positive(settings.deloadSnoozedUntil),
     },
     routines: arr(raw.routines),
     week: isRecord(raw.week) ? (raw.week as State['week']) : base.week,

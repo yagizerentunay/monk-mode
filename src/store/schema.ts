@@ -7,6 +7,8 @@ export const SCHEMA_VERSION = 1
 
 export type ProgressionMode = 'off' | 'linear' | 'double'
 
+export type ProgressionRule = 'cautious' | 'fast'
+
 /** Rutindeki bir egzersizin planı. Ağırlıklar kg cinsindendir. */
 export interface ExCfg {
   exId: string
@@ -126,6 +128,13 @@ export interface Settings {
    * Kesin bilimsel hedef değil, ayarlanabilir bir kılavuzdur (bkz. lib/muscles.ts).
    */
   muscleTargets?: MuscleTargets
+  /**
+   * Ağırlık artırma kuralı (bkz. lib/progression.ts). 'cautious' (varsayılan, yoksa da bu): üst tekrar
+   * sınırında iki ardışık seans ve RIR ≥ 2. 'fast': tek seans yeter, RIR'e bakılmaz (eski davranış).
+   */
+  progressionRule?: ProgressionRule
+  /** Deload önerisi "Şimdi değil" ile ertelendiyse bu zamana (epoch ms) kadar gösterilmez (bkz. lib/deload.ts). */
+  deloadSnoozedUntil?: number
 }
 
 export interface State {
