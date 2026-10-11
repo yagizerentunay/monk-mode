@@ -15,6 +15,7 @@ const MATCH = { ignoreVary: true }
 const scope = self.registration.scope
 const INDEX = new URL('./', scope).href
 const EXERCISES = new URL('data/exercises.json', scope).href
+const INSTRUCTIONS = new URL('data/instructions.json', scope).href
 const FONTS = ['600', '700', '800'].flatMap((w) => ['latin', 'latin-ext'].map((r) => `barlow-condensed-${r}-${w}-normal.woff2`))
 const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
 
@@ -46,9 +47,9 @@ async function precache() {
       ...FONTS.map((f) => new URL('fonts/' + f, scope).href), // CSS'ten yüklenen yazı tipleri (assets/ dışında, pruneStale'e takılmaz)
     ].map((u) => shell.add(u).catch(() => {})),
   )
-  // Egzersiz verisi büyük (~1 MB) ve çevrimdışı kütüphane için şart; başarısızsa kurulumu bozma.
+  // Egzersiz listesi ve talimatlar çevrimdışı kütüphane için şart; başarısızsa kurulumu bozma.
   const data = await caches.open(DATA)
-  await data.add(EXERCISES).catch(() => {})
+  await Promise.all([EXERCISES, INSTRUCTIONS].map((u) => data.add(u).catch(() => {})))
 }
 
 /**
@@ -154,7 +155,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(navigate(request))
   } else if (url.href.startsWith(ASSETS)) {
     event.respondWith(cacheFirst(event, SHELL))
-  } else if (url.href === EXERCISES) {
+  } else if (url.href === EXERCISES || url.href === INSTRUCTIONS) {
     event.respondWith(staleWhileRevalidate(request, DATA))
   } else {
     event.respondWith(staleWhileRevalidate(request, SHELL))

@@ -1,0 +1,2 @@
+# Üretilmiş veri bayt bayt karşılaştırılır (src/lib/exerciseData.test.ts); satır sonu checkout'ta değişmesin.
+public/data/*.json text eol=lf

@@ -11,7 +11,6 @@ const base: Exercise = {
   category: 'strength',
   primaryMuscles: ['quadriceps'],
   secondaryMuscles: [],
-  instructions: [],
   images: [],
 }
 

@@ -29,7 +29,11 @@ test('service worker önbelleğiyle çevrimdışı açılır, veri ve egzersizle
   // Egzersiz listesi de önbellekten gelir: arama sonucu çıkmalı.
   await page.goto('./#/library')
   await page.getByPlaceholder('Egzersiz ara…').fill('bench press')
-  await expect(page.locator('.exname', { hasText: 'Barbell Bench Press' }).first()).toBeVisible()
+  const bench = page.locator('.exname', { hasText: 'Barbell Bench Press - Medium Grip' }).first()
+  await expect(bench).toBeVisible()
+  // Talimatlar ayrı dosyada; o da önbellekten gelmeli.
+  await bench.click()
+  await expect(page.locator('ol li').first()).toBeVisible()
 
   // Ayrı parçalara bölünmüş ekranlar da önbellekten gelmeli (çevrimiçiyken hiç açılmadılar).
   for (const [hash, text] of [

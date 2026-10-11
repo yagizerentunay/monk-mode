@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import raw from '../../public/data/exercises.json?raw'
+import raw from '../../data/free-exercise-db/exercises.json?raw'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from './labels.ts'
 import { MUSCLES } from './muscles.ts'
 

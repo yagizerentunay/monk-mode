@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 // ?raw: node tipleri (fs) bu projede yok; Vite JSON'u ham metin olarak verir.
-import libraryJson from '../../public/data/exercises.json?raw'
+import libraryJson from '../../data/free-exercise-db/exercises.json?raw'
 import { buildMatcher, normalizeName, type MatchCandidate } from './matchExercise.ts'
 
 const FIXTURE: MatchCandidate[] = [

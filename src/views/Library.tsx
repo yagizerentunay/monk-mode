@@ -1,16 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
 import { MuscleFixEditor } from '../components/MuscleFixEditor.tsx'
-import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
+import { imageUrl, loadInstructions, nameLang, type Exercise } from '../lib/exercises.ts'
 import { MUSCLES } from '../lib/muscles.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useStore } from '../store/useStore.ts'
 
+/** Egzersizin talimat adımları; yüklenene kadar ya da yoksa boş. */
+function useInstructions(id: string): string[] {
+  const [steps, setSteps] = useState<string[]>([])
+  useEffect(() => {
+    let alive = true
+    loadInstructions()
+      .then((all) => alive && setSteps(all[id] ?? []))
+      .catch(() => alive && setSteps([]))
+    return () => {
+      alive = false
+    }
+  }, [id])
+  return steps
+}
+
 function Detail({ ex }: { ex: Exercise }) {
   const [editing, setEditing] = useState(false)
+  const instructions = useInstructions(ex.id)
   if (editing) {
     return (
       <div className="stack">
@@ -38,9 +54,9 @@ function Detail({ ex }: { ex: Exercise }) {
           ))}
         </div>
       )}
-      {ex.instructions.length > 0 && (
+      {instructions.length > 0 && (
         <ol style={{ paddingLeft: 20, margin: 0 }}>
-          {ex.instructions.map((s, i) => (
+          {instructions.map((s, i) => (
             <li key={i} className="sub" style={{ marginBottom: 6 }}>{s}</li>
           ))}
         </ol>
