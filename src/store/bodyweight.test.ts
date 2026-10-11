@@ -154,3 +154,18 @@ describe('migrate ve yedek: bw alanları', () => {
     expect(importBackup(exportBackup(s)).routines).toEqual(s.routines)
   })
 })
+
+describe('store: asistli egzersizde ısınma ve dropset', () => {
+  it('seans kurulurken ısınma ve drop asisti vücut ağırlığından hesaplanır', () => {
+    const s = useStore.getState()
+    s.saveRoutine({
+      id: 'r2',
+      name: 'Asist',
+      ex: [{ exId: 'pullup', sets: 1, reps: 8, weight: -20, prog: 'off', inc: 2.5, repsMax: 8, bw: true, warmups: 1, drops: 1 }],
+    })
+    s.logBodyweight({ d: '2000-01-01', w: 80 })
+    s.startWorkout('r2')
+    const sets = useStore.getState().active!.entries[0].sets
+    expect(sets.map((x) => x.w)).toEqual([-55, -20, -32.5])
+  })
+})

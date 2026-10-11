@@ -141,7 +141,7 @@ export const useStore = create<Store>((set, get) => ({
         let sets = e.sets.map((x, j) => (j === setIdx ? deriveSet({ ...x, ...patch }) : x))
         // İlk çalışma setinin ağırlığı değişince otomatik ısınmalar yeni rampaya çekilir.
         const first = e.sets.findIndex((s) => !s.warmup && !s.drop)
-        if (patch.w !== undefined && setIdx === first) sets = retargetWarmups(sets, e.sets[first].w, patch.w)
+        if (patch.w !== undefined && setIdx === first) sets = retargetWarmups(sets, e.sets[first].w, patch.w, e.bw ? e.bwKg : undefined)
         return { ...e, sets }
       }),
     })),
@@ -216,7 +216,7 @@ export const useStore = create<Store>((set, get) => ({
         // Rampa, ilk çalışma setinin ağırlığından hesaplanır; yeni ısınma mevcut ısınmaların ardına girer.
         const work = e.sets.find((s) => !s.warmup && !s.drop)
         const sets = [...e.sets]
-        sets.splice(k, 0, warmupSet(work?.w ?? 0, k))
+        sets.splice(k, 0, warmupSet(work?.w ?? 0, k, e.bw ? e.bwKg : undefined))
         return { ...e, sets }
       }),
     })),
@@ -231,7 +231,7 @@ export const useStore = create<Store>((set, get) => ({
         while (e.sets[at]?.drop) at++
         if (at - setIdx - 1 >= MAX_DROPS) return e
         const sets = [...e.sets]
-        sets.splice(at, 0, dropSet(e.sets[at - 1]))
+        sets.splice(at, 0, dropSet(e.sets[at - 1], e.bw ? e.bwKg : undefined))
         return { ...e, sets }
       }),
     })),

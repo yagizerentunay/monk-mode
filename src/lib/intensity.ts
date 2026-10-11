@@ -17,21 +17,38 @@ export function roundLoad(kg: number): number {
   return Math.max(step, Math.round(kg / step) * step)
 }
 
-/** `index`'inci (0'dan) ısınma seti; çalışma ağırlığı 0 ise ağırlık da 0 kalır. */
-export function warmupSet(workWeight: number, index: number): SetEntry {
-  const k = Math.min(index, WARMUP_PCT.length - 1)
-  return { w: roundLoad(workWeight * WARMUP_PCT[k]), r: WARMUP_REPS[k], done: false, warmup: true }
+/**
+ * Yükü `factor` oranına hafifletir (ısınma ve dropset). `bwKg` yalnız vücut ağırlığı egzersizinde verilir
+ * (`w` ek yük). Asistli (negatif ek yük) harekette hafifletmek asisti artırmaktır: oran toplam yüke
+ * (vücut + ek yük) uygulanır ve kalan kısım asist olur; asist vücut ağırlığını aşmaz. Vücut ağırlığı
+ * bilinmiyorsa asist aynı kalır (0'a çekmek seti çalışma setinden ağır yapardı). Ek yük 0 ya da
+ * pozitifse eski davranış: ek yükün oranı.
+ */
+export function lighterLoad(w: number, factor: number, bwKg?: number): number {
+  if (w >= 0) return roundLoad(w * factor)
+  if (bwKg === undefined || !(bwKg > 0)) return w
+  const total = Math.max(0, bwKg + w)
+  return -Math.min(roundLoad(bwKg - total * factor), bwKg)
 }
 
-export function warmupSets(workWeight: number, count: number): SetEntry[] {
+/**
+ * `index`'inci (0'dan) ısınma seti; çalışma ağırlığı 0 ise ağırlık da 0 kalır. `bwKg`: vücut ağırlığı
+ * egzersiziyse o günün vücut ağırlığı (bkz. lighterLoad).
+ */
+export function warmupSet(workWeight: number, index: number, bwKg?: number): SetEntry {
+  const k = Math.min(index, WARMUP_PCT.length - 1)
+  return { w: lighterLoad(workWeight, WARMUP_PCT[k], bwKg), r: WARMUP_REPS[k], done: false, warmup: true }
+}
+
+export function warmupSets(workWeight: number, count: number, bwKg?: number): SetEntry[] {
   return Array.from({ length: Math.min(Math.max(0, Math.floor(count)), MAX_WARMUPS) }, (_, i) =>
-    warmupSet(workWeight, i),
+    warmupSet(workWeight, i, bwKg),
   )
 }
 
-/** `prev` setinin hemen ardından gelecek dropset: %80 ağırlık, aynı tekrar hedefi, tamamlanmamış. */
-export function dropSet(prev: SetEntry): SetEntry {
-  const base: SetEntry = { w: roundLoad(prev.w * DROP_FACTOR), r: prev.r, done: false, drop: true }
+/** `prev` setinin hemen ardından gelecek dropset: %80 yük, aynı tekrar hedefi, tamamlanmamış. */
+export function dropSet(prev: SetEntry, bwKg?: number): SetEntry {
+  const base: SetEntry = { w: lighterLoad(prev.w, DROP_FACTOR, bwKg), r: prev.r, done: false, drop: true }
   if (!prev.sides) return base
   return deriveSet({
     ...base,
@@ -78,11 +95,11 @@ export function restAfterSec(sets: SetEntry[], index: number, restSec: number): 
 }
 
 /** `last` setinden başlayarak `count` dropset zinciri (her biri bir öncekinin %80'i). */
-export function dropChain(last: SetEntry, count: number): SetEntry[] {
+export function dropChain(last: SetEntry, count: number, bwKg?: number): SetEntry[] {
   const out: SetEntry[] = []
   let prev = last
   for (let i = 0; i < Math.min(Math.max(0, Math.floor(count)), MAX_DROPS); i++) {
-    prev = dropSet(prev)
+    prev = dropSet(prev, bwKg)
     out.push(prev)
   }
   return out
@@ -94,12 +111,12 @@ export function dropChain(last: SetEntry, count: number): SetEntry[] {
  * tamamlanan ısınmaya dokunulmaz. (Yazarken her tuşta çağrılır: ara değerler de aynı fonksiyonla
  * hesaplandığı için bir sonraki adımda yine "otomatik" olarak tanınırlar.)
  */
-export function retargetWarmups(sets: SetEntry[], from: number, to: number): SetEntry[] {
+export function retargetWarmups(sets: SetEntry[], from: number, to: number, bwKg?: number): SetEntry[] {
   let k = 0
   return sets.map((s) => {
     if (!s.warmup) return s
     const idx = k++
-    if (s.done || s.w !== warmupSet(from, idx).w) return s
-    return { ...s, w: warmupSet(to, idx).w }
+    if (s.done || s.w !== warmupSet(from, idx, bwKg).w) return s
+    return { ...s, w: warmupSet(to, idx, bwKg).w }
   })
 }
