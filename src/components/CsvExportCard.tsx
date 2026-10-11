@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { loadExercises } from '../lib/exercises.ts'
 import { exportCsv } from '../store/downloadBackup.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -7,6 +8,11 @@ export function CsvExportCard() {
   const count = useStore((s) => s.workouts.length)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+
+  // Kütüphane önceden yüklensin: dokunuşta beklenirse iOS paylaşım menüsünün istediği kullanıcı jesti düşebilir.
+  useEffect(() => {
+    loadExercises().catch(() => {})
+  }, [])
 
   const save = async () => {
     setBusy(true)
