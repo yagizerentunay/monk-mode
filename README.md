@@ -33,11 +33,18 @@ Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri ol
 
 [Tüm özelliklerin ayrıntıları →](docs/features.md)
 
-## Ekran görüntüsü
+## Ekran görüntüleri
 
-Canlı demodaki egzersiz kütüphanesinden bir görünüm:
+<table>
+  <tr>
+    <td align="center"><img src="public/screenshots/home.png" alt="Ana ekran: haftalık plan, seri ve vücut ağırlığı trendi" width="200" /><br /><sub>Ana ekran</sub></td>
+    <td align="center"><img src="public/screenshots/workout.png" alt="Antrenman ekranı: ısınma, hedef ağırlık ve RIR girişi" width="200" /><br /><sub>Antrenman</sub></td>
+    <td align="center"><img src="public/screenshots/stats.png" alt="Analiz ekranı: tahmini 1RM ilerlemesi ve kilo trendi" width="200" /><br /><sub>Analiz</sub></td>
+    <td align="center"><img src="public/screenshots/exercise-library.png" alt="Egzersiz kütüphanesi: kas ve ekipman filtreleri" width="200" /><br /><sub>Egzersiz kütüphanesi</sub></td>
+  </tr>
+</table>
 
-![Monk Mode egzersiz kütüphanesi](public/screenshots/exercise-library.png)
+Görüntüler örnek verilerle alınmıştır.
 
 ## Verin ve çevrimdışı kullanım
 
