@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import { addSetTo, editSet, finalizeEdit, removeEntryAt, removeSetAt, setEntryNoteIn, setWorkoutNoteIn } from '../lib/editWorkout.ts'
+import {
+  addSetTo,
+  editSet,
+  finalizeEdit,
+  removeEntryAt,
+  removeSetAt,
+  setEntryBwKgIn,
+  setEntryNoteIn,
+  setWorkoutNoteIn,
+} from '../lib/editWorkout.ts'
 import { describeSets } from '../lib/intensity.ts'
 import { NOTE_MAX } from '../lib/notes.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
@@ -66,6 +75,20 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 ✕
               </button>
             </div>
+
+            {entry.bw && (
+              <div className="row between editbw">
+                <span className="sub">Vücut ağırlığı ({unit}){entry.bwKg === undefined ? ' · kayıt yok' : ''}</span>
+                <NumberField
+                  label={`${name} vücut ağırlığı`}
+                  value={entry.bwKg ?? 0}
+                  toDisplay={(v) => kgToUnit(v, unit)}
+                  fromDisplay={(v) => unitToKg(v, unit)}
+                  step={0.5}
+                  onChange={(v) => setDraft((d) => setEntryBwKgIn(d, ei, v))}
+                />
+              </div>
+            )}
 
             {entry.sets.map((set, si) => (
               <div key={si} className="setrow">

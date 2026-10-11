@@ -6,6 +6,7 @@ import {
   finalizeEdit,
   removeEntryAt,
   removeSetAt,
+  setEntryBwKgIn,
   setEntryNoteIn,
   setWorkoutNoteIn,
 } from './editWorkout.ts'
@@ -155,5 +156,30 @@ describe('kaydetmeye hazırlama', () => {
   it('hiç çalışma seti kalmadıysa null verir', () => {
     expect(finalizeEdit(wk([{ exId: 'a', sets: [set(1, 1, { warmup: true })] }]))).toBeNull()
     expect(finalizeEdit(wk([{ exId: 'a', sets: [], note: 'x' }]))).toBeNull()
+  })
+})
+
+describe('kaydedilmiş antrenmanda vücut ağırlığı', () => {
+  const base: Workout = {
+    id: 'w1',
+    d: '2026-10-01',
+    start: 1,
+    name: 'Pull',
+    entries: [
+      { exId: 'pullup', bw: true, bwKg: 70, sets: [{ w: 0, r: 8, done: true }] },
+      { exId: 'row', sets: [{ w: 40, r: 8, done: true }] },
+    ],
+  }
+
+  it('bw egzersizinde vücut ağırlığını değiştirir', () => {
+    expect(setEntryBwKgIn(base, 0, 72.5).entries[0].bwKg).toBe(72.5)
+  })
+
+  it('0 kaydı kaldırır ("bilinmiyor")', () => {
+    expect(setEntryBwKgIn(base, 0, 0).entries[0]).not.toHaveProperty('bwKg')
+  })
+
+  it('bw olmayan egzersize dokunmaz', () => {
+    expect(setEntryBwKgIn(base, 1, 80).entries[1]).toBe(base.entries[1])
   })
 })
