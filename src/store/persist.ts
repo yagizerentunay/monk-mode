@@ -10,6 +10,8 @@ type Store = Pick<Storage, 'getItem' | 'setItem' | 'key' | 'length'>
 
 /** Depolama durumu; State'in parçası değildir, diske yazılmaz. */
 export interface StorageStatus {
+  /** Son kayıt başarısız oldu (depolama dolu veya kapalı); sonraki başarılı kayıtla temizlenir. */
+  saveFailed: boolean
   /** Açılışta okunamayan veri: ham metin ve yan kopyanın anahtarı (kopya yazılamadıysa null). */
   corrupt: { raw: string; key: string | null } | null
   /** Yan kopya yazılamadı: kullanıcı onaylayana kadar ana anahtarın üstüne yazılmaz. */
@@ -17,6 +19,7 @@ export interface StorageStatus {
 }
 
 export const useStorageStatus = create<StorageStatus>(() => ({
+  saveFailed: false,
   corrupt: null,
   blocked: false,
 }))
@@ -68,13 +71,15 @@ export function loadState(
   }
 }
 
-/** State'i yazar; hata olursa oturum bellekte sürer. Yan kopyası olmayan bozuk veri onaylanana dek korunur. */
+/** State'i yazar; hata olursa sessizce yutmak yerine durumu işaretler, sonraki başarılı yazma temizler. */
 export function saveState(storage: Pick<Storage, 'setItem'>, state: State): void {
   if (useStorageStatus.getState().blocked) return // kopyasız bozuk veri korunur; oturum bellekte sürer
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(state))
+    if (useStorageStatus.getState().saveFailed) useStorageStatus.setState({ saveFailed: false })
   } catch {
-    // Depolama dolu veya kapalı: oturum bellekte çalışmaya devam eder.
+    // Depolama dolu veya kapalı: oturum bellekte çalışmaya devam eder, kullanıcı uyarılır.
+    useStorageStatus.setState({ saveFailed: true })
   }
 }
 

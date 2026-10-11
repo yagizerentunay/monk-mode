@@ -25,7 +25,7 @@ const corruptKeys = (s: ReturnType<typeof fakeStorage>) => [...s.data.keys()].fi
 const NOW = new Date('2026-10-11T10:00:00.000Z')
 
 beforeEach(() => {
-  useStorageStatus.setState({ corrupt: null, blocked: false })
+  useStorageStatus.setState({ saveFailed: false, corrupt: null, blocked: false })
 })
 
 describe('bozuk veri karantinası', () => {
@@ -91,5 +91,25 @@ describe('bozuk veri karantinası', () => {
     dismissCorrupt()
     expect(useStorageStatus.getState().corrupt).toBeNull()
     expect(corruptKeys(s)).toHaveLength(1)
+  })
+})
+
+describe('kayıt hatası durumu', () => {
+  it('kayıt başarısız olunca işaretlenir, sonraki başarılı kayıtla temizlenir', () => {
+    const s = fakeStorage()
+    s.full = true
+    saveState(s, defaultState())
+    expect(useStorageStatus.getState().saveFailed).toBe(true)
+    expect(s.data.has(STORAGE_KEY)).toBe(false)
+
+    s.full = false
+    saveState(s, defaultState())
+    expect(useStorageStatus.getState().saveFailed).toBe(false)
+    expect(s.data.get(STORAGE_KEY)).toBe(JSON.stringify(defaultState()))
+  })
+
+  it('başarılı kayıt durumu işaretlemez', () => {
+    saveState(fakeStorage(), defaultState())
+    expect(useStorageStatus.getState().saveFailed).toBe(false)
   })
 })

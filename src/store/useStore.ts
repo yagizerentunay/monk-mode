@@ -9,7 +9,7 @@ import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
-import { loadState, saveState, STORAGE_KEY } from './persist.ts'
+import { loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
 import {
   defaultState,
   type BodyweightEntry,
@@ -37,7 +37,8 @@ function save(state: State): void {
   try {
     saveState(localStorage, state)
   } catch {
-    // Depolama dolu veya kapalı: oturum bellekte çalışmaya devam eder.
+    // localStorage'a erişim bile yok (gizli mod, kapalı depolama): uyarı gösterilir.
+    useStorageStatus.setState({ saveFailed: true })
   }
 }
 
