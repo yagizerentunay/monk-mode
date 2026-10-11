@@ -21,6 +21,12 @@
 
 Rutinlerini planla, setlerini kaydet ve ilerlemeni gör. Monk Mode hesabı, bulut eşitlemesi veya sunucu kullanmaz: verilerin bu tarayıcıda saklanır. Verini düzenli olarak **Ayarlar → Yedeği indir** ile dışa aktarabilirsin.
 
+<p align="center">
+  <img src="public/screenshots/demo.gif" alt="Kısa demo: devam eden antrenmanda set tamamlama, dinlenme sayacı ve RIR girişi, ardından analiz ekranı" width="280" />
+  <br />
+  <sub>Antrenmanda set tamamla, RIR gir, ilerlemeni gör. Örnek verilerle kaydedilmiştir.</sub>
+</p>
+
 Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri olarak esinlenir; kodu sıfırdan yazılmıştır ve openGym kodu içermez.
 
 ## Özellikler
