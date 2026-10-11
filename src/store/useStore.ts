@@ -9,7 +9,7 @@ import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
 import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
-import { migrate } from './migrate.ts'
+import { loadState, saveState, STORAGE_KEY } from './persist.ts'
 import {
   defaultState,
   type BodyweightEntry,
@@ -23,12 +23,11 @@ import {
   type Workout,
 } from './schema.ts'
 
-export const STORAGE_KEY = 'monk_state_v1'
+export { STORAGE_KEY }
 
 function load(): State {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? migrate(JSON.parse(raw)) : defaultState()
+    return loadState(localStorage)
   } catch {
     return defaultState()
   }
@@ -36,7 +35,7 @@ function load(): State {
 
 function save(state: State): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    saveState(localStorage, state)
   } catch {
     // Depolama dolu veya kapalı: oturum bellekte çalışmaya devam eder.
   }
