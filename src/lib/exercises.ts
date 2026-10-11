@@ -11,7 +11,6 @@ export interface Exercise {
   category: string
   primaryMuscles: string[]
   secondaryMuscles: string[]
-  instructions: string[]
   images: string[]
   custom?: boolean
   /** Kullanıcı kasları düzelttiyse düzeltmeden önceki kaslar (kas alanları o zaman düzeltilmiş hâldedir). */
@@ -40,6 +39,22 @@ export function loadExercises(): Promise<Exercise[]> {
   return cache
 }
 
+let steps: Promise<Record<string, string[]>> | null = null
+
+/** Talimat adımları ayrı dosyada (verinin çoğu); yalnız egzersiz detayı açılınca bir kez yüklenir. */
+export function loadInstructions(): Promise<Record<string, string[]>> {
+  steps ??= fetch(`${import.meta.env.BASE_URL}data/instructions.json`)
+    .then((r) => {
+      if (!r.ok) throw new Error(`Talimatlar yüklenemedi (${r.status})`)
+      return r.json() as Promise<Record<string, string[]>>
+    })
+    .catch((e) => {
+      steps = null
+      throw e
+    })
+  return steps
+}
+
 export function fromCustom(c: CustomExercise): Exercise {
   return {
     id: c.id,
@@ -49,7 +64,6 @@ export function fromCustom(c: CustomExercise): Exercise {
     category: 'strength',
     primaryMuscles: c.primaryMuscles,
     secondaryMuscles: [],
-    instructions: [],
     images: [],
     custom: true,
   }

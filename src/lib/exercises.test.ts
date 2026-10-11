@@ -20,7 +20,6 @@ const ex = (id: string, name: string, muscle: string, equipment: string | null):
   category: 'strength',
   primaryMuscles: [muscle],
   secondaryMuscles: [],
-  instructions: [],
   images: [],
 })
 
