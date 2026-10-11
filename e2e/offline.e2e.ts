@@ -30,4 +30,14 @@ test('service worker önbelleğiyle çevrimdışı açılır, veri ve egzersizle
   await page.goto('./#/library')
   await page.getByPlaceholder('Egzersiz ara…').fill('bench press')
   await expect(page.locator('.exname', { hasText: 'Barbell Bench Press' }).first()).toBeVisible()
+
+  // Ayrı parçalara bölünmüş ekranlar da önbellekten gelmeli (çevrimiçiyken hiç açılmadılar).
+  for (const [hash, text] of [
+    ['#/plan', 'Haftalık program'],
+    ['#/stats', 'Performans analizi'],
+    ['#/settings', 'monk-mode v'],
+  ] as const) {
+    await page.goto('./' + hash)
+    await expect(page.locator('main.app').filter({ hasText: text }).first()).toBeVisible()
+  }
 })
