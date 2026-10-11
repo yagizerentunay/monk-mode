@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CsvExportCard } from '../components/CsvExportCard.tsx'
 import { ImportCard } from '../components/ImportCard.tsx'
+import { MergeImportCard } from '../components/MergeImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { ProgressionRuleCard } from '../components/ProgressionRuleCard.tsx'
@@ -269,6 +270,7 @@ export function Settings() {
       </div>
 
       <ImportCard />
+      <MergeImportCard />
 
       <p className="sub">
         monk-mode v{__APP_VERSION__} · MIT lisanslı. Egzersiz verisi: free-exercise-db (kamu malı).
