@@ -10,6 +10,7 @@ import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
 import type { ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
+import { deleteRoutineWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
 
 const PROG_LABEL: Record<ProgressionMode, string> = {
@@ -51,7 +52,6 @@ export function RoutineEdit() {
   const routines = useStore((s) => s.routines)
   const unit = useStore((s) => s.settings.unit)
   const saveRoutine = useStore((s) => s.saveRoutine)
-  const deleteRoutine = useStore((s) => s.deleteRoutine)
   const { byId } = useExercises()
 
   const existing = useMemo(() => routines.find((r) => r.id === id), [routines, id])
@@ -237,7 +237,7 @@ export function RoutineEdit() {
           className="btn danger block dangerzone"
           onClick={() => {
             if (confirm(`"${existing.name}" rutini silinsin mi?`)) {
-              deleteRoutine(existing.id)
+              deleteRoutineWithUndo(existing.id)
               navigate('/plan')
             }
           }}
