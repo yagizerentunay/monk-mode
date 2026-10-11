@@ -6,7 +6,7 @@ export interface Prescription {
   /** Önerilen hedef tekrar. */
   r: number
   /** Bu öneriyi doğuran gerekçe, arayüzde ipucu olarak gösterilir. */
-  reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'confirm' | 'need-rir'
+  reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'confirm' | 'need-rir' | 'assist-rep'
 }
 
 /**
@@ -21,6 +21,8 @@ export function prescriptionHint(reason: Prescription['reason'], rule?: Progress
       return 'Bir seans daha üst sınırda kalırsan ağırlık artar'
     case 'need-rir':
       return 'Ağırlık artışı için setlere RIR gir (en az 2)'
+    case 'assist-rep':
+      return 'Asistli hareket: asist aynı kalır, bir tekrar ekle'
     default:
       return null
   }
@@ -79,6 +81,20 @@ function sameLoadAndSets(a: WorkoutEntry, b: WorkoutEntry): boolean {
  * hedef tekrar aralığın altına döner.
  */
 export function nextPrescription(cfg: ExCfg, last?: WorkoutEntry, opts: PrescribeOptions = {}): Prescription {
+  const p = prescribe(cfg, last, opts)
+  if (!last?.bw || p.reason === 'plan') return p
+  const sets = workSets(last).filter((s) => s.done)
+  const lastW = Math.max(...sets.map((s) => s.w))
+  if (!(lastW < 0)) return p
+  // Asistli (negatif ek yük) harekette asist otomatik değişmez, yalnız tekrar artar (Yağız'ın kararı,
+  // 11 Ekim 2026): kural ağırlık artırmaya karar verdiğinde bunun yerine bir tekrar eklenir. Aralığın
+  // üstüne çıkmış tekrar hedefi de geri düşürülmez.
+  const minReps = Math.min(...sets.map((s) => s.r))
+  if (p.reason === 'increase') return { w: lastW, r: minReps + 1, reason: 'assist-rep' }
+  return { ...p, r: Math.max(p.r, minReps) }
+}
+
+function prescribe(cfg: ExCfg, last: WorkoutEntry | undefined, opts: PrescribeOptions): Prescription {
   const plan: Prescription = { w: cfg.weight, r: cfg.reps, reason: 'plan' }
   if (!last || cfg.prog === 'off') return plan
 
