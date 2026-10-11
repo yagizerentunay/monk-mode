@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { migrate } from './migrate.ts'
+import { migrateWithReport, type MigrateResult } from './migrate.ts'
+import { droppedTotal, repairedTotal } from './sanitize.ts'
 import { defaultState, type State } from './schema.ts'
 
 export const STORAGE_KEY = 'monk_state_v1'
@@ -14,6 +15,11 @@ export interface StorageStatus {
   saveFailed: boolean
   /** Açılışta okunamayan veri: ham metin ve yan kopyanın anahtarı (kopya yazılamadıysa null). */
   corrupt: { raw: string; key: string | null } | null
+  /**
+   * Açılışta veri okundu ama bazı kayıtlar bozuktu: atılan/onarılan sayısı, ham metin ve yan kopyanın anahtarı
+   * (kopya yazılamadıysa null). Geçerli kayıtlar yüklendi; ham veri yan kopyada durur.
+   */
+  sanitized: { dropped: number; repaired: number; raw: string; key: string | null } | null
   /** Yan kopya yazılamadı: kullanıcı onaylayana kadar ana anahtarın üstüne yazılmaz. */
   blocked: boolean
 }
@@ -21,6 +27,7 @@ export interface StorageStatus {
 export const useStorageStatus = create<StorageStatus>(() => ({
   saveFailed: false,
   corrupt: null,
+  sanitized: null,
   blocked: false,
 }))
 
@@ -49,11 +56,13 @@ function quarantine(storage: Store, raw: string, now: Date): string | null {
 /**
  * Kayıtlı veriyi okur. Okunamazsa (bozuk JSON ya da migrate hatası) varsayılan state döner ama ham
  * metin önce yan kopyaya alınır; kopya da yazılamazsa save() kullanıcı onaylayana dek ana anahtara dokunmaz.
+ * Okunabilir ama bazı kayıtları bozuksa geçerli kayıtlar yüklenir, bozuklar atılır ve ham metin aynı
+ * şekilde yan kopyaya alınır (`sanitized` uyarısı).
  */
 export function loadState(
   storage: Store,
   now: Date = new Date(),
-  migrateFn: (v: unknown) => State = migrate,
+  migrateFn: (v: unknown) => MigrateResult = migrateWithReport,
 ): State {
   let raw: string | null
   try {
@@ -62,13 +71,29 @@ export function loadState(
     return defaultState()
   }
   if (!raw) return defaultState()
+  let result: MigrateResult
   try {
-    return migrateFn(JSON.parse(raw))
+    result = migrateFn(JSON.parse(raw))
   } catch {
     const key = quarantine(storage, raw, now)
     useStorageStatus.setState({ corrupt: { raw, key }, blocked: key === null })
     return defaultState()
   }
+  const dropped = droppedTotal(result.report)
+  if (dropped > 0) {
+    // Bozuk kayıtlar atıldı: temizlenmiş state ana anahtarın üstüne yazılmadan önce ham veri aynen saklanır.
+    const key = quarantine(storage, raw, now)
+    useStorageStatus.setState({
+      sanitized: { dropped, repaired: repairedTotal(result.report), raw, key },
+      blocked: key === null,
+    })
+  }
+  return result.state
+}
+
+/** Atılan kayıt uyarısını kapatır. Yan kopya silinmez; kopya yoksa (blocked) kayıt yazmaya izin verir. */
+export function dismissSanitized(): void {
+  useStorageStatus.setState({ sanitized: null, blocked: false })
 }
 
 /** State'i yazar; hata olursa sessizce yutmak yerine durumu işaretler, sonraki başarılı yazma temizler. */

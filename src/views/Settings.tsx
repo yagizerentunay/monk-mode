@@ -12,7 +12,8 @@ import { formatRate } from '../lib/bodyweight.ts'
 import { getPersistStatus, requestPersist, type PersistStatus } from '../lib/persistStorage.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
 import { unitToKg, type Unit } from '../lib/units.ts'
-import { importBackup } from '../store/backup.ts'
+import { importBackupWithReport } from '../store/backup.ts'
+import { describeDropped } from '../store/sanitize.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { shareBackup } from '../store/downloadBackup.ts'
 import { defaultState } from '../store/schema.ts'
@@ -71,13 +72,14 @@ export function Settings() {
   const onFile = async (file: File | undefined) => {
     if (!file) return
     try {
-      const state = importBackup(await file.text())
+      const { state, report } = importBackupWithReport(await file.text())
       if (!confirm('Mevcut tüm veriler yedekteki verilerle değiştirilsin mi?')) return
       void snapshotNow('Yedek yüklemeden önce')
       replaceAll(state)
       // Veri az önce bir yedek dosyasından geldi; hemen ardından "yedekle" demek anlamsız olur.
       useStore.getState().markBackedUp(Date.now())
-      setMessage(`Yedek yüklendi: ${state.workouts.length} antrenman, ${state.routines.length} rutin.`)
+      const skipped = describeDropped(report)
+      setMessage(`Yedek yüklendi: ${state.workouts.length} antrenman, ${state.routines.length} rutin${skipped ? `; ${skipped}` : ''}.`)
     } catch (e) {
       setMessage((e as Error).message)
     } finally {
@@ -89,13 +91,18 @@ export function Settings() {
   const onRoutineFile = async (file: File | undefined) => {
     if (!file) return
     try {
-      const incoming = importBackup(await file.text())
+      const { state: incoming, report } = importBackupWithReport(await file.text())
       void snapshotNow('Rutin eklemeden önce')
       const m = useStore.getState().addRoutinesFrom(incoming)
       const parts = [`${m.added} rutin eklendi`]
       if (m.skipped > 0) parts.push(`${m.skipped} zaten vardı`)
       if (m.invalid > 0) parts.push(`${m.invalid} geçersiz rutin atlandı`)
-      setMessage(m.added + m.skipped + m.invalid === 0 ? 'Dosyada rutin bulunamadı.' : `${parts.join(', ')}.`)
+      // Rutin içe aktarımı yalnız rutinlere bakar; antrenman vb. bozuklukları sayıya karışmasın.
+      const brokenRoutines = report.dropped.routine + report.dropped.routineEx
+      if (brokenRoutines > 0) parts.push(`${brokenRoutines} bozuk kayıt atlandı`)
+      setMessage(
+        m.added + m.skipped + m.invalid + brokenRoutines === 0 ? 'Dosyada rutin bulunamadı.' : `${parts.join(', ')}.`,
+      )
     } catch (e) {
       setMessage((e as Error).message)
     } finally {

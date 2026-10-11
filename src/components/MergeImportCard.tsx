@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { describeMerge } from '../lib/mergeBackup.ts'
-import { importBackup } from '../store/backup.ts'
+import { importBackupWithReport } from '../store/backup.ts'
+import { describeDropped } from '../store/sanitize.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -13,11 +14,14 @@ export function MergeImportCard() {
   const onFile = async (file: File | undefined) => {
     if (!file) return
     try {
-      const incoming = importBackup(await file.text())
+      const { state: incoming, report: sanitized } = importBackupWithReport(await file.text())
       // Kopya, birleştirme state'i değiştirmeden önce (çağrı anında) alınır.
       void snapshotNow('Birleştirmeden önce')
       const report = mergeFrom(incoming)
-      setMessage(`Birleştirildi: ${describeMerge(report)}`)
+      const skipped = describeDropped(sanitized)
+      // describeMerge nokta ile biter; bozuk kayıt notu aynı cümleye girsin.
+      const merged = describeMerge(report).replace(/.$/, '')
+      setMessage(`Birleştirildi: ${merged}${skipped ? `; ${skipped}` : ''}.`)
     } catch (e) {
       setMessage((e as Error).message)
     } finally {
