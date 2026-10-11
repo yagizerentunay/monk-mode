@@ -2,7 +2,7 @@ import type { ProgressionRule } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
 const CHOICES: { rule: ProgressionRule; label: string; hint: string }[] = [
-  { rule: 'cautious', label: 'Temkinli (önerilen): üst sınırda iki seans + RIR ≥ 2', hint: 'Önce tekrar eklersin; ağırlık yalnız iki seans üst sınırda, her sette RIR en az 2 kalınca artar. RIR girilmemiş seans sayılmaz.' },
+  { rule: 'cautious', label: 'Temkinli (önerilen): üst sınırda iki seans + RIR ≥ 2', hint: 'Önce tekrar eklersin; ağırlık yalnız iki seans üst sınırda, her sette RIR en az 2 kalınca artar. RIR girilmemiş seans sayılmaz.' },
   { rule: 'fast', label: 'Hızlı: tek seans yeter', hint: 'Üst sınıra tek seansta ulaşınca ağırlık artar; RIR aranmaz.' },
 ]
 

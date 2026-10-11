@@ -30,7 +30,7 @@ describe('ProgressionRuleCard', () => {
       })
     click(byText(draw(), 'Hızlı: tek seans yeter'))
     expect(useStore.getState().settings.progressionRule).toBe('fast')
-    click(byText(draw(), 'Temkinli (önerilen): üst sınırda iki seans + RIR ≥ 2'))
+    click(byText(draw(), 'Temkinli (önerilen): üst sınırda iki seans + RIR ≥ 2'))
     expect(useStore.getState().settings.progressionRule).toBeUndefined()
   })
 })
