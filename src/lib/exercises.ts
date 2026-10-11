@@ -17,7 +17,11 @@ export interface Exercise {
   original?: MuscleFix
 }
 
-const IMAGE_CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/'
+/**
+ * Görseller, veri kopyasıyla (data/free-exercise-db/SOURCE.md) aynı upstream commit'ine sabitlenir;
+ * `@main` olsaydı upstream'de bir yeniden adlandırma görselleri kırardı. Veriyi yenilerken sha'yı da güncelle.
+ */
+const IMAGE_CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@79ca7b47d77cd5a6dd7a50440e9f0bf24da6a142/exercises/'
 
 export function imageUrl(path: string): string {
   return IMAGE_CDN + path

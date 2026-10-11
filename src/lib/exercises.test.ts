@@ -8,6 +8,7 @@ import {
   isBodyOnly,
   isUnilateralName,
   nameLang,
+  imageUrl,
   withMuscleFixes,
   type Exercise,
 } from './exercises.ts'
@@ -150,5 +151,13 @@ describe('withMuscleFixes', () => {
     expect(before.adductors).toBe(0)
     expect(after.quadriceps).toBe(0)
     expect(after.adductors).toBe(2)
+  })
+})
+
+describe('imageUrl', () => {
+  it('görselleri @main yerine 40 haneli bir commit sha\'sına sabitler', () => {
+    const url = imageUrl('3_4_Sit-Up/0.jpg')
+    expect(url).toMatch(/^https:\/\/cdn\.jsdelivr\.net\/gh\/yuhonas\/free-exercise-db@[0-9a-f]{40}\/exercises\/3_4_Sit-Up\/0\.jpg$/)
+    expect(url).not.toContain('@main')
   })
 })
