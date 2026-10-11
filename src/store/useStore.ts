@@ -3,6 +3,7 @@ import { insertWorkout } from '../lib/backdate.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
+import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
@@ -77,6 +78,8 @@ export interface Actions {
   importWorkouts(workouts: Workout[], customEx: CustomExercise[]): void
   /** Yedek dosyasındaki rutinleri mevcut verinin üstüne ekler (bkz. lib/mergeRoutines.ts). */
   addRoutinesFrom(incoming: { routines: unknown; customEx: unknown }): RoutineMerge
+  /** Başka cihazın yedeğini hiçbir şey silmeden birleştirir (bkz. lib/mergeBackup.ts); yeni bir şey yoksa state değişmez. */
+  mergeFrom(incoming: State): MergeReport
   logBodyweight(entry: BodyweightEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   /** Egzersizin kaslarını düzeltir (en az bir geçerli birincil kas yoksa yok sayılır, bkz. lib/muscleFix.ts). */
@@ -319,6 +322,20 @@ export const useStore = create<Store>((set, get) => ({
     const merged = mergeRoutines(get(), incoming)
     if (merged.added > 0) set(() => ({ routines: merged.routines, customEx: merged.customEx }))
     return merged
+  },
+
+  mergeFrom: (incoming) => {
+    const { state, report } = mergeState(snapshot(get()), incoming)
+    if (totalAdded(report) > 0) {
+      set(() => ({
+        workouts: state.workouts,
+        routines: state.routines,
+        bodyweight: state.bodyweight,
+        customEx: state.customEx,
+        muscleFix: state.muscleFix,
+      }))
+    }
+    return report
   },
 
   logBodyweight: (entry) =>

@@ -575,3 +575,47 @@ describe('egzersiz değiştirme', () => {
     expect(useStore.getState().active).toBe(before)
   })
 })
+
+describe('yedekle birleştirme', () => {
+  const w = (id: string, d: string, start: number) => ({
+    id,
+    d,
+    start,
+    name: 'Push',
+    entries: [{ exId: 'bench', sets: [{ w: 60, r: 5, done: true }] }],
+  })
+
+  it('yeni kayıtları tek güncellemede ekler; ayar, program ve aktif antrenmana dokunmaz', () => {
+    useStore.getState().setSettings({ unit: 'lb' })
+    useStore.getState().addWorkout(w('a', '2026-10-02', 2))
+    const incoming = {
+      ...defaultState(),
+      settings: { ...defaultState().settings, unit: 'kg' as const },
+      workouts: [w('b', '2026-10-01', 1), w('a', '2026-10-02', 2)],
+      bodyweight: [{ d: '2026-10-01', w: 80 }],
+    }
+    let updates = 0
+    const unsub = useStore.subscribe(() => updates++)
+    const report = useStore.getState().mergeFrom(incoming)
+    unsub()
+    const s = useStore.getState()
+    expect(updates).toBe(1)
+    expect(report.workouts).toEqual({ added: 1, identical: 1, conflicting: 0 })
+    expect(s.workouts.map((x) => x.id)).toEqual(['b', 'a'])
+    expect(s.bodyweight).toEqual([{ d: '2026-10-01', w: 80 }])
+    expect(s.settings.unit).toBe('lb')
+  })
+
+  it('aynı yedeği ikinci kez birleştirmek state\'i değiştirmez', () => {
+    const incoming = { ...defaultState(), workouts: [w('b', '2026-10-01', 1)] }
+    useStore.getState().mergeFrom(incoming)
+    const before = snapshot(useStore.getState())
+    let updates = 0
+    const unsub = useStore.subscribe(() => updates++)
+    const again = useStore.getState().mergeFrom(incoming)
+    unsub()
+    expect(updates).toBe(0)
+    expect(again.workouts.added).toBe(0)
+    expect(snapshot(useStore.getState())).toEqual(before)
+  })
+})
