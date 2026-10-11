@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { ProgressionRuleCard } from '../components/ProgressionRuleCard.tsx'
 import { SnapshotsCard } from '../components/SnapshotsCard.tsx'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { REMIND_CHOICES } from '../lib/backupReminder.ts'
@@ -191,6 +192,7 @@ export function Settings() {
         </div>
       </div>
 
+      <ProgressionRuleCard />
       <MuscleTargetsCard />
 
       <div className="card stack">
