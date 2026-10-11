@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { BackupReminder } from '../components/BackupReminder.tsx'
 import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
@@ -17,7 +18,10 @@ import { useStore } from '../store/useStore.ts'
 
 export function Home() {
   const navigate = useNavigate()
-  const { routines, week, workouts, active, bodyweight } = useStore()
+  // Yalnız kullanılan alanlar: başka bir alan (ör. özel egzersiz, kas düzeltmesi) değişince Home yeniden çizilmez.
+  const { routines, week, workouts, active, bodyweight } = useStore(
+    useShallow((s) => ({ routines: s.routines, week: s.week, workouts: s.workouts, active: s.active, bodyweight: s.bodyweight })),
+  )
   const { unit, weekStart } = useStore((s) => s.settings)
   const startWorkout = useStore((s) => s.startWorkout)
   const logBodyweight = useStore((s) => s.logBodyweight)
@@ -34,12 +38,13 @@ export function Home() {
     const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)
     return { date: d, key: dayString(d), dow: d.getDay() }
   })
-  const trainedDays = new Set(workouts.map((w) => w.d))
+  // Tüm geçmişi tarayan hesaplar yalnız veri değişince; kilo yazarken ya da takvim açılırken tekrarlanmaz.
+  const trainedDays = useMemo(() => new Set(workouts.map((w) => w.d)), [workouts])
 
   const todayRoutine = routines.find((r) => r.id === week[today.getDay()])
   const doneToday = trainedDays.has(todayKey)
   // Sıradaki öneri yalnız dinlenme gününde ya da bugünün planı bittiğinde; bugünün rutiniyle aynıysa gereksiz.
-  const suggestion = suggestNextRoutine(routines, workouts)
+  const suggestion = useMemo(() => suggestNextRoutine(routines, workouts), [routines, workouts])
   const next = suggestion && (!todayRoutine || (doneToday && suggestion.routine.id !== todayRoutine.id)) ? suggestion : undefined
   const nextBlock = next && (
     <div className="hero-next stack">
@@ -59,9 +64,9 @@ export function Home() {
       </button>
     </div>
   )
-  const streak = weekStreak(workouts, today, weekStart)
+  const streak = useMemo(() => weekStreak(workouts, today, weekStart), [workouts, today, weekStart])
   const monthPrefix = todayKey.slice(0, 7)
-  const thisMonth = workouts.filter((w) => w.d.startsWith(monthPrefix)).length
+  const thisMonth = useMemo(() => workouts.filter((w) => w.d.startsWith(monthPrefix)).length, [workouts, monthPrefix])
   const lastBw = bodyweight[bodyweight.length - 1]
 
   const workSets = todayRoutine ? todayRoutine.ex.reduce((n, e) => n + e.sets, 0) : 0
