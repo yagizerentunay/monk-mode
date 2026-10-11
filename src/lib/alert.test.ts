@@ -151,4 +151,12 @@ describe('restDoneAlert / installAudioUnlock', () => {
     const { installAudioUnlock } = await load()
     expect(() => installAudioUnlock()).not.toThrow()
   })
+
+  it("Safari audioSession varsa müzikle karışsın diye 'ambient' yapılır", async () => {
+    const audioSession = { type: 'auto' }
+    vi.stubGlobal('navigator', { vibrate, audioSession })
+    const { restDoneAlert } = await load()
+    restDoneAlert()
+    expect(audioSession.type).toBe('ambient')
+  })
 })

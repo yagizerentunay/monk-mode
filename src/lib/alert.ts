@@ -18,6 +18,9 @@ function getContext(): AudioContext | null {
     const g = globalThis as { AudioContext?: AudioCtor; webkitAudioContext?: AudioCtor }
     const Ctor = g.AudioContext ?? g.webkitAudioContext
     if (!Ctor) return null
+    // Safari 16.4+: 'ambient' bip sesini çalan müzikle karıştırır; varsayılan oturum müziği duraklatabilir.
+    const nav = globalThis.navigator as (Navigator & { audioSession?: { type: string } }) | undefined
+    if (nav?.audioSession) nav.audioSession.type = 'ambient'
     sharedCtx = new Ctor()
     primed = false
     return sharedCtx
