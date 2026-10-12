@@ -308,6 +308,108 @@ export const CURATED_EXERCISES: Exercise[] = [
     illustration: `${import.meta.env.BASE_URL}exercises/triceps-cross-body-cable-extension.webp`,
     instructions: ['Yüksek makaraya tek tutacak tak ve çalışma kolunla kavra; dirseğini gövdenin yanında tut.', 'Ön kolunu kontrollü biçimde gövdenin karşı tarafına ve aşağıya doğru aç.', 'Dirseğini sabit tutarak başlangıca dön; omzunu döndürme ve ağrı olursa bırak.'],
   },
+  {
+    id: 'monk-abdominals-hanging-knee-raise', name: 'Hanging Knee Raise', level: 'beginner', equipment: 'other', category: 'strength',
+    primaryMuscles: ['abdominals'], secondaryMuscles: ['hip flexors'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/abdominals-hanging-knee-raise.webp`,
+    instructions: ['Sağlam bir bara asıl; omuzlarını kulaklarından uzaklaştırıp gövdeni sabitle.', 'Dizlerini bükerek karnını sık ve dizlerini kontrollü biçimde göğsüne doğru kaldır.', 'Sallanmayı önleyerek bacaklarını yavaşça indir; hareketi ağrısız aralıkta yap.'],
+  },
+  {
+    id: 'monk-abductors-banded-clamshell', name: 'Banded Clamshell', level: 'beginner', equipment: 'bands', category: 'strength',
+    primaryMuscles: ['abductors'], secondaryMuscles: ['glutes'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/abductors-banded-clamshell.webp`,
+    instructions: ['Yan yat, dizlerini bük ve hafif bir bandı dizlerinin üzerine yerleştir; ayaklarını üst üste tut.', 'Gövdeni ve kalçanı geriye yuvarlamadan üst dizini kontrollü biçimde aç.', 'Bandın direncine karşı dizini yavaşça kapat; iki tarafı da çalıştır.'],
+  },
+  {
+    id: 'monk-adductors-sumo-squat', name: 'Sumo Squat', level: 'beginner', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['adductors'], secondaryMuscles: ['quadriceps', 'glutes'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/adductors-sumo-squat.webp`,
+    instructions: ['Ayaklarını genişçe aç ve parmak uçlarını rahatça dışa çevir; gövdeni dik tut.', 'Kalçanı aşağı indirirken dizlerini ayak parmaklarınla aynı yönde takip ettir.', 'Ayak tabanlarından kuvvet alarak ayağa kalk; dizleri içeri düşürme ve ağrısız derinlikte kal.'],
+  },
+  {
+    id: 'monk-biceps-waiter-curl', name: 'Waiter Curl', level: 'beginner', equipment: 'dumbbell', category: 'strength',
+    primaryMuscles: ['biceps'], secondaryMuscles: ['forearms'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/biceps-waiter-curl.webp`,
+    instructions: ['Hafif bir dambılın bir ucunu iki avucunla alttan destekleyerek dik tut; dirseklerini gövdene yaklaştır.', 'Dirseklerini sabit tutup dambılı kontrollü biçimde göğsüne doğru kıvır.', 'Ağırlığı yavaşça indir; bileklerini rahat ve düz konumda tut.'],
+  },
+  {
+    id: 'monk-calves-tibialis-raise', name: 'Tibialis Raise', level: 'beginner', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['calves'], secondaryMuscles: [], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/calves-tibialis-raise.webp`,
+    instructions: ['Sırtını duvara dayayıp topuklarını yerde tut; ayaklarını rahatça öne yerleştir.', 'Topuklarını kaldırmadan ayak parmaklarını ve ön ayağını kaval kemiklerine doğru yükselt.', 'Ön ayağını yavaşça indir; küçük, kontrollü tekrarlarla başla.'],
+  },
+  {
+    id: 'monk-chest-archer-push-up', name: 'Archer Push-Up', level: 'intermediate', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/chest-archer-push-up.webp`,
+    instructions: ['Ellerini omuzlarından geniş yerleştirip plank pozisyonu al; gövdeni baştan topuğa düz tut.', 'Bir dirseğini bükerek göğsünü o ele doğru indirirken karşı kolunu yana doğru uzat.', 'Yere kontrollü biçimde iterek merkeze dön; iki tarafı eşit çalıştır ve gerekirse dizlerini yere koy.'],
+  },
+  {
+    id: 'monk-forearms-behind-back-wrist-curl', name: 'Behind-the-Back Barbell Wrist Curl', level: 'beginner', equipment: 'barbell', category: 'strength',
+    primaryMuscles: ['forearms'], secondaryMuscles: [], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/forearms-behind-back-wrist-curl.webp`,
+    instructions: ['Hafif bir barı arkanda, kolların rahatça uzanmış ve avuçların geriye bakacak biçimde tut.', 'Omuzlarını sabit bırakıp bileklerini kontrollü biçimde kıvırarak barı yükselt.', 'Bileklerini yavaşça başlangıca indir; ağrı veya uyuşma olursa dur.'],
+  },
+  {
+    id: 'monk-glutes-frog-pump', name: 'Frog Pump', level: 'beginner', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/glutes-frog-pump.webp`,
+    instructions: ['Sırtüstü yat, ayak tabanlarını birleştirip dizlerini rahatça yanlara bırak.', 'Karnını hafifçe sıkıp kalçanı yerden kaldır; belini aşırı çukurlaştırma.', 'Kalçanı sıkarak üstte kısa süre dur ve kontrollü biçimde yere indir.'],
+  },
+  {
+    id: 'monk-hamstrings-slider-leg-curl', name: 'Slider Leg Curl', level: 'beginner', equipment: 'other', category: 'strength',
+    primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/hamstrings-slider-leg-curl.webp`,
+    instructions: ['Sırtüstü yatıp topuklarının altına kaydırıcı veya havlu koy; kalçanı köprü pozisyonunda kaldır.', 'Kalçan havada kalırken topuklarını kendine doğru çekip dizlerini bük.', 'Bacaklarını yavaşça uzat; belin düşerse hareket aralığını kısalt veya kalçanı yere indir.'],
+  },
+  {
+    id: 'monk-lats-single-arm-kneeling-lat-pulldown', name: 'Single-Arm Kneeling Lat Pulldown', level: 'beginner', equipment: 'cable', category: 'strength',
+    primaryMuscles: ['lats'], secondaryMuscles: ['biceps', 'middle back'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/lats-single-arm-kneeling-lat-pulldown.webp`,
+    instructions: ['Yüksek makaraya tek tutacak tak; makinenin yanında diz çöküp tutacağı üstteki elinle kavra.', 'Gövdeni dik ve sabit tutarak dirseğini aşağı, kaburgana doğru çek.', 'Kolunu kontrollü biçimde yukarı uzat; iki tarafı da çalıştır.'],
+  },
+  {
+    id: 'monk-lower-back-prone-cobra-hold', name: 'Prone Cobra Hold', level: 'beginner', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['lower back'], secondaryMuscles: ['middle back', 'traps'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/lower-back-prone-cobra-hold.webp`,
+    instructions: ['Yüzüstü yat, kollarını gövdenin yanına koy ve alnını rahatça yere bırak.', 'Boynunu nötr tutarak göğsünü ve ellerini hafifçe kaldır; kürek kemiklerini nazikçe aşağı-geriye çek.', 'Kısa süre tutup kontrollü biçimde in; belinde rahatsızlık olursa kaldırma yüksekliğini azalt veya dur.'],
+  },
+  {
+    id: 'monk-middle-back-seal-row', name: 'Seal Row', level: 'intermediate', equipment: 'dumbbell', category: 'strength',
+    primaryMuscles: ['middle back'], secondaryMuscles: ['lats', 'biceps'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/middle-back-seal-row.webp`,
+    instructions: ['Göğsün destekli ve kolların aşağı sarkacak biçimde yüksek bir sehpaya yüzüstü uzan; hafif dambılları kavra.', 'Dirseklerini geriye çekip dambılları sehpaya doğru kaldır; gövdeni destekten ayırma.', 'Ağırlıkları kontrollü biçimde indir ve omuzlarını kulaklarına çekme.'],
+  },
+  {
+    id: 'monk-neck-flexion-isometric', name: 'Neck Flexion Isometric', level: 'beginner', equipment: null, category: 'strength',
+    primaryMuscles: ['neck'], secondaryMuscles: [], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/neck-flexion-isometric.webp`,
+    instructions: ['Dik otur, başını nötr tut ve avucunu alnına hafifçe yerleştir.', 'Başını öne oynatmadan eline karşı çok hafifçe bastır; rahatça nefes al.', 'Kısa süre sonra bırak; ağrı, uyuşma veya baş dönmesi olursa hemen dur.'],
+  },
+  {
+    id: 'monk-quadriceps-reverse-nordic-curl', name: 'Reverse Nordic Curl', level: 'intermediate', equipment: 'body only', category: 'strength',
+    primaryMuscles: ['quadriceps'], secondaryMuscles: ['abdominals'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/quadriceps-reverse-nordic-curl.webp`,
+    instructions: ['Dizlerinin altına minder koyup diz çök; kalçanı açık, gövdeni düz tut.', 'Kalça hizanı koruyarak gövdeni dizlerinden geriye doğru az miktarda yatır.', 'Ön bacaklarını sıkarak dik konuma dön; küçük aralıkta başla ve diz ağrısında dur.'],
+  },
+  {
+    id: 'monk-shoulders-plate-front-raise', name: 'Plate Front Raise', level: 'beginner', equipment: 'other', category: 'strength',
+    primaryMuscles: ['shoulders'], secondaryMuscles: [], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/shoulders-plate-front-raise.webp`,
+    instructions: ['Hafif bir ağırlık plakasını iki elinle uyluklarının önünde tut; dizlerini yumuşak bırak.', 'Dirseklerini hafif bükülü tutarak plakayı omuz hizasına kadar öne kaldır.', 'Gövdeni sallamadan plakayı yavaşça indir; omuz ağrısı oluşursa hareketi bırak.'],
+  },
+  {
+    id: 'monk-traps-farmer-carry', name: 'Farmer Carry', level: 'beginner', equipment: 'dumbbell', category: 'strength',
+    primaryMuscles: ['traps'], secondaryMuscles: ['forearms', 'abdominals'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/traps-farmer-carry.webp`,
+    instructions: ['İki eline kontrol edebileceğin dambılları al; dik durup omuzlarını rahatça geride tut.', 'Gövdeni yana eğmeden kısa ve dengeli adımlarla yürü.', 'Ağırlıkları güvenli biçimde bırak; omuzlarını yukarı çekme ve yolun açık olduğundan emin ol.'],
+  },
+  {
+    id: 'monk-triceps-bodyweight-triceps-extension', name: 'Bodyweight Triceps Extension', level: 'beginner', equipment: 'other', category: 'strength',
+    primaryMuscles: ['triceps'], secondaryMuscles: ['shoulders'], images: [],
+    illustration: `${import.meta.env.BASE_URL}exercises/triceps-bodyweight-triceps-extension.webp`,
+    instructions: ['Sağlam ve kaymayan bir barı omuz genişliğinde kavra; gövdeni düz tutup geriye doğru eğil.', 'Dirseklerini öne ve sabit tutarak alnını bara yaklaştıracak kadar kollarını bük.', 'Tricepslerini kullanıp dirseklerini açarak başlangıca dön; zorluğu ayarlamak için ayak konumunu değiştir.'],
+  },
 ]
 
 /** Merge locally illustrated demonstrations into existing upstream records, adding only new movements. */
