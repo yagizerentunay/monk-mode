@@ -285,6 +285,12 @@ export function Settings() {
       <p className="sub">
         monk-mode v{__APP_VERSION__} · MIT lisanslı.
       </p>
+      <p className="sub">
+        Egzersiz verisi:{' '}
+        <a href="https://github.com/yagizerentunay/open-exercise-atlas" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>
+          Open Exercise Atlas
+        </a>
+      </p>
     </div>
   )
 }

@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "data:atlas": "node scripts/sync-atlas.ts",
+    "data:atlas:update": "node scripts/sync-atlas.ts --update",
+    "data:atlas:check": "node scripts/sync-atlas.ts --check",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "preview": "vite preview"

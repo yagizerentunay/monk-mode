@@ -1,2 +1,6 @@
 # Üretilmiş veri bayt bayt karşılaştırılır (src/lib/exerciseData.test.ts); satır sonu checkout'ta değişmesin.
 public/data/*.json text eol=lf
+# Atlas kilidi okunur ve elle gözden geçirilir; satır sonu sabit kalsın.
+data/atlas.lock.json text eol=lf
+# Egzersiz görselleri Atlas deposundan bayt bayt kopyalanır; satır sonu ya da metin dönüşümü uygulanmasın.
+public/exercises/* binary

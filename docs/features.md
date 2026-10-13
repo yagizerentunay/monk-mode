@@ -2,7 +2,7 @@
 
 Monk Mode'un mevcut özelliklerine dair ayrıntılı açıklamalar. Uygulamaya giriş için [ana README'ye](../README.md) dön.
 
-- 85 resimli egzersizlik kütüphane, her kas grubunda en az dört hareket, Türkçe yönergelerle (arama, kas ve ekipman filtreleri, özel egzersiz). Eski kütüphaneden kalan kayıtlar geçmişte adı ve kasıyla görünmeye devam eder, ama seçicilerde çıkmaz
+- Resimli egzersiz kütüphanesi, [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas) verisinden üretilir ([nasıl](atlas-data.md)): her kas grubunda en az dört hareket, Türkçe yönergelerle (Türkçesi henüz olmayan Atlas kayıtlarında İngilizce; arama, kas ve ekipman filtreleri, özel egzersiz). Eski kütüphaneden kalan kayıtlar geçmişte adı ve kasıyla görünmeye devam eder, ama seçicilerde çıkmaz
 - Kas düzeltme: egzersiz detayında "Kasları düzelt" ile birincil ve yardımcı kaslar değiştirilir (ör. veritabanında yanlış etiketli bir egzersiz). Düzeltme kas haritasında, kas filtresinde ve değiştirme önerilerinde geçerli olur, yedeğe girer; "Orijinale dön" kütüphane kaslarını geri getirir
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
