@@ -71,15 +71,13 @@ test('önbellekteki eski egzersiz listesi, ağdaki güncel liste varken kullanı
   await expect(page.getByText('Eski Önbellek Kaydı')).toHaveCount(0)
 })
 
-test('görseli olmayan egzersizde hedef kasın referans çizimi küçük resim olur', async ({ page }) => {
+test('Atlas illustration is used as thumbnail', async ({ page }) => {
   await page.goto('./#/library')
   await page.getByPlaceholder('Egzersiz ara…').fill('dumbbell bench press')
   const row = page.locator('.exrow', { hasText: 'Dumbbell Bench Press' }).first()
-  const thumb = row.locator('img.thumb-muscle')
+  const thumb = row.locator('img.thumb')
   await expect(thumb).toBeVisible()
-  await expect(thumb).toHaveAttribute('src', /muscles\/chest\.png$/)
+  await expect(thumb).toHaveAttribute('src', /exercises\/dumbbell-bench-press\.webp$/)
+  await expect(thumb).not.toHaveClass(/thumb-muscle/)
   await expect.poll(() => thumb.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
-  // Kendi görseli olan egzersizde kas çizimi kullanılmaz.
-  await page.getByPlaceholder('Egzersiz ara…').fill('barbell curl')
-  await expect(page.locator('.exrow img.thumb').first()).not.toHaveClass(/thumb-muscle/)
 })
