@@ -19,6 +19,9 @@ const LOCK = 'data/atlas.lock.json'
 const OUT_LIBRARY = 'public/data/exercises.json'
 const OUT_LEGACY = 'public/data/legacy-exercises.json'
 const OUT_MEDIA = 'public/exercises'
+// Kas referans çizimleri: görseli olmayan egzersizin küçük resmi (Atlas media/muscles, kasa göre).
+const MUSCLE_CODES = ['chest', 'upper-back', 'lats', 'shoulders', 'biceps', 'triceps', 'forearms', 'abdominals', 'obliques', 'lower-back', 'glutes', 'quadriceps', 'hamstrings', 'calves', 'adductors', 'abductors', 'traps'] as const
+const OUT_MUSCLES = 'public/muscles'
 
 export interface AtlasLock {
   schemaVersion: 1
@@ -222,7 +225,7 @@ export async function syncAtlas(opts: SyncOptions): Promise<SyncResult> {
     source = remoteSource(commit)
   }
   // Commit değişmediyse indirilen/okunan her dosya kilitteki özetle eşleşmek zorundadır.
-  const expected = lock.commit !== null && lock.commit === commit ? lock.files : null
+  const expected = !opts.update && lock.commit !== null && lock.commit === commit ? lock.files : null
   const verify = (rel: string, data: Buffer): void => {
     if (expected === null) return
     const want = expected[rel]
@@ -255,8 +258,15 @@ export async function syncAtlas(opts: SyncOptions): Promise<SyncResult> {
   })
   if (missing.length > 0) throw new Error(`Eksik medya dosyaları:\n  ${missing.sort().join('\n  ')}`)
   for (const [rel, data] of mediaBytes) verify(rel, data)
+  const muscleBytes = new Map<string, Buffer>() // Atlas yolu -> içerik
+  for (const code of MUSCLE_CODES) {
+    const rel = `media/muscles/${code}.png`
+    const data = await source.read(rel)
+    verify(rel, data)
+    muscleBytes.set(rel, data)
+  }
   if (expected !== null) {
-    const stale = Object.keys(expected).filter((k) => k !== DIST && !mediaBytes.has(k))
+    const stale = Object.keys(expected).filter((k) => k !== DIST && !mediaBytes.has(k) && !muscleBytes.has(k))
     if (stale.length > 0) throw new Error(`Kilitte artık kullanılmayan dosyalar var: ${stale.slice(0, 5).join(', ')}; \`--update\` çalıştır`)
   }
 
@@ -268,9 +278,11 @@ export async function syncAtlas(opts: SyncOptions): Promise<SyncResult> {
     [OUT_LIBRARY, formatRows(catalog.library)],
     [OUT_LEGACY, formatRows(catalog.legacy)],
     ...catalog.media.map((m) => [`public/${m.to}`, mediaBytes.get(m.from)!] as const),
+    ...[...muscleBytes].map(([rel, data]) => [`${OUT_MUSCLES}/${path.posix.basename(rel)}`, data] as const),
   ])
   const files: Record<string, string> = { [DIST]: sha256(distBytes) }
   for (const [rel, data] of mediaBytes) files[rel] = sha256(data)
+  for (const [rel, data] of muscleBytes) files[rel] = sha256(data)
   const nextLock: AtlasLock = {
     schemaVersion: 1,
     repository: REPOSITORY,
@@ -306,6 +318,13 @@ export async function syncAtlas(opts: SyncOptions): Promise<SyncResult> {
     if (wantedMedia.has(name)) continue
     changed.push(`${OUT_MEDIA}/${name} (silinecek)`)
     if (!opts.check) rmSync(path.join(mediaDir, name))
+  }
+  const muscleDir = path.join(root, OUT_MUSCLES)
+  const wantedMuscles = new Set([...muscleBytes.keys()].map((rel) => path.posix.basename(rel)))
+  for (const entry of existsSync(muscleDir) ? readdirSync(muscleDir, { withFileTypes: true }) : []) {
+    if (!entry.isFile() || wantedMuscles.has(entry.name)) continue
+    changed.push(`${OUT_MUSCLES}/${entry.name} (silinecek)`)
+    if (!opts.check) rmSync(path.join(muscleDir, entry.name))
   }
 
   const result: SyncResult = {

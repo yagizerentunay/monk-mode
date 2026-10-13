@@ -60,7 +60,10 @@ const previousLegacy = [
   { id: 'Archer_Pushup_Old', name: 'Old Archer', equipment: 'body only', primaryMuscles: ['chest'], secondaryMuscles: [] },
 ]
 
+const MUSCLE_CODES = ['chest', 'upper-back', 'lats', 'shoulders', 'biceps', 'triceps', 'forearms', 'abdominals', 'obliques', 'lower-back', 'glutes', 'quadriceps', 'hamstrings', 'calves', 'adductors', 'abductors', 'traps']
+const muscleFiles: Record<string, Buffer> = Object.fromEntries(MUSCLE_CODES.map((m, i) => [`media/muscles/${m}.png`, WEBP(100 + i)]))
 const mediaFiles: Record<string, Buffer> = {
+  ...muscleFiles,
   'media/exercises/archer-push-up.webp': WEBP(10),
   'media/exercises/bench-press.png': WEBP(20),
   'media/exercises/bench-press-start.png': WEBP(30),
@@ -136,7 +139,12 @@ describe('syncAtlas --from --update <sha>', () => {
     expect(lock.commit).toBe(COMMIT)
     expect(lock.repository).toBe('yagizerentunay/open-exercise-atlas')
     // Yalnız tüketilen dosyalar: bench-press-start.png kullanılmadı.
-    expect(Object.keys(lock.files)).toEqual(['dist/exercises.json', 'media/exercises/archer-push-up.webp', 'media/exercises/bench-press.png'])
+    expect(Object.keys(lock.files)).toEqual([
+      'dist/exercises.json',
+      'media/exercises/archer-push-up.webp',
+      'media/exercises/bench-press.png',
+      ...Object.keys(muscleFiles).sort(),
+    ])
     expect(lock.files['media/exercises/bench-press.png']).toBe(sha256(mediaFiles['media/exercises/bench-press.png']))
     expect(lock.files['dist/exercises.json']).toBe(sha256(readFileSync(path.join(atlasDir, 'dist/exercises.json'))))
     expect(lock.generated['public/data/exercises.json']).toBe(sha256(readFileSync(path.join(root, 'public/data/exercises.json'))))
