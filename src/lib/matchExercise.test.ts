@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 // ?raw: node tipleri (fs) bu projede yok; Vite JSON'u ham metin olarak verir.
-import libraryJson from '../../data/free-exercise-db/exercises.json?raw'
-import { buildMatcher, normalizeName, type MatchCandidate } from './matchExercise.ts'
+import legacyJson from '../../public/data/legacy-exercises.json?raw'
+import libraryJson from '../../public/data/exercises.json?raw'
+import { buildLibraryMatcher, buildMatcher, normalizeName, type LibraryEntry, type MatchCandidate } from './matchExercise.ts'
 
 const FIXTURE: MatchCandidate[] = [
   { id: 'bb-bench', name: 'Barbell Bench Press - Medium Grip', equipment: 'barbell' },
@@ -127,13 +128,17 @@ describe('buildMatcher (küçük örnek kütüphane)', () => {
 })
 
 describe('gerçek egzersiz kütüphanesi', () => {
-  const lib = JSON.parse(libraryJson) as MatchCandidate[]
-  const match = buildMatcher(lib)
+  // Uygulamadaki eşleştirici: kütüphane (diğer adlarıyla) + eski kimlikler (bkz. ImportCard).
+  const library = JSON.parse(libraryJson) as LibraryEntry[]
+  const legacy = JSON.parse(legacyJson) as LibraryEntry[]
+  const lib = [...library, ...legacy]
+  const match = buildLibraryMatcher(library, legacy)
 
   const EXPECTED: Array<[string, string | null]> = [
     ['Bench Press (Barbell)', 'Barbell_Bench_Press_-_Medium_Grip'],
     ['Bench Press (Dumbbell)', 'Dumbbell_Bench_Press'],
-    ['Incline Bench Press (Barbell)', 'Barbell_Incline_Bench_Press_-_Medium_Grip'],
+    // Kütüphanenin kendi hareketi, aynı hareketin eski kaydından önce gelir.
+    ['Incline Bench Press (Barbell)', 'monk-chest-incline-barbell-bench-press'],
     ['Incline Bench Press (Dumbbell)', 'Incline_Dumbbell_Press'],
     ['Squat (Barbell)', 'Barbell_Squat'],
     ['Front Squat (Barbell)', 'Front_Barbell_Squat'],
@@ -147,6 +152,7 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Hammer Curl (Dumbbell)', 'Hammer_Curls'],
     ['Pull Up', 'Pullups'],
     ['Chin Up', 'Chin-Up'],
+    ['Pull Up (Assisted)', 'monk-lats-assisted-pull-up'],
     ['Leg Press', 'Leg_Press'],
     ['Leg Extension (Machine)', 'Leg_Extensions'],
     ['Seated Leg Curl (Machine)', 'Seated_Leg_Curl'],
@@ -163,7 +169,6 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Squat', null],
     ['Leg Curl (Machine)', null],
     ['Bulgarian Split Squat (Dumbbell)', null],
-    ['Pull Up (Assisted)', null],
     ['Skullcrusher (Barbell)', null],
     ['Pec Deck (Machine)', null],
     ['Zumba', null],

@@ -16,7 +16,6 @@ const ex = (id: string, over: Partial<Exercise> = {}): Exercise => ({
   category: 'strength',
   primaryMuscles: ['glutes'],
   secondaryMuscles: [],
-  images: [],
   ...over,
 })
 

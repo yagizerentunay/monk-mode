@@ -1,7 +1,7 @@
 import { MUSCLE_LABEL } from './muscles.ts'
 
 /**
- * free-exercise-db ekipman adları (exercises.json ile birebir) → Türkçe gösterim.
+ * Egzersiz verisindeki ekipman adları (exercises.json ile birebir) → Türkçe gösterim.
  * Egzersiz adları İngilizce kaldığı için barbell/dumbbell/kettlebell yaygın kullanımla aynen bırakıldı.
  */
 export const EQUIPMENT_LABEL: Record<string, string> = {
@@ -19,9 +19,14 @@ export const EQUIPMENT_LABEL: Record<string, string> = {
   'e-z curl bar': 'EZ bar',
 }
 
+/** Takip edilen 17 kas grubunda olmayan, ama kütüphanede yardımcı kas olarak geçen kaslar. */
+const EXTRA_MUSCLE_LABEL: Record<string, string> = {
+  'hip flexors': 'Kalça fleksörleri',
+}
+
 /** Veri anahtarı (İngilizce) → Türkçe etiket. Tanınmayan değer (kullanıcının yazdığı özel kas) olduğu gibi döner. */
 export function muscleLabel(muscle: string): string {
-  return (MUSCLE_LABEL as Record<string, string>)[muscle] ?? muscle
+  return (MUSCLE_LABEL as Record<string, string>)[muscle] ?? EXTRA_MUSCLE_LABEL[muscle] ?? muscle
 }
 
 /** Ekipman yoksa (null) "Ekipmansız"; tanınmayan değer olduğu gibi döner. */

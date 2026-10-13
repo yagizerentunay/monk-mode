@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { muscleSets } from './muscles.ts'
 import { alternativesFor } from './swap.ts'
 import {
+  buildCatalog,
   facetValues,
   filterExercises,
   fromCustom,
   isBodyOnly,
   isUnilateralName,
   nameLang,
-  imageUrl,
   withMuscleFixes,
   type Exercise,
 } from './exercises.ts'
@@ -21,7 +21,6 @@ const ex = (id: string, name: string, muscle: string, equipment: string | null):
   category: 'strength',
   primaryMuscles: [muscle],
   secondaryMuscles: [],
-  images: [],
 })
 
 const list = [
@@ -154,10 +153,39 @@ describe('withMuscleFixes', () => {
   })
 })
 
-describe('imageUrl', () => {
-  it('görselleri @main yerine 40 haneli bir commit sha\'sına sabitler', () => {
-    const url = imageUrl('3_4_Sit-Up/0.jpg')
-    expect(url).toMatch(/^https:\/\/cdn\.jsdelivr\.net\/gh\/yuhonas\/free-exercise-db@[0-9a-f]{40}\/exercises\/3_4_Sit-Up\/0\.jpg$/)
-    expect(url).not.toContain('@main')
+describe('buildCatalog', () => {
+  const lib = [ex('Barbell_Curl', 'Barbell Curl', 'biceps', 'barbell')]
+  const old = [
+    { ...ex('Dumbbell_Bench_Press', 'Dumbbell Bench Press', 'chest', 'dumbbell'), legacy: true },
+    { ...ex('Barbell_Curl', 'Barbell Curl (old)', 'biceps', 'barbell'), legacy: true },
+  ]
+  const custom = [{ id: 'custom-1', name: 'Kendi', primaryMuscles: ['calves'], equipment: '' }]
+
+  it('seçilebilir liste eski kimlikleri içermez, geçmiş çözümü içerir', () => {
+    const c = buildCatalog(custom, lib, old, {})
+    expect(c.list.map((e) => e.id)).toEqual(['custom-1', 'Barbell_Curl'])
+    expect(c.byId.get('Dumbbell_Bench_Press')?.legacy).toBe(true)
+    expect(c.byId.get('custom-1')?.custom).toBe(true)
+  })
+
+  it('aynı kimlikte kütüphane eski kaydın önüne geçer', () => {
+    const c = buildCatalog([], lib, old, {})
+    expect(c.byId.get('Barbell_Curl')?.name).toBe('Barbell Curl')
+    expect(c.byId.get('Barbell_Curl')?.legacy).toBeUndefined()
+  })
+
+  it('eski kimliklerin kasları geçmişte sayılır ve kas düzeltmesi onlara da uygulanır', () => {
+    const workout = {
+      id: 'w', d: '2026-10-07', start: 0, name: 'x',
+      entries: [{ exId: 'Dumbbell_Bench_Press', sets: [{ w: 20, r: 8, done: true }, { w: 20, r: 8, done: true }] }],
+    }
+    const plain = buildCatalog([], lib, old, {})
+    expect(muscleSets([workout], plain.byId, { from: '2026-10-05' }).chest).toBe(2)
+    const fixed = buildCatalog([], lib, old, { Dumbbell_Bench_Press: { primary: ['triceps'], secondary: [] } })
+    const sets = muscleSets([workout], fixed.byId, { from: '2026-10-05' })
+    expect(sets.chest).toBe(0)
+    expect(sets.triceps).toBe(2)
+    // Kütüphanede olmayan ve eski tabloda da olmayan kimlik sayılmaz (ham kimlik gösterilir).
+    expect(muscleSets([{ ...workout, entries: [{ exId: 'Unknown_Id', sets: workout.entries[0].sets }] }], plain.byId, { from: '2026-10-05' }).chest).toBe(0)
   })
 })

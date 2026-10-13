@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import raw from '../../data/free-exercise-db/exercises.json?raw'
+import legacyRaw from '../../public/data/legacy-exercises.json?raw'
+import libraryRaw from '../../public/data/exercises.json?raw'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from './labels.ts'
 import { MUSCLES } from './muscles.ts'
 
@@ -8,7 +9,7 @@ interface Row {
   secondaryMuscles: string[]
   equipment: string | null
 }
-const data = JSON.parse(raw) as Row[]
+const data = [...(JSON.parse(libraryRaw) as Row[]), ...(JSON.parse(legacyRaw) as Row[])]
 
 describe('etiketler', () => {
   it('verideki her kas ve ekipman adının Türkçe karşılığı vardır', () => {

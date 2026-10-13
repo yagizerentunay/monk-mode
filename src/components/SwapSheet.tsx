@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { imageUrl, nameLang, type Exercise } from '../lib/exercises.ts'
+import { nameLang, type Exercise } from '../lib/exercises.ts'
 import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { alternativesFor } from '../lib/swap.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -45,8 +45,8 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
       <div className="card" style={{ padding: '4px 14px' }}>
         {alternatives.map((e) => (
           <button key={e.id} className="exrow" onClick={() => onSelect(e)}>
-            {e.images[0] ? (
-              <img className="thumb" src={imageUrl(e.images[0])} alt="" loading="lazy" />
+            {e.illustration ? (
+              <img className="thumb" src={e.illustration} alt="" loading="lazy" />
             ) : (
               <div className="thumb" />
             )}
