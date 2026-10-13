@@ -283,7 +283,7 @@ export function Settings() {
       <MergeImportCard />
 
       <p className="sub">
-        monk-mode v{__APP_VERSION__} · MIT lisanslı. Egzersiz verisi: free-exercise-db (kamu malı).
+        monk-mode v{__APP_VERSION__} · MIT lisanslı.
       </p>
     </div>
   )

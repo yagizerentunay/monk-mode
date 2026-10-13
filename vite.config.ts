@@ -60,8 +60,7 @@ function versionFile(): Plugin {
 }
 
 /**
- * İçerik güvenlik politikası (savunma derinliği): sayfa yalnız kendi dosyalarını ve jsDelivr'deki egzersiz
- * görsellerini yükleyebilir; eklenti, form gönderimi ve <base> değişimi kapalı. Yalnız üretim derlemesine
+ * İçerik güvenlik politikası (savunma derinliği): sayfa yalnız kendi dosyalarını yükleyebilir; eklenti, form gönderimi ve <base> değişimi kapalı. Yalnız üretim derlemesine
  * eklenir: geliştirme sunucusu (React yenileme) satır içi betik enjekte eder ve CSP onu engellerdi.
  * Not: React'in `style={{…}}` ile verdiği stiller DOM özelliğiyle yazıldığından 'unsafe-inline' gerekmez.
  */
@@ -69,7 +68,7 @@ export const CSP = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self'",
-  "img-src 'self' data: blob: https://cdn.jsdelivr.net",
+  "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self'",
   "manifest-src 'self'",

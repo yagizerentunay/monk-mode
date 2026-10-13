@@ -2,7 +2,7 @@
 
 Monk Mode'un mevcut özelliklerine dair ayrıntılı açıklamalar. Uygulamaya giriş için [ana README'ye](../README.md) dön.
 
-- 876 egzersizlik kütüphane (arama, kas ve ekipman filtreleri, özel egzersiz)
+- 85 resimli egzersizlik kütüphane, her kas grubunda en az dört hareket, Türkçe yönergelerle (arama, kas ve ekipman filtreleri, özel egzersiz). Eski kütüphaneden kalan kayıtlar geçmişte adı ve kasıyla görünmeye devam eder, ama seçicilerde çıkmaz
 - Kas düzeltme: egzersiz detayında "Kasları düzelt" ile birincil ve yardımcı kaslar değiştirilir (ör. veritabanında yanlış etiketli bir egzersiz). Düzeltme kas haritasında, kas filtresinde ve değiştirme önerilerinde geçerli olur, yedeğe girer; "Orijinale dön" kütüphane kaslarını geri getirir
 - Rutin oluşturucu ve haftalık program
 - Seans ekranı: kg / tekrar / RIR, önceki seanstan otomatik doldurma, dinlenme sayacı
@@ -34,7 +34,7 @@ Monk Mode'un mevcut özelliklerine dair ayrıntılı açıklamalar. Uygulamaya g
 - Silmeyi geri alma: geçmiş antrenman, rutin ya da devam eden antrenman silinince 6 saniyelik "Geri al" bildirimi çıkar; silmeden önce otomatik kopya da alınır
 - Bozuk veriye dayanıklılık: kayıtlı veri ve içe aktarılan yedekler kayıt kayıt doğrulanır; kullanılamaz kayıtlar atlanır (ham veri ayrı saklanır, uyarı gösterilir). Yine de bir ekran çökerse beyaz ekran yerine kurtarma ekranı çıkar: yeniden dene, ham veriyi indir, son otomatik kopyayı geri yükle
 - Tanılama (Ayarlar): bu cihazda çevrimdışı çalışma, kalıcı depolama, depolama alanı, otomatik kopyalar, dosya paylaşımı, dinlenme sesi, titreşim ve ekranı açık tutmanın durumu; "Test sesi çal" ile dinlenme bip'i denenir, "Raporu kopyala" düz metin rapor verir
-- Çevrimdışı çalışma: uygulama kabuğu, egzersiz verisi ve gezilen görseller önbelleğe alınır; ana ekrana eklenebilir (PWA)
+- Çevrimdışı çalışma: uygulama kabuğu, egzersiz verisi ve gezilen egzersiz görselleri önbelleğe alınır; ana ekrana eklenebilir (PWA)
 - Yeni sürüm bildirimi: açık uygulama açılışta, sekmeye dönünce ve 30 dakikada bir `version.json`'u ağdan okur; yeni bir derleme yayınlandıysa üstte "Yeni sürüm hazır · Yenile" bandı çıkar. Yenilemek güvenlidir: veriler ve devam eden antrenman tarayıcıda kayıtlıdır
 
 

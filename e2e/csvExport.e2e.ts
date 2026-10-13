@@ -31,5 +31,5 @@ test('CSV dışa aktarma: dosya adı, BOM + başlık ve Türkçe Excel biçimi',
   )
   // 2 tamamlanmış set + sondaki boş satır; egzersiz adı kütüphaneden gelir.
   expect(lines).toHaveLength(4)
-  expect(lines[1]).toMatch(/^\d{4}-\d{2}-\d{2};E2E Push;Barbell Bench Press - Medium Grip;Çalışma;1;;60;;60;5;/)
+  expect(lines[1]).toMatch(/^\d{4}-\d{2}-\d{2};E2E Push;Barbell Bench Press;Çalışma;1;;60;;60;5;/)
 })

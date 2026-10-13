@@ -16,10 +16,10 @@ test('CSP sayfada var ve uygulama gezilirken hiçbir ihlal olmuyor', async ({ pa
     await page.goto('./' + hash)
     await page.locator('main.app').filter({ hasText: /./ }).first().waitFor()
   }
-  // Egzersiz detayı (CDN görselleri ve talimatlar) ve antrenman ekranı.
+  // Egzersiz detayı (görsel ve talimatlar) ve antrenman ekranı.
   await page.goto('./#/library')
   await page.getByPlaceholder('Egzersiz ara…').fill('bench press')
-  await page.locator('.exname', { hasText: 'Barbell Bench Press - Medium Grip' }).first().click()
+  await page.locator('.exname', { hasText: 'Barbell Bench Press' }).first().click()
   await expect(page.locator('ol li').first()).toBeVisible()
   await page.keyboard.press('Escape')
   await page.goto('./#/workout')

@@ -1,10 +1,10 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
 // Aynı VERSION içinde eski hash'li js/css dosyaları pruneStale ile temizlenir (aşağıda).
-const VERSION = 'v4'
+const VERSION = 'v5'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
-const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz görselleri
+const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz referans görselleri
 const KEEP = [SHELL, DATA, IMAGES]
 const MAX_IMAGES = 400
 const NAV_TIMEOUT_MS = 3000
@@ -15,13 +15,10 @@ const MATCH = { ignoreVary: true }
 const scope = self.registration.scope
 const INDEX = new URL('./', scope).href
 const EXERCISES = new URL('data/exercises.json', scope).href
-const INSTRUCTIONS = new URL('data/instructions.json', scope).href
+const LEGACY = new URL('data/legacy-exercises.json', scope).href // geçmişteki eski kimliklerin adları
+const ILLUSTRATIONS = new URL('exercises/', scope).href // egzersiz referans görselleri
 const FONTS = ['600', '700', '800'].flatMap((w) => ['latin', 'latin-ext'].map((r) => `barlow-condensed-${r}-${w}-normal.woff2`))
 const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
-
-function isImageCdn(url) {
-  return url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('free-exercise-db')
-}
 
 /** index.html içindeki hash'li js/css adreslerini bulur. */
 function assetUrls(html) {
@@ -47,9 +44,10 @@ async function precache() {
       ...FONTS.map((f) => new URL('fonts/' + f, scope).href), // CSS'ten yüklenen yazı tipleri (assets/ dışında, pruneStale'e takılmaz)
     ].map((u) => shell.add(u).catch(() => {})),
   )
-  // Egzersiz listesi ve talimatlar çevrimdışı kütüphane için şart; başarısızsa kurulumu bozma.
+  // Egzersiz listesi (talimatlar dahil) ve eski kimlik tablosu çevrimdışı kütüphane ve geçmiş için şart;
+  // başarısızsa kurulumu bozma.
   const data = await caches.open(DATA)
-  await Promise.all([EXERCISES, INSTRUCTIONS].map((u) => data.add(u).catch(() => {})))
+  await Promise.all([EXERCISES, LEGACY].map((u) => data.add(u).catch(() => {})))
 }
 
 /**
@@ -130,8 +128,8 @@ async function image(request) {
   const cache = await caches.open(IMAGES)
   const hit = await cache.match(request.url, MATCH)
   if (hit) return hit
-  // <img> istekleri no-cors gelir ve opak yanıt kotayı şişirir; CDN CORS verdiği için cors ile yeniden iste.
-  const res = await fetch(request.url, { mode: 'cors' })
+  // <img> istekleri aynı kökenden gelir; yanıt opak değildir ve kotayı şişirmez.
+  const res = await fetch(request.url)
   if (res.ok) {
     await cache.put(request.url, res.clone())
     const keys = await cache.keys()
@@ -145,10 +143,6 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
 
-  if (isImageCdn(url)) {
-    event.respondWith(image(request).catch(() => Response.error()))
-    return
-  }
   if (url.origin !== self.location.origin) return
   // Yeni sürüm kontrolü hep ağdan okunmalı (src/lib/updateCheck.ts); önbelleğe alınmaz.
   if (url.pathname.endsWith('/version.json')) return
@@ -157,7 +151,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(navigate(request))
   } else if (url.href.startsWith(ASSETS)) {
     event.respondWith(cacheFirst(event, SHELL))
-  } else if (url.href === EXERCISES || url.href === INSTRUCTIONS) {
+  } else if (url.href.startsWith(ILLUSTRATIONS)) {
+    event.respondWith(image(request).catch(() => Response.error()))
+  } else if (url.href === EXERCISES || url.href === LEGACY) {
     event.respondWith(staleWhileRevalidate(request, DATA))
   } else {
     event.respondWith(staleWhileRevalidate(request, SHELL))
