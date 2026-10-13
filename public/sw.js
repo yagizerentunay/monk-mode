@@ -1,7 +1,7 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
 // Aynı VERSION içinde eski hash'li js/css dosyaları pruneStale ile temizlenir (aşağıda).
-const VERSION = 'v6'
+const VERSION = 'v7'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz referans görselleri
@@ -124,6 +124,28 @@ async function staleWhileRevalidate(request, cacheName) {
   return hit || (await refresh) || Response.error()
 }
 
+/**
+ * Ağ önce, ağ yoksa ya da yavaşsa (NAV_TIMEOUT_MS) önbellekteki kopya. Egzersiz listesi için: liste ile
+ * görsel dosya adları birlikte değişir; "önce önbellek" eski listeyi yeni dosyaların silinmiş adlarıyla
+ * gösterip resimleri kırardı. Çevrimdışıyken yine önbellekteki liste ve gezilen görseller çalışır.
+ */
+async function networkFirst(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const network = fetch(request).then((res) => {
+    if (res.ok) cache.put(request, res.clone())
+    return res
+  })
+  network.catch(() => {}) // yarıştan sonra reddedilirse işlenmemiş hata olmasın
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(null), NAV_TIMEOUT_MS))
+  try {
+    const res = await Promise.race([network, timeout])
+    if (res) return res
+  } catch {
+    // ağ hatası: önbelleğe düş
+  }
+  return (await cache.match(request, MATCH)) || network
+}
+
 async function image(request) {
   const cache = await caches.open(IMAGES)
   const hit = await cache.match(request.url, MATCH)
@@ -154,7 +176,7 @@ self.addEventListener('fetch', (event) => {
   } else if (url.href.startsWith(ILLUSTRATIONS)) {
     event.respondWith(image(request).catch(() => Response.error()))
   } else if (url.href === EXERCISES || url.href === LEGACY) {
-    event.respondWith(staleWhileRevalidate(request, DATA))
+    event.respondWith(networkFirst(request, DATA))
   } else {
     event.respondWith(staleWhileRevalidate(request, SHELL))
   }

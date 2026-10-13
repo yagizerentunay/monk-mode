@@ -46,3 +46,27 @@ test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi harek
 
   expect(requests.filter((u) => u.includes('jsdelivr'))).toEqual([])
 })
+
+test('önbellekteki eski egzersiz listesi, ağdaki güncel liste varken kullanılmaz', async ({ page }) => {
+  await page.goto('./')
+  await page.evaluate(() => navigator.serviceWorker.ready)
+  await page.reload()
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true)
+
+  // Önbelleğe, görselleri artık olmayan eski bir liste koy (güncelleme sonrası gerçek senaryo).
+  await page.evaluate(async () => {
+    const url = new URL('data/exercises.json', document.baseURI).href
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name)
+      if ((await cache.keys()).some((r) => r.url === url)) {
+        const stale = [{ id: 'eski', name: 'Eski Önbellek Kaydı', level: 'beginner', equipment: null, category: 'strength', primaryMuscles: ['chest'], secondaryMuscles: [], illustration: 'exercises/silinmis.webp', instructions: ['x'] }]
+        await cache.put(url, new Response(JSON.stringify(stale), { headers: { 'content-type': 'application/json' } }))
+      }
+    }
+  })
+
+  await page.goto('./#/library')
+  await page.reload()
+  await expect(page.getByText('186 egzersiz')).toBeVisible()
+  await expect(page.getByText('Eski Önbellek Kaydı')).toHaveCount(0)
+})
