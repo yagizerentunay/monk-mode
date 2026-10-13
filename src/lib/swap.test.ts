@@ -11,7 +11,6 @@ const ex = (id: string, name: string, muscles: string[], equipment: string | nul
   category: 'strength',
   primaryMuscles: muscles,
   secondaryMuscles: [],
-  images: [],
   ...(custom ? { custom } : {}),
 })
 

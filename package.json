@@ -1,15 +1,17 @@
 {
   "name": "monk-mode",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "data:atlas": "node scripts/sync-atlas.ts",
+    "data:atlas:update": "node scripts/sync-atlas.ts --update",
+    "data:atlas:check": "node scripts/sync-atlas.ts --check",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "data:exercises": "node scripts/build-exercise-data.ts",
     "preview": "vite preview"
   },
   "dependencies": {

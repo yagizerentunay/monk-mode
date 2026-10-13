@@ -35,8 +35,8 @@ test('toparlanma molası önerisi görünür; "Şimdi değil" 7 gün susturur', 
 
   const card = page.locator('.card.banner').filter({ hasText: 'Toparlanma molası?' })
   await expect(card).toBeVisible()
-  await expect(card).toContainText('Barbell Bench Press - Medium Grip')
-  await expect(card).toContainText('Barbell Squat')
+  await expect(card).toContainText('Barbell Bench Press')
+  await expect(card).toContainText('Barbell Back Squat')
   await expect(card).toContainText('%40–50')
 
   await card.getByRole('button', { name: 'Şimdi değil' }).click()

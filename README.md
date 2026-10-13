@@ -52,6 +52,10 @@ Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri ol
 
 Üstte ana ekran ve antrenman, altta analiz ve egzersiz kütüphanesi. Görüntüler örnek verilerle alınmıştır.
 
+## Egzersiz verisi
+
+Egzersiz kütüphanesi (adlar, kaslar, ekipman, yönergeler ve görseller) elle yazılmaz; [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas) deposundan, sabitlenmiş bir commit'ten üretilir. Egzersiz eklemek ya da düzeltmek için Atlas'ı değiştir, `npm run data:atlas:update` çalıştır ve çıktıyı commit'le. Ayrıntılar: [docs/atlas-data.md](docs/atlas-data.md).
+
 ## Verin ve çevrimdışı kullanım
 
 - Veriler yalnızca kullandığın tarayıcının `localStorage` alanında saklanır. Hesap, bulut eşitlemesi veya sunucu yoktur.
@@ -79,6 +83,7 @@ Geliştirme sunucusu `http://localhost:5173` adresinde açılır.
 | `npm run test:e2e` | Uçtan uca testleri (Playwright, mobil Chrome) çalıştırır; ilk seferde `npx playwright install chromium` gerekir |
 | `npm run lint` | Kod denetimini çalıştırır |
 | `npm run build` | Tür kontrolü ve üretim derlemesi yapar |
+| `npm run data:atlas` | Egzersiz kataloğunu [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas)'tan yeniden üretir (`:update` pini yeniler, `:check` çıktıların güncel olduğunu doğrular; bkz. [docs/atlas-data.md](docs/atlas-data.md)) |
 
 ### Çevrimdışı derlemeyi dene
 

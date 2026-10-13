@@ -1,46 +1,53 @@
 import type { CustomExercise } from '../store/schema.ts'
+import type { LegacyRecord, LibraryRecord } from './exerciseData.ts'
 import { equipmentLabel, muscleLabel } from './labels.ts'
 import { applyMuscleFix, type MuscleFix } from './muscleFix.ts'
 
-/** free-exercise-db kaydı (kullandığımız alanlar). */
+/** Uygulamanın gösterdiği egzersiz: kütüphane kaydı, özel egzersiz ya da eski kimlik. */
 export interface Exercise {
   id: string
   name: string
+  /** Eşleştirme için diğer adlar (bkz. exerciseData.ts). */
+  aliases?: string[]
   level: string
   equipment: string | null
   category: string
   primaryMuscles: string[]
   secondaryMuscles: string[]
-  images: string[]
-  /** Monk-mode generated local exercise reference art. */
+  /** Egzersizin kendi referans görseli (uygulama adresine çevrilmiş); özel, eski ve görselsiz Atlas kayıtlarında yoktur. */
   illustration?: string
-  /** Curated Turkish setup and movement cues shown in the exercise detail. */
+  /** Kurulum ve hareket yönergeleri (yalnız kütüphane kayıtlarında; Atlas'ta Türkçe yoksa İngilizce). */
   instructions?: string[]
   custom?: boolean
+  /** Kütüphaneden çıkarılmış eski kimlik: geçmişte adı ve kası çözülür, seçicilerde çıkmaz. */
+  legacy?: boolean
   /** Kullanıcı kasları düzelttiyse düzeltmeden önceki kaslar (kas alanları o zaman düzeltilmiş hâldedir). */
   original?: MuscleFix
 }
 
-/**
- * Görseller, veri kopyasıyla (data/free-exercise-db/SOURCE.md) aynı upstream commit'ine sabitlenir;
- * `@main` olsaydı upstream'de bir yeniden adlandırma görselleri kırardı. Veriyi yenilerken sha'yı da güncelle.
- */
-const IMAGE_CDN = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@79ca7b47d77cd5a6dd7a50440e9f0bf24da6a142/exercises/'
+/** `public/` köküne göreli yolu, uygulamanın yayın adresine (örn. `/monk-mode/`) çevirir. */
+function assetUrl(path: string): string {
+  return `${import.meta.env.BASE_URL}${path}`
+}
 
-export function imageUrl(path: string): string {
-  return IMAGE_CDN + path
+async function fetchJson<T>(file: string, what: string): Promise<T> {
+  const r = await fetch(assetUrl(`data/${file}`))
+  if (!r.ok) throw new Error(`${what} yüklenemedi (${r.status})`)
+  return (await r.json()) as T
 }
 
 let cache: Promise<Exercise[]> | null = null
 
 /** Egzersiz kütüphanesini bir kez yükler. */
 export function loadExercises(): Promise<Exercise[]> {
-  cache ??= fetch(`${import.meta.env.BASE_URL}data/exercises.json`)
-    .then((r) => {
-      if (!r.ok) throw new Error(`Egzersiz verisi yüklenemedi (${r.status})`)
-      return r.json() as Promise<Exercise[]>
-    })
-    .then((list) => import('./curatedExercises.ts').then(({ mergeCuratedExercises }) => mergeCuratedExercises(list)))
+  cache ??= fetchJson<LibraryRecord[]>('exercises.json', 'Egzersiz verisi')
+    .then((records) =>
+      records.map((e): Exercise => {
+        // Atlas'ta görseli olmayan kayıtlar `illustration` alanı olmadan gelir.
+        const { illustration, ...rest } = e
+        return illustration ? { ...rest, illustration: assetUrl(illustration) } : rest
+      }),
+    )
     .catch((e) => {
       cache = null
       throw e
@@ -48,20 +55,19 @@ export function loadExercises(): Promise<Exercise[]> {
   return cache
 }
 
-let steps: Promise<Record<string, string[]>> | null = null
+let legacyCache: Promise<Exercise[]> | null = null
 
-/** Talimat adımları ayrı dosyada (verinin çoğu); yalnız egzersiz detayı açılınca bir kez yüklenir. */
-export function loadInstructions(): Promise<Record<string, string[]>> {
-  steps ??= fetch(`${import.meta.env.BASE_URL}data/instructions.json`)
-    .then((r) => {
-      if (!r.ok) throw new Error(`Talimatlar yüklenemedi (${r.status})`)
-      return r.json() as Promise<Record<string, string[]>>
-    })
+/** Kütüphanede olmayan eski kimlikleri bir kez yükler (bkz. exerciseData.ts). */
+export function loadLegacyExercises(): Promise<Exercise[]> {
+  legacyCache ??= fetchJson<LegacyRecord[]>('legacy-exercises.json', 'Eski egzersiz verisi')
+    .then((rows) =>
+      rows.map((r): Exercise => ({ ...r, level: 'beginner', category: 'strength', legacy: true })),
+    )
     .catch((e) => {
-      steps = null
+      legacyCache = null
       throw e
     })
-  return steps
+  return legacyCache
 }
 
 export function fromCustom(c: CustomExercise): Exercise {
@@ -73,7 +79,6 @@ export function fromCustom(c: CustomExercise): Exercise {
     category: 'strength',
     primaryMuscles: c.primaryMuscles,
     secondaryMuscles: [],
-    images: [],
     custom: true,
   }
 }
@@ -86,8 +91,29 @@ export function withMuscleFixes(list: Exercise[], fixes: Record<string, MuscleFi
   return list.map((e) => applyMuscleFix(e, Object.hasOwn(fixes, e.id) ? fixes[e.id] : undefined))
 }
 
+export interface Catalog {
+  /** Seçilebilir egzersizler: özel + kütüphane. */
+  list: Exercise[]
+  /** Kütüphanede olmayan eski kimlikler (kas düzeltmeleri uygulanmış). */
+  legacy: Exercise[]
+  /** list + legacy; aynı kimlikte list kazanır. */
+  byId: Map<string, Exercise>
+}
+
+/** Kütüphane, özel egzersizler ve eski kimliklerden uygulamanın kataloğunu kurar. */
+export function buildCatalog(
+  custom: CustomExercise[],
+  library: Exercise[],
+  oldIds: Exercise[],
+  fixes: Record<string, MuscleFix>,
+): Catalog {
+  const list = withMuscleFixes([...custom.map(fromCustom), ...library], fixes)
+  const legacy = withMuscleFixes(oldIds, fixes)
+  return { list, legacy, byId: new Map([...legacy, ...list].map((e) => [e.id, e])) }
+}
+
 /**
- * Egzersiz adının dil etiketi. free-exercise-db adları İngilizcedir; sayfa `tr` olduğu için büyük harfe
+ * Egzersiz adının dil etiketi. Kütüphane adları İngilizcedir; sayfa `tr` olduğu için büyük harfe
  * çevirmede "Medium" → "MEDİUM" olur. Özel (kullanıcının yazdığı) adlar sayfa dilinde kalır.
  */
 export function nameLang(ex: Pick<Exercise, 'custom'> | undefined): 'en' | undefined {

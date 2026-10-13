@@ -1,33 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
 import { MuscleFixEditor } from '../components/MuscleFixEditor.tsx'
-import { imageUrl, loadInstructions, nameLang, type Exercise } from '../lib/exercises.ts'
+import { nameLang, type Exercise } from '../lib/exercises.ts'
 import { MUSCLES } from '../lib/muscles.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useStore } from '../store/useStore.ts'
 
-/** Egzersizin talimat adımları; yüklenene kadar ya da yoksa boş. */
-function useInstructions(id: string): string[] {
-  const [steps, setSteps] = useState<string[]>([])
-  useEffect(() => {
-    let alive = true
-    loadInstructions()
-      .then((all) => alive && setSteps(all[id] ?? []))
-      .catch(() => alive && setSteps([]))
-    return () => {
-      alive = false
-    }
-  }, [id])
-  return steps
-}
-
 function Detail({ ex }: { ex: Exercise }) {
   const [editing, setEditing] = useState(false)
-  const sourceInstructions = useInstructions(ex.id)
-  const instructions = ex.instructions ?? sourceInstructions
+  const instructions = ex.instructions ?? []
   if (editing) {
     return (
       <div className="stack">
@@ -48,15 +32,7 @@ function Detail({ ex }: { ex: Exercise }) {
       </div>
       <button className="btn small" onClick={() => setEditing(true)}>Kasları düzelt</button>
       <ExerciseHistory exId={ex.id} />
-      {ex.illustration ? (
-        <img className="exdetail-img" src={ex.illustration} alt={ex.name} loading="lazy" />
-      ) : ex.images.length > 0 && (
-        <div className="row" style={{ overflowX: 'auto' }}>
-          {ex.images.map((p) => (
-            <img key={p} className="exdetail-img" src={imageUrl(p)} alt={ex.name} loading="lazy" />
-          ))}
-        </div>
-      )}
+      {ex.illustration && <img className="exdetail-img" src={ex.illustration} alt={ex.name} loading="lazy" />}
       {instructions.length > 0 && (
         <ol style={{ paddingLeft: 20, margin: 0 }}>
           {instructions.map((s, i) => (

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { parseImport } from '../lib/importCsv.ts'
 import type { ParsedImport } from '../lib/importTypes.ts'
 import { buildImport } from '../lib/importWorkouts.ts'
-import { buildMatcher } from '../lib/matchExercise.ts'
+import { buildLibraryMatcher } from '../lib/matchExercise.ts'
 import type { Unit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
@@ -16,14 +16,14 @@ export function ImportCard() {
   const customEx = useStore((s) => s.customEx)
   const appUnit = useStore((s) => s.settings.unit)
   const importWorkouts = useStore((s) => s.importWorkouts)
-  const { list, loading } = useExercises()
+  const { list, legacy, loading } = useExercises({ legacy: true })
   const fileRef = useRef<HTMLInputElement>(null)
   const [parsed, setParsed] = useState<ParsedImport | null>(null)
   const [fileUnit, setFileUnit] = useState<Unit>(appUnit)
   const [message, setMessage] = useState<string | null>(null)
   const [showMap, setShowMap] = useState(false)
 
-  const matcher = useMemo(() => buildMatcher(list), [list])
+  const matcher = useMemo(() => buildLibraryMatcher(list, legacy), [list, legacy])
   const unit = parsed?.unit ?? fileUnit
   const plan = useMemo(
     () => (parsed ? buildImport(parsed, unit, matcher, workouts, customEx) : null),

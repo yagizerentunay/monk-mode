@@ -11,7 +11,6 @@ const base: Exercise = {
   category: 'strength',
   primaryMuscles: ['quadriceps'],
   secondaryMuscles: [],
-  images: [],
 }
 
 const render = (ex: Exercise) => renderToStaticMarkup(<MuscleFixEditor ex={ex} onClose={() => {}} />)

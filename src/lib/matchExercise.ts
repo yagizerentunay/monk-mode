@@ -9,6 +9,8 @@ export interface MatchCandidate {
   id: string
   name: string
   equipment?: string | null
+  /** Eşit skorda düşük sıra kazanır (varsayılan 1). Kütüphane 0, eski kimlikler 1 verilir. */
+  rank?: number
 }
 
 export interface ExerciseMatch {
@@ -243,12 +245,18 @@ export function buildMatcher(library: readonly MatchCandidate[]): (importedName:
     }
     if (scored.length === 0) return null
 
-    // Kural 5: eşitlikte kısa ad, sonra id.
-    scored.sort((a, b) => b.score - a.score || a.e.cand.name.length - b.e.cand.name.length || (a.e.cand.id < b.e.cand.id ? -1 : 1))
+    // Kural 5: eşitlikte önce kütüphane (düşük sıra), sonra kısa ad, sonra id.
+    scored.sort(
+      (a, b) =>
+        b.score - a.score ||
+        (a.e.cand.rank ?? 1) - (b.e.cand.rank ?? 1) ||
+        a.e.cand.name.length - b.e.cand.name.length ||
+        (a.e.cand.id < b.e.cand.id ? -1 : 1),
+    )
     const top = scored[0]
     if (top.score < 1) {
-      // Kural 4: aynı jeton kümesine sahip kopya kayıtlar rakip sayılmaz; farklı bir egzersiz yakınsa belirsizdir.
-      const rival = scored.find((s) => s.e.tokenKey !== top.e.tokenKey)
+      // Kural 4: aynı jeton kümesine sahip kopya kayıtlar ve aynı egzersizin diğer adları rakip sayılmaz; farklı bir egzersiz yakınsa belirsizdir.
+      const rival = scored.find((s) => s.e.tokenKey !== top.e.tokenKey && s.e.cand.id !== top.e.cand.id)
       if (rival && top.score - rival.score < MIN_MARGIN) return null
     }
     return { id: top.e.cand.id, name: top.e.cand.name, score: Math.round(top.score * 1000) / 1000 }
@@ -259,5 +267,39 @@ export function buildMatcher(library: readonly MatchCandidate[]): (importedName:
     const r = compute(importedName)
     cache.set(importedName, r)
     return r
+  }
+}
+
+/** Egzersiz listesinden eşleştirme adayı üretmek için gereken alanlar. */
+export interface LibraryEntry {
+  id: string
+  name: string
+  equipment: string | null
+  aliases?: string[]
+}
+
+/**
+ * Uygulamanın eşleştiricisi: kütüphane (ve diğer adları) eski kimliklerden önce gelir; böylece Strong/Hevy
+ * adı hem yeni hem eski bir kayda uyuyorsa kullanıcının kendi egzersizi seçilir. Dönen ad hep asıl addır.
+ */
+export function buildLibraryMatcher(
+  library: readonly LibraryEntry[],
+  legacy: readonly LibraryEntry[],
+): (importedName: string) => ExerciseMatch | null {
+  const canonical = new Map<string, string>()
+  const candidates: MatchCandidate[] = []
+  // Eşit skorda: geçmişi olan (atlas: öneki taşımayan) kütüphane kimliği, yeni Atlas kaydından; o da eski kimlikten önce gelir.
+  const rankOf = (e: LibraryEntry, legacyGroup: boolean): number => (legacyGroup ? 2 : e.id.startsWith('atlas:') ? 1 : 0)
+  for (const [legacyGroup, group] of [[false, library], [true, legacy]] as const) {
+    for (const e of group) {
+      canonical.set(e.id, e.name)
+      const rank = rankOf(e, legacyGroup)
+      for (const name of [e.name, ...(e.aliases ?? [])]) candidates.push({ id: e.id, name, equipment: e.equipment, rank })
+    }
+  }
+  const match = buildMatcher(candidates)
+  return (importedName) => {
+    const r = match(importedName)
+    return r && { ...r, name: canonical.get(r.id) ?? r.name }
   }
 }
