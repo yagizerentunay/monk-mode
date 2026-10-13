@@ -288,9 +288,12 @@ export function buildLibraryMatcher(
 ): (importedName: string) => ExerciseMatch | null {
   const canonical = new Map<string, string>()
   const candidates: MatchCandidate[] = []
-  for (const [rank, group] of [[0, library], [1, legacy]] as const) {
+  // Eşit skorda: geçmişi olan (atlas: öneki taşımayan) kütüphane kimliği, yeni Atlas kaydından; o da eski kimlikten önce gelir.
+  const rankOf = (e: LibraryEntry, legacyGroup: boolean): number => (legacyGroup ? 2 : e.id.startsWith('atlas:') ? 1 : 0)
+  for (const [legacyGroup, group] of [[false, library], [true, legacy]] as const) {
     for (const e of group) {
       canonical.set(e.id, e.name)
+      const rank = rankOf(e, legacyGroup)
       for (const name of [e.name, ...(e.aliases ?? [])]) candidates.push({ id: e.id, name, equipment: e.equipment, rank })
     }
   }

@@ -147,7 +147,8 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Sumo Deadlift (Barbell)', 'Sumo_Deadlift'],
     ['Overhead Press (Barbell)', 'Barbell_Shoulder_Press'],
     ['Shoulder Press (Dumbbell)', 'Dumbbell_Shoulder_Press'],
-    ['Lat Pulldown (Cable)', 'Wide-Grip_Lat_Pulldown'],
+    // Adın birebir karşılığı olan genel Atlas kaydı, daha özel varyanttan önce gelir.
+    ['Lat Pulldown (Cable)', 'atlas:lat-pulldown'],
     ['Bicep Curl (Dumbbell)', 'Dumbbell_Bicep_Curl'],
     ['Hammer Curl (Dumbbell)', 'monk-biceps-hammer-curl'],
     ['Pull Up', 'Pullups'],
@@ -192,6 +193,9 @@ describe('gerçek egzersiz kütüphanesi', () => {
       'Bodyweight Walking Lunge',
       'Front Barbell Squat',
       'Upright Barbell Row',
+      // Atlas'ın genel kaydı ile Monk Mode'un geçmişi olan varyantı aynı adı paylaşır; geçmişi olan kazanır.
+      'Dumbbell Shoulder Press',
+      'Seated Cable Row',
     ])
     const wrong = lib.filter((e) => {
       if (twins.has(e.name)) return false
