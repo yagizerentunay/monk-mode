@@ -5,7 +5,7 @@ description: Generate consistent anatomical exercise illustrations for Monk Mode
 
 # Monk Exercise Illustrator
 
-Use for one named Monk Mode exercise, a selected list, or a requested batch of missing local illustrations. New media belongs in Open Exercise Atlas; Monk Mode supplies exercise facts and visual references. Do not start an all-exercise batch unless asked. Before a batch, report count, expected start/finish assets, available image tools, and likely cost or time; stop if scope or matching is ambiguous.
+Use for one named Monk Mode exercise, a selected list, or a requested batch of missing local illustrations. New media belongs in Open Exercise Atlas; Monk Mode supplies exercise facts and visual references, and receives the result through the pinned Atlas sync. Do not start an all-exercise batch unless asked. Before a batch, report count, expected start/finish assets, available image tools, and likely cost or time; stop if scope or matching is ambiguous.
 
 ## Inputs and discovery
 
@@ -27,4 +27,4 @@ Only after asset and rights review, store approved files under `media/exercises/
 
 Run Atlas `npm run validate`, `npm run data:build`, `npm run data:check`, `npm test`, `npm run lint`, and `npm run build`. Run Monk Mode lint, tests and build when its skill files or integration code change. Report source IDs, matched/unmatched status, asset paths, validation results and unresolved problems. Use separate feature branches and atomic commits/PRs for the two repositories.
 
-Monk Mode integration is a later app change: pin an approved Atlas release, map verified IDs, resolve Atlas media URLs separately from the free-exercise-db CDN, package images for offline use, then fall back to existing local `illustration` and legacy `images`. The current `src/monkAdapter.ts` is a starting point, not a production-ready URL resolver. Do not alter the UI as part of an illustration run unless requested.
+Monk Mode already consumes Atlas: after the Atlas commit is pushed, run `npm run data:atlas:update` in Monk Mode (see `docs/atlas-data.md`), review the diff of `public/data/exercises.json` and `public/exercises/`, run its tests and commit the lock file with the generated outputs. A picture with `role: start/finish` is shown only if no `reference` picture exists. Do not alter the UI as part of an illustration run unless requested.

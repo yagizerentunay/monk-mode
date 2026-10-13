@@ -42,19 +42,19 @@ def webp_size(path):
 
 def plan(args):
     monk, atlas = Path(args.monk), Path(args.atlas)
-    raw = read(monk / "data/free-exercise-db/exercises.json")
-    slim = read(monk / "public/data/exercises.json")
-    instructions = read(monk / "public/data/instructions.json")
-    exact = [e for e in raw if e["id"] == args.exercise]
+    # Monk Mode's catalog is generated from Open Exercise Atlas (see docs/atlas-data.md); the library file is
+    # the Monk-side view of a record and legacy-exercises.json only keeps names for old ids.
+    library = read(monk / "public/data/exercises.json")
+    legacy = read(monk / "public/data/legacy-exercises.json")
+    pool = library + legacy
+    exact = [e for e in pool if e["id"] == args.exercise]
     if not exact:
-        exact = [e for e in raw if e["name"].casefold() == args.exercise.casefold()]
+        exact = [e for e in pool if e["name"].casefold() == args.exercise.casefold()]
     if len(exact) != 1:
-        candidates = [e["id"] for e in raw if args.exercise.casefold() in e["name"].casefold()][:15]
+        candidates = [e["id"] for e in pool if args.exercise.casefold() in e["name"].casefold()][:15]
         fail(f"Expected one exact exercise; found {len(exact)}. Candidates: {candidates}")
     e = exact[0]
-    s = next((x for x in slim if x["id"] == e["id"]), None)
-    if not s or s["primaryMuscles"] != e["primaryMuscles"] or s["secondaryMuscles"] != e["secondaryMuscles"]:
-        fail("Generated Monk data differs from raw source")
+    e.setdefault("instructions", [])
     records = [read(p) for p in (atlas / "data/exercises").glob("*.json")]
     candidates = []
     for a in records:
@@ -71,9 +71,9 @@ def plan(args):
             "inactive muscles neutral gray. Realistic joints, hands, feet, equipment and safe biomechanics. ")
     common = f"Exercise: {e['name']}. Equipment: {e['equipment']}. Primary: {', '.join(e['primaryMuscles'])}. Secondary: {', '.join(e['secondaryMuscles'])}. "
     manifest = {
-        "monk": {k: e[k] for k in ("id", "name", "equipment", "primaryMuscles", "secondaryMuscles", "images")},
-        "sources": ["data/free-exercise-db/exercises.json", "public/data/exercises.json", "public/data/instructions.json"],
-        "instructions": instructions.get(e["id"], []), "atlasCandidates": candidates,
+        "monk": {k: e.get(k) for k in ("id", "name", "equipment", "primaryMuscles", "secondaryMuscles", "illustration")},
+        "sources": ["public/data/exercises.json", "public/data/legacy-exercises.json"],
+        "instructions": e["instructions"], "atlasCandidates": candidates,
         "matchStatus": "needs-human-review", "matchNotes": [], "atlasId": None,
         "prompts": {"start": base + common + "Show the first explanatory movement position with exact joint angles and implement position from the exercise instructions; keep the body and target muscles visible.",
                     "finish": base + common + "Show the second critical movement position; keep the same subject, equipment and camera as START."},
