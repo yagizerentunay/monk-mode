@@ -16,7 +16,7 @@ test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi harek
       name: 'E2E Eski',
       entries: [
         // free-exercise-db'den kalan kimlik: kütüphanede yok, eski kimlik tablosundan çözülür.
-        { exId: 'Dumbbell_Bench_Press', sets: [{ w: 20, r: 8, done: true }] },
+        { exId: 'Barbell_Deadlift', sets: [{ w: 20, r: 8, done: true }] },
         // Kütüphanede kalan kimlik.
         { exId: 'Barbell_Curl', sets: [{ w: 30, r: 8, done: true }] },
         // Hiçbir yerde olmayan kimlik: ham kimlik gösterilir, uygulama çökmez.
@@ -29,14 +29,14 @@ test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi harek
   await page.goto('./#/stats')
   await page.locator('.exrow', { hasText: 'E2E Eski' }).click()
   const names = page.locator('.exname')
-  await expect(names.filter({ hasText: 'Dumbbell Bench Press' })).toBeVisible()
+  await expect(names.filter({ hasText: 'Barbell Deadlift' })).toBeVisible()
   await expect(names.filter({ hasText: 'Barbell Curl' })).toBeVisible()
   await expect(names.filter({ hasText: 'Unknown_Move' })).toBeVisible()
   await page.keyboard.press('Escape')
 
   await page.goto('./#/library')
-  await expect(page.getByText('85 egzersiz')).toBeVisible()
-  await page.getByPlaceholder('Egzersiz ara…').fill('dumbbell bench press')
+  await expect(page.getByText('186 egzersiz')).toBeVisible()
+  await page.getByPlaceholder('Egzersiz ara…').fill('barbell deadlift')
   await expect(page.getByText('0 egzersiz')).toBeVisible()
 
   await page.getByPlaceholder('Egzersiz ara…').fill('barbell curl')
