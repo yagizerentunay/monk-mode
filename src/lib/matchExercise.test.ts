@@ -141,7 +141,7 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Incline Bench Press (Barbell)', 'monk-chest-incline-barbell-bench-press'],
     ['Incline Bench Press (Dumbbell)', 'Incline_Dumbbell_Press'],
     ['Squat (Barbell)', 'Barbell_Squat'],
-    ['Front Squat (Barbell)', 'Front_Barbell_Squat'],
+    ['Front Squat (Barbell)', 'monk-quadriceps-front-squat'],
     ['Deadlift (Barbell)', 'Barbell_Deadlift'],
     ['Romanian Deadlift (Barbell)', 'Romanian_Deadlift'],
     ['Sumo Deadlift (Barbell)', 'Sumo_Deadlift'],
@@ -149,18 +149,18 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Shoulder Press (Dumbbell)', 'Dumbbell_Shoulder_Press'],
     ['Lat Pulldown (Cable)', 'Wide-Grip_Lat_Pulldown'],
     ['Bicep Curl (Dumbbell)', 'Dumbbell_Bicep_Curl'],
-    ['Hammer Curl (Dumbbell)', 'Hammer_Curls'],
+    ['Hammer Curl (Dumbbell)', 'monk-biceps-hammer-curl'],
     ['Pull Up', 'Pullups'],
-    ['Chin Up', 'Chin-Up'],
+    ['Chin Up', 'monk-lats-chin-up'],
     ['Pull Up (Assisted)', 'monk-lats-assisted-pull-up'],
     ['Leg Press', 'Leg_Press'],
     ['Leg Extension (Machine)', 'Leg_Extensions'],
-    ['Seated Leg Curl (Machine)', 'Seated_Leg_Curl'],
+    ['Seated Leg Curl (Machine)', 'monk-hamstrings-seated-leg-curl'],
     ['Seated Cable Row - V Grip (Cable)', 'Seated_Cable_Rows'],
     ['Triceps Pushdown (Cable - Straight Bar)', 'Triceps_Pushdown'],
-    ['Bent Over Row (Barbell)', 'Bent_Over_Barbell_Row'],
+    ['Bent Over Row (Barbell)', 'monk-middle-back-bent-over-barbell-row'],
     ['Face Pull (Cable)', 'Face_Pull'],
-    ['Lateral Raise (Dumbbell)', 'Side_Lateral_Raise'],
+    ['Lateral Raise (Dumbbell)', 'monk-shoulders-dumbbell-lateral-raise'],
     ['Hip Thrust (Barbell)', 'Barbell_Hip_Thrust'],
     ['Plank', 'Plank'],
     ['Push Up', 'Pushups'],
@@ -184,7 +184,15 @@ describe('gerçek egzersiz kütüphanesi', () => {
 
   it('kütüphanenin kendi adı hiçbir zaman başka bir egzersize gitmez (aynı jetonlu kopya kayıtlar hariç)', () => {
     // Kütüphanedeki gerçek ikizler: aynı hareketin farklı adlandırılmış iki kaydı.
-    const twins = new Set(['Cable Rope Overhead Triceps Extension', 'Smith Machine Decline Press'])
+    // Kütüphanenin kendi hareketi eski kimliğin kopyasından önce gelir; eski kopyalar da ikizdir.
+    const twins = new Set([
+      'Cable Rope Overhead Triceps Extension',
+      'Smith Machine Decline Press',
+      'Arnold Dumbbell Press',
+      'Bodyweight Walking Lunge',
+      'Front Barbell Squat',
+      'Upright Barbell Row',
+    ])
     const wrong = lib.filter((e) => {
       if (twins.has(e.name)) return false
       const r = match(e.name)
@@ -199,7 +207,7 @@ describe('gerçek egzersiz kütüphanesi', () => {
       ['Incline Bench Press (Dambıl)', 'Incline_Dumbbell_Press'],
       ['Barfiks', 'Pullups'],
       ['Oturarak Cable Row - V Tutuş', 'Seated_Cable_Rows'],
-      ['Lateral Raise (Dambıl)', 'Side_Lateral_Raise'],
+      ['Lateral Raise (Dambıl)', 'monk-shoulders-dumbbell-lateral-raise'],
       // "Pec Deck" makine demektir; kütüphanedeki "Butterfly" (machine) aynı hareket.
       ['Butterfly (Pec Deck)', 'Butterfly'],
     ]

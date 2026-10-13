@@ -14,9 +14,9 @@ export interface Exercise {
   category: string
   primaryMuscles: string[]
   secondaryMuscles: string[]
-  /** Egzersizin kendi referans görseli (uygulama adresine çevrilmiş); özel ve eski kayıtlarda yoktur. */
+  /** Egzersizin kendi referans görseli (uygulama adresine çevrilmiş); özel, eski ve görselsiz Atlas kayıtlarında yoktur. */
   illustration?: string
-  /** Türkçe kurulum ve hareket yönergeleri (yalnız kütüphane kayıtlarında). */
+  /** Kurulum ve hareket yönergeleri (yalnız kütüphane kayıtlarında; Atlas'ta Türkçe yoksa İngilizce). */
   instructions?: string[]
   custom?: boolean
   /** Kütüphaneden çıkarılmış eski kimlik: geçmişte adı ve kası çözülür, seçicilerde çıkmaz. */
@@ -41,7 +41,13 @@ let cache: Promise<Exercise[]> | null = null
 /** Egzersiz kütüphanesini bir kez yükler. */
 export function loadExercises(): Promise<Exercise[]> {
   cache ??= fetchJson<LibraryRecord[]>('exercises.json', 'Egzersiz verisi')
-    .then((records) => records.map((e): Exercise => ({ ...e, illustration: assetUrl(e.illustration) })))
+    .then((records) =>
+      records.map((e): Exercise => {
+        // Atlas'ta görseli olmayan kayıtlar `illustration` alanı olmadan gelir.
+        const { illustration, ...rest } = e
+        return illustration ? { ...rest, illustration: assetUrl(illustration) } : rest
+      }),
+    )
     .catch((e) => {
       cache = null
       throw e

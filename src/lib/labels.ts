@@ -22,6 +22,7 @@ export const EQUIPMENT_LABEL: Record<string, string> = {
 /** Takip edilen 17 kas grubunda olmayan, ama kütüphanede yardımcı kas olarak geçen kaslar. */
 const EXTRA_MUSCLE_LABEL: Record<string, string> = {
   'hip flexors': 'Kalça fleksörleri',
+  obliques: 'Yan karın',
 }
 
 /** Veri anahtarı (İngilizce) → Türkçe etiket. Tanınmayan değer (kullanıcının yazdığı özel kas) olduğu gibi döner. */
