@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { nameLang, type Exercise } from '../lib/exercises.ts'
+import { ExerciseThumb } from './ExerciseThumb.tsx'
 import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { alternativesFor } from '../lib/swap.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -45,11 +46,7 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
       <div className="card" style={{ padding: '4px 14px' }}>
         {alternatives.map((e) => (
           <button key={e.id} className="exrow" onClick={() => onSelect(e)}>
-            {e.illustration ? (
-              <img className="thumb" src={e.illustration} alt="" loading="lazy" />
-            ) : (
-              <div className="thumb" />
-            )}
+            <ExerciseThumb ex={e} />
             <div className="grow">
               <div className="exname" lang={nameLang(e)}>{e.name}</div>
               <div className="sub">{equipmentLabel(e.equipment)}</div>

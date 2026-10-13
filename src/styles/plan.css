@@ -66,6 +66,7 @@
 .exrow::before { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--accent); opacity: 0.55; }
 .exrow:active::before, .exrow:hover::before { opacity: 1; }
 .thumb { border: 1px solid var(--line); }
+.thumb-muscle { object-fit: contain; padding: 3px; opacity: 0.9; }
 .exaction { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 .exdetail-name { font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.05; }
 .exdetail-img { height: 160px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card-2); }

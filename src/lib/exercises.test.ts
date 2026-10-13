@@ -9,6 +9,7 @@ import {
   isBodyOnly,
   isUnilateralName,
   nameLang,
+  thumbSource,
   withMuscleFixes,
   type Exercise,
 } from './exercises.ts'
@@ -187,5 +188,23 @@ describe('buildCatalog', () => {
     expect(sets.triceps).toBe(2)
     // Kütüphanede olmayan ve eski tabloda da olmayan kimlik sayılmaz (ham kimlik gösterilir).
     expect(muscleSets([{ ...workout, entries: [{ exId: 'Unknown_Id', sets: workout.entries[0].sets }] }], plain.byId, { from: '2026-10-05' }).chest).toBe(0)
+  })
+})
+
+describe('thumbSource', () => {
+  it('önce egzersizin kendi görselini kullanır', () => {
+    expect(thumbSource({ illustration: '/x/a.webp', primaryMuscles: ['chest'] })).toEqual({ url: '/x/a.webp', fallback: false })
+  })
+
+  it('görseli yoksa birincil kasın referans çizimine düşer; Atlas adlarına çevirir', () => {
+    expect(thumbSource({ primaryMuscles: ['chest'] })?.url).toMatch(/muscles\/chest\.png$/)
+    expect(thumbSource({ primaryMuscles: ['middle back'] })?.url).toMatch(/muscles\/upper-back\.png$/)
+    expect(thumbSource({ primaryMuscles: ['lower back'] })).toMatchObject({ fallback: true })
+  })
+
+  it('çizimi olmayan kas ya da kassız kayıt için null döner', () => {
+    expect(thumbSource({ primaryMuscles: ['neck'] })).toBeNull()
+    expect(thumbSource({ primaryMuscles: [] })).toBeNull()
+    expect(thumbSource({ primaryMuscles: ['göğüs'] })).toBeNull()
   })
 })

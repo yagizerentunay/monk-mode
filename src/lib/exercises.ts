@@ -70,6 +70,21 @@ export function loadLegacyExercises(): Promise<Exercise[]> {
   return legacyCache
 }
 
+/** Monk Mode kas adı -> Atlas kas çizimi dosya adı (public/muscles/<ad>.png); boyun gibi çizimi olmayan kas yok. */
+const MUSCLE_IMAGE: Record<string, string> = {
+  chest: 'chest', 'middle back': 'upper-back', lats: 'lats', shoulders: 'shoulders', biceps: 'biceps',
+  triceps: 'triceps', forearms: 'forearms', abdominals: 'abdominals', obliques: 'obliques', 'lower back': 'lower-back',
+  glutes: 'glutes', quadriceps: 'quadriceps', hamstrings: 'hamstrings', calves: 'calves', adductors: 'adductors',
+  abductors: 'abductors', traps: 'traps',
+}
+
+/** Küçük resim kaynağı: egzersizin kendi görseli, yoksa birincil kasın referans çizimi, o da yoksa null. */
+export function thumbSource(ex: Pick<Exercise, 'illustration' | 'primaryMuscles'>): { url: string; fallback: boolean } | null {
+  if (ex.illustration) return { url: ex.illustration, fallback: false }
+  const file = ex.primaryMuscles[0] ? MUSCLE_IMAGE[ex.primaryMuscles[0]] : undefined
+  return file ? { url: assetUrl(`muscles/${file}.png`), fallback: true } : null
+}
+
 export function fromCustom(c: CustomExercise): Exercise {
   return {
     id: c.id,

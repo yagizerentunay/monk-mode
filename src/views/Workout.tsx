@@ -13,7 +13,8 @@ import { SwapSheet } from '../components/SwapSheet.tsx'
 import { WorkoutClock } from '../components/WorkoutClock.tsx'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { isBodyOnly, isUnilateralName, nameLang } from '../lib/exercises.ts'
+import { isBodyOnly, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
+import { ExerciseThumb } from '../components/ExerciseThumb.tsx'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { formatLoadWithUnit } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
@@ -246,7 +247,7 @@ export function Workout() {
         return (
           <div key={ei} className={`card stack excard${groups[ei] ? ' ss' : ''}`}>
             <div className="row">
-              {ex?.illustration && <img className="thumb" src={ex.illustration} alt="" loading="lazy" />}
+              {ex && thumbSource(ex) && <ExerciseThumb ex={ex} />}
               <div className="grow">
                 <div className="eyebrow">
                   Egzersiz {String(ei + 1).padStart(2, '0')} / {String(active.entries.length).padStart(2, '0')}

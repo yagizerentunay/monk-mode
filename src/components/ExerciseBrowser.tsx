@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { facetValues, filterExercises, type Exercise } from '../lib/exercises.ts'
+import { ExerciseThumb } from './ExerciseThumb.tsx'
 import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useExercises } from '../lib/useExercises.ts'
 
@@ -60,11 +61,7 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
       <div className="card" style={{ padding: '4px 14px' }}>
         {filtered.slice(0, shown).map((e) => (
           <button key={e.id} className="exrow" onClick={() => onSelect(e)}>
-            {e.illustration ? (
-              <img className="thumb" src={e.illustration} alt="" loading="lazy" />
-            ) : (
-              <div className="thumb" />
-            )}
+            <ExerciseThumb ex={e} />
             <div className="grow">
               <div className="exname">{e.name}</div>
               <div className="sub">

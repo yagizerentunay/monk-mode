@@ -3,7 +3,7 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { ExerciseHistory } from '../components/ExerciseHistory.tsx'
 import { MuscleFixEditor } from '../components/MuscleFixEditor.tsx'
-import { nameLang, type Exercise } from '../lib/exercises.ts'
+import { nameLang, thumbSource, type Exercise } from '../lib/exercises.ts'
 import { MUSCLES } from '../lib/muscles.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { EQUIPMENT_LABEL, equipmentLabel, muscleLabel } from '../lib/labels.ts'
@@ -32,7 +32,16 @@ function Detail({ ex }: { ex: Exercise }) {
       </div>
       <button className="btn small" onClick={() => setEditing(true)}>Kasları düzelt</button>
       <ExerciseHistory exId={ex.id} />
-      {ex.illustration && <img className="exdetail-img" src={ex.illustration} alt={ex.name} loading="lazy" />}
+      {ex.illustration ? (
+        <img className="exdetail-img" src={ex.illustration} alt={ex.name} loading="lazy" />
+      ) : (
+        thumbSource(ex) && (
+          <div className="stack">
+            <img className="exdetail-img thumb-muscle" src={thumbSource(ex)!.url} alt="" loading="lazy" />
+            <p className="sub">Bu hareketin kendi görseli henüz yok; hedef kasın referans çizimi gösteriliyor.</p>
+          </div>
+        )
+      )}
       {instructions.length > 0 && (
         <ol style={{ paddingLeft: 20, margin: 0 }}>
           {instructions.map((s, i) => (

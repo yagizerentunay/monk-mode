@@ -70,3 +70,16 @@ test('önbellekteki eski egzersiz listesi, ağdaki güncel liste varken kullanı
   await expect(page.getByText('186 egzersiz')).toBeVisible()
   await expect(page.getByText('Eski Önbellek Kaydı')).toHaveCount(0)
 })
+
+test('görseli olmayan egzersizde hedef kasın referans çizimi küçük resim olur', async ({ page }) => {
+  await page.goto('./#/library')
+  await page.getByPlaceholder('Egzersiz ara…').fill('dumbbell bench press')
+  const row = page.locator('.exrow', { hasText: 'Dumbbell Bench Press' }).first()
+  const thumb = row.locator('img.thumb-muscle')
+  await expect(thumb).toBeVisible()
+  await expect(thumb).toHaveAttribute('src', /muscles\/chest\.png$/)
+  await expect.poll(() => thumb.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+  // Kendi görseli olan egzersizde kas çizimi kullanılmaz.
+  await page.getByPlaceholder('Egzersiz ara…').fill('barbell curl')
+  await expect(page.locator('.exrow img.thumb').first()).not.toHaveClass(/thumb-muscle/)
+})

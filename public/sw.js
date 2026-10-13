@@ -1,7 +1,7 @@
 // monk-mode service worker: bağımlılıksız, elle yazılmış çevrimdışı önbellek.
 // Önbellek şemasını değiştirirsen VERSION'ı artır; eski önbellekler activate'te silinir.
 // Aynı VERSION içinde eski hash'li js/css dosyaları pruneStale ile temizlenir (aşağıda).
-const VERSION = 'v7'
+const VERSION = 'v8'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz referans görselleri
@@ -17,6 +17,7 @@ const INDEX = new URL('./', scope).href
 const EXERCISES = new URL('data/exercises.json', scope).href
 const LEGACY = new URL('data/legacy-exercises.json', scope).href // geçmişteki eski kimliklerin adları
 const ILLUSTRATIONS = new URL('exercises/', scope).href // egzersiz referans görselleri
+const MUSCLE_ART = new URL('muscles/', scope).href // kas referans çizimleri (görseli olmayan egzersizler)
 const FONTS = ['600', '700', '800'].flatMap((w) => ['latin', 'latin-ext'].map((r) => `barlow-condensed-${r}-${w}-normal.woff2`))
 const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
 
@@ -173,7 +174,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(navigate(request))
   } else if (url.href.startsWith(ASSETS)) {
     event.respondWith(cacheFirst(event, SHELL))
-  } else if (url.href.startsWith(ILLUSTRATIONS)) {
+  } else if (url.href.startsWith(ILLUSTRATIONS) || url.href.startsWith(MUSCLE_ART)) {
     event.respondWith(image(request).catch(() => Response.error()))
   } else if (url.href === EXERCISES || url.href === LEGACY) {
     event.respondWith(networkFirst(request, DATA))
