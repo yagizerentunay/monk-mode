@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatDecimal } from '../lib/units.ts'
 
 interface Props {
   value: number
@@ -35,10 +36,10 @@ export function NumberField({
       // Eksi işareti için tuş takımı: ondalık sayı tuş takımında (özellikle iOS'ta) eksi yoktur.
       inputMode={min < 0 ? 'text' : 'decimal'}
       aria-label={label}
-      value={text ?? String(shown)}
+      value={text ?? formatDecimal(shown)}
       step={step}
       onFocus={(e) => {
-        setText(String(shown))
+        setText(formatDecimal(shown))
         e.target.select()
       }}
       onBlur={() => setText(null)}

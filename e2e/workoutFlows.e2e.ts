@@ -149,7 +149,7 @@ test('lb birimi: gösterim dönüşür, girilen değer kg olarak saklanır', asy
   await startRoutine(page, s)
   // 60 kg ≈ 132,28 lb.
   const field = page.getByRole('textbox', { name: 'Set 1 ağırlık' })
-  await expect(field).toHaveValue('132.28')
+  await expect(field).toHaveValue('132,28')
   await field.fill('135')
   await page.getByRole('button', { name: 'Seti tamamla' }).click()
   await page.getByRole('button', { name: 'Bitir ✓' }).click()

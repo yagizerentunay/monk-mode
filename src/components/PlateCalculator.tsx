@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatPlates, platesFor } from '../lib/plates.ts'
-import { formatWeight, kgToUnit, roundTo, unitToKg } from '../lib/units.ts'
+import { formatDecimal, formatWeight, kgToUnit, roundTo, unitToKg } from '../lib/units.ts'
 import { useStore } from '../store/useStore.ts'
 import { NumberField } from './NumberField.tsx'
 
@@ -52,7 +52,7 @@ export function PlateCalculator({ initialKg, weights }: Props) {
 
       {result.belowBar ? (
         <p className="sub" role="status" style={{ margin: 0 }}>
-          Hedef bar ağırlığından ({kit.bar} {unit}) az.
+          Hedef bar ağırlığından ({formatDecimal(kit.bar)} {unit}) az.
         </p>
       ) : (
         <div className="card stack" role="status">
@@ -69,11 +69,11 @@ export function PlateCalculator({ initialKg, weights }: Props) {
             </div>
           )}
           <div className="sub">
-            Bar {kit.bar} {unit} · yük {result.loaded} {unit}
+            Bar {formatDecimal(kit.bar)} {unit} · yük {formatDecimal(result.loaded)} {unit}
           </div>
           {result.short > 0 && (
             <div className="warntext">
-              Eldeki plakalarla tam tutmuyor: en yakın {result.loaded} {unit} ({result.short} {unit} az).
+              Eldeki plakalarla tam tutmuyor: en yakın {formatDecimal(result.loaded)} {unit} ({formatDecimal(result.short)} {unit} az).
             </div>
           )}
         </div>

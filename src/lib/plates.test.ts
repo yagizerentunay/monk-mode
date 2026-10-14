@@ -90,7 +90,7 @@ describe('hesaplayıcı hedefleri', () => {
 
 describe('plaka metni', () => {
   it('sayıları ve çarpımı biçimler', () => {
-    expect(formatPlates([{ plate: 20, count: 2 }, { plate: 1.25, count: 1 }])).toBe('2 × 20 + 1.25')
+    expect(formatPlates([{ plate: 20, count: 2 }, { plate: 1.25, count: 1 }])).toBe('2 × 20 + 1,25')
     expect(formatPlates([])).toBeNull()
   })
 })

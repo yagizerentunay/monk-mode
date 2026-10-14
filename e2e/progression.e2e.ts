@@ -33,7 +33,7 @@ async function start(page: Page, s: State): Promise<void> {
 test('temkinli kural: iki seans üst sınır + RIR 2 → artış ve gerekçesi görünür', async ({ page }) => {
   await start(page, state([top(2), top(3)]))
   await expect(page.getByText('Ağırlık artırıldı: iki seans üst sınırda kaldın')).toBeVisible()
-  await expect(page.locator('.extarget')).toContainText('62.5')
+  await expect(page.locator('.extarget')).toContainText('62,5')
 })
 
 test('temkinli kural: tek seans üst sınırda → ağırlık aynı, onay seansı istenir', async ({ page }) => {

@@ -37,7 +37,7 @@ describe('SetRow: vücut ağırlığı', () => {
   })
 
   it('lb biriminde toplam yük dönüştürülür', () => {
-    expect(render({ w: 10, r: 5, done: false }, { bw: true, bwKg: 67, unit: 'lb' })).toContain('Toplam 169.8 lb')
+    expect(render({ w: 10, r: 5, done: false }, { bw: true, bwKg: 67, unit: 'lb' })).toContain('Toplam 169,8 lb')
   })
 
   it('vücut ağırlığı kaydı yoksa toplam ipucu gösterilmez', () => {

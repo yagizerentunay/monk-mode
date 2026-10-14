@@ -15,8 +15,13 @@ export function roundTo(value: number, step: number): number {
   return Math.round(value / step) * step
 }
 
-/** Gösterim için en fazla bir ondalık; tam sayılarda ondalık yok. */
+/** Sayıyı Türkçe ondalık ayracıyla (virgül) yazar: 62.5 → "62,5". Arayüzdeki tüm ağırlık gösterimleri bunu kullanır. */
+export function formatDecimal(n: number): string {
+  return String(n).replace('.', ',')
+}
+
+/** Gösterim için en fazla bir ondalık (virgülle); tam sayılarda ondalık yok. */
 export function formatWeight(kg: number, unit: Unit): string {
   const v = roundTo(kgToUnit(kg, unit), 0.1)
-  return Number.isInteger(v) ? String(v) : v.toFixed(1)
+  return formatDecimal(Number.isInteger(v) ? v : Number(v.toFixed(1)))
 }

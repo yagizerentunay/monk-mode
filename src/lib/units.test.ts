@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatWeight, kgToUnit, roundTo, unitToKg } from './units.ts'
+import { formatDecimal, formatWeight, kgToUnit, roundTo, unitToKg } from './units.ts'
 
 describe('units', () => {
   it('kg biriminde değeri değiştirmez', () => {
@@ -19,7 +19,13 @@ describe('units', () => {
 
   it('ağırlığı kısa biçimde gösterir', () => {
     expect(formatWeight(80, 'kg')).toBe('80')
-    expect(formatWeight(82.5, 'kg')).toBe('82.5')
-    expect(formatWeight(100, 'lb')).toBe('220.5')
+    expect(formatWeight(82.5, 'kg')).toBe('82,5')
+    expect(formatWeight(100, 'lb')).toBe('220,5')
+  })
+
+  it('ondalık ayracı virgüldür, tam sayıda ayraç yoktur', () => {
+    expect(formatDecimal(62.5)).toBe('62,5')
+    expect(formatDecimal(60)).toBe('60')
+    expect(formatDecimal(-2.5)).toBe('-2,5')
   })
 })

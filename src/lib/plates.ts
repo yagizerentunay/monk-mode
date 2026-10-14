@@ -112,5 +112,5 @@ export function plateTargets(sets: { w: number; done: boolean }[]): { weights: n
 /** "2 × 20 + 1.25" biçiminde kısa gösterim; boş liste için null. */
 export function formatPlates(perSide: PlateCount[]): string | null {
   if (perSide.length === 0) return null
-  return perSide.map((p) => (p.count > 1 ? `${p.count} × ${p.plate}` : String(p.plate))).join(' + ')
+  return perSide.map((p) => (p.count > 1 ? `${p.count} × ${String(p.plate).replace('.', ',')}` : String(p.plate).replace('.', ','))).join(' + ')
 }

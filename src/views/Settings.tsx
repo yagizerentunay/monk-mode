@@ -12,7 +12,7 @@ import { REMIND_CHOICES } from '../lib/backupReminder.ts'
 import { formatRate } from '../lib/bodyweight.ts'
 import { getPersistStatus, requestPersist, type PersistStatus } from '../lib/persistStorage.ts'
 import { PLATE_CHOICES } from '../lib/plates.ts'
-import { unitToKg, type Unit } from '../lib/units.ts'
+import { formatDecimal, unitToKg, type Unit } from '../lib/units.ts'
 import { importBackupWithReport } from '../store/backup.ts'
 import { describeDropped } from '../store/sanitize.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
@@ -169,7 +169,7 @@ export function Settings() {
                 aria-pressed={kit.plates.includes(p)}
                 onClick={() => togglePlate(p)}
               >
-                {p}
+                {formatDecimal(p)}
               </button>
             ))}
           </div>

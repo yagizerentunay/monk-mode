@@ -85,7 +85,7 @@ describe('comparableLast', () => {
 describe('formatLoad', () => {
   it('normal egzersizde yalnız ağırlık', () => {
     expect(formatLoad(false, 60, 'kg')).toBe('60')
-    expect(formatLoad(undefined, 62.5, 'kg')).toBe('62.5')
+    expect(formatLoad(undefined, 62.5, 'kg')).toBe('62,5')
   })
 
   it('vücut ağırlığında ek yük, asist ve boş yük', () => {
@@ -103,7 +103,7 @@ describe('formatLoad', () => {
 describe('formatLoadWithUnit', () => {
   it('normal egzersizde birim ekler, bw egzersizinde formatLoad gibi davranır', () => {
     expect(formatLoadWithUnit(false, 60, 'kg')).toBe('60 kg')
-    expect(formatLoadWithUnit(undefined, 132.5, 'lb')).toBe('292.1 lb')
+    expect(formatLoadWithUnit(undefined, 132.5, 'lb')).toBe('292,1 lb')
     expect(formatLoadWithUnit(true, 10, 'kg')).toBe('+10 kg')
     expect(formatLoadWithUnit(true, 0, 'lb')).toBe('Vücut ağırlığı')
   })
