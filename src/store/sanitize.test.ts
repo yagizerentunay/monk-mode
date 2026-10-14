@@ -236,6 +236,33 @@ describe('egzersiz ve set', () => {
   })
 })
 
+describe('egzersize özel dinlenme', () => {
+  it('geçerli restSec kayıtlı antrenmanda korunur', () => {
+    const { state, report } = migrateWithReport({
+      workouts: [{ ...good(), entries: [{ exId: 'bench', restSec: 150, sets: [{ w: 50, r: 5, done: true }] }] }],
+    })
+    expect(state.workouts[0].entries[0].restSec).toBe(150)
+    expect(repairedTotal(report)).toBe(0)
+  })
+
+  it('sıfır, negatif ya da metin restSec atılır ve onarım sayılır', () => {
+    const { state, report } = migrateWithReport({
+      workouts: [
+        {
+          ...good(),
+          entries: [
+            { exId: 'a', restSec: 0, sets: [] },
+            { exId: 'b', restSec: -30, sets: [] },
+            { exId: 'c', restSec: '90', sets: [] },
+          ],
+        },
+      ],
+    })
+    expect(state.workouts[0].entries.every((e) => e.restSec === undefined)).toBe(true)
+    expect(report.repaired.entry).toBe(3)
+  })
+})
+
 describe('rutin', () => {
   it('id, ad ya da ex dizisi olmayan rutini atar', () => {
     const r = { id: 'r', name: 'R', ex: [] }

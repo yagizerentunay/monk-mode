@@ -37,6 +37,19 @@ describe('workout yardımcıları', () => {
     expect(w.entries[0].sets[0]).toEqual({ w: 60, r: 5, done: false })
   })
 
+  it('rutindeki egzersize özel dinlenme seans kaydına taşınır', () => {
+    const r: Routine = {
+      ...routine,
+      ex: [
+        { ...routine.ex[0], restSec: 180 },
+        { exId: 'curl', sets: 3, reps: 10, weight: 12, prog: 'off', inc: 1, repsMax: 12 },
+      ],
+    }
+    const w = buildWorkout(r, [], Date.UTC(2026, 9, 8, 12))
+    expect(w.entries[0].restSec).toBe(180)
+    expect(w.entries[1]).not.toHaveProperty('restSec')
+  })
+
   it('başarılı geçmişte progression ağırlığı artırır', () => {
     const history = [wk('2026-10-01', 'bench', [done(60, 5), done(60, 5), done(60, 5)])]
     const w = buildWorkout(routine, history, Date.UTC(2026, 9, 8, 12), [], 'fast')

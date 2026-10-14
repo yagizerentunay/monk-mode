@@ -88,6 +88,30 @@ describe('süpersette dinlenme', () => {
   })
 })
 
+describe('egzersize özel dinlenme', () => {
+  const withRest = (e: WorkoutEntry, restSec: number): WorkoutEntry => ({ ...e, restSec })
+
+  it('egzersizin kendi süresi ayardaki süreyi geçersiz kılar', () => {
+    expect(restAfter([withRest(entry([work(), work()]), 180)], 0, 0, 90)).toBe(180)
+  })
+
+  it('süresi olmayan egzersiz ayardaki süreyi kullanır', () => {
+    const entries = [withRest(entry([work()]), 180), entry([work()])]
+    expect(restAfter(entries, 1, 0, 90)).toBe(90)
+  })
+
+  it('ısınma seti egzersizin süresinden de en fazla 45 sn dinlenir', () => {
+    const warm = { w: 10, r: 8, done: true, warmup: true }
+    expect(restAfter([withRest(entry([warm, work()]), 180)], 0, 0, 90)).toBe(45)
+    expect(restAfter([withRest(entry([warm, work()]), 30)], 0, 0, 90)).toBe(30)
+  })
+
+  it('süpersette tur sonunda son egzersizin kendi süresi geçerlidir', () => {
+    const entries = [withRest(entry([work(true)]), 60), withRest(entry([work(true)], true), 120)]
+    expect(restAfter(entries, 1, 0, 90)).toBe(120)
+  })
+})
+
 describe('rutin düzenleme', () => {
   const ex = (name: string, superset?: boolean) => ({ name, superset })
   const view = (list: ReturnType<typeof ex>[]) => list.map((e) => `${e.name}${e.superset ? '+' : ''}`)

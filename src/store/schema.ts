@@ -30,6 +30,7 @@ export interface ExCfg {
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
   repsMax: number
+  /** Bu egzersize özel dinlenme süresi (sn); yoksa Ayarlar'daki süre geçerlidir. */
   restSec?: number
 }
 
@@ -81,6 +82,8 @@ export interface WorkoutEntry {
   bwKg?: number
   /** Kısa not (ağrı, takılma, enerji…); aynı egzersizin sonraki seansında hatırlatılır (lib/notes.ts). */
   note?: string
+  /** Bu egzersize özel dinlenme süresi (sn); rutindeki `ExCfg.restSec`'ten gelir, yoksa ayardaki süre geçerlidir. */
+  restSec?: number
 }
 
 export interface Workout {

@@ -178,6 +178,7 @@ const ENTRY_CHECKS: Record<string, Check> = {
   bw: bool,
   bwKg: positiveNum,
   note: str,
+  restSec: positiveNum,
 }
 
 function sanitizeEntry(raw: unknown, rep: SanitizeReport): WorkoutEntry | null {

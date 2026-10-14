@@ -77,6 +77,7 @@ export function buildWorkout(
       const warmups = warmupSets(p.w, cfg.warmups ?? 0, bwKg)
       const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
       if (cfg.superset && i > 0) entry.linked = true
+      if (cfg.restSec && cfg.restSec > 0) entry.restSec = cfg.restSec
       if (bw) {
         entry.bw = true
         if (bwKg !== undefined) entry.bwKg = bwKg

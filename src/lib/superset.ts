@@ -65,7 +65,8 @@ export function restAfter(
   restSec: number,
 ): number | null {
   const entry = entries[entryIdx]
-  const base = restAfterSec(entry.sets, setIdx, restSec)
+  // Egzersize özel dinlenme (rutindeki restSec) ayardaki süreyi geçersiz kılar.
+  const base = restAfterSec(entry.sets, setIdx, entry.restSec ?? restSec)
   if (base === null) return null
   if (entry.sets[setIdx].warmup) return base
 
