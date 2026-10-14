@@ -3,7 +3,7 @@ import type { Exercise } from './exercises.ts'
 import { dropSet, warmupSet } from './intensity.ts'
 import { toUnilateral } from './sets.ts'
 import { DEFAULT_TIMED_SEC } from './timed.ts'
-import { lastTwoEntriesFor } from './workout.ts'
+import { lastSetup, lastTwoEntriesFor } from './workout.ts'
 import { nextPrescription } from './progression.ts'
 
 /** Değiştir listesinde en fazla gösterilen alternatif sayısı. */
@@ -36,6 +36,22 @@ export function alternativesFor(
  */
 export function hasCompletedWork(entry: WorkoutEntry): boolean {
   return entry.sets.some((s) => s.done || s.partial || s.sides?.L.done || s.sides?.R.done)
+}
+
+/**
+ * Henüz çalışılmamış bir egzersizi süreli ↔ tekrarlı çevirir; yapılmışsa girdi aynen döner. Hedefler yeni
+ * türün son seansındaki en kısa değerden (`history`), yoksa 30 sn / 8 tekrardan başlar; süreliye geçerken
+ * ısınma satırları düşer (bkz. lib/timed.ts). Ağırlıklar ve diğer bayraklar korunur.
+ */
+export function toggleTimedEntry(entry: WorkoutEntry, history: Workout[] = []): WorkoutEntry {
+  if (hasCompletedWork(entry)) return entry
+  const timed = !entry.timed
+  const r = lastSetup(history, entry.exId, !!entry.bw, timed)?.r ?? (timed ? DEFAULT_TIMED_SEC : 8)
+  const sets = (timed ? entry.sets.filter((s) => !s.warmup) : entry.sets).map((s): SetEntry =>
+    s.sides ? { ...s, r, sides: { L: { ...s.sides.L, r }, R: { ...s.sides.R, r } } } : { ...s, r },
+  )
+  const { timed: _timed, ...rest } = entry
+  return timed ? { ...rest, timed: true, sets } : { ...rest, sets }
 }
 
 /**
