@@ -7,6 +7,7 @@ import {
   filterExercises,
   fromCustom,
   isBodyOnly,
+  isTimedName,
   isUnilateralName,
   nameLang,
   thumbSource,
@@ -73,6 +74,19 @@ describe('egzersiz filtreleri', () => {
   it('adından tek taraflı egzersizleri önerir', () => {
     for (const n of ['One-Arm Dumbbell Row', 'Dumbbell Lunges', 'Barbell Step Ups', 'Single-Leg Press', 'Kettlebell Pistol Squat', 'Glute Kickback', 'Concentration Curls', 'Bulgarian Split Squat']) {
       expect(isUnilateralName(n), n).toBe(true)
+    }
+  })
+
+  it('yan plank ve Copenhagen plank tek taraflı önerilir', () => {
+    for (const n of ['Side Plank', 'Full Copenhagen Plank', 'Side Plank Hip Abduction']) expect(isUnilateralName(n), n).toBe(true)
+  })
+
+  it('adından süreli egzersizleri önerir, tekrarlı varyantları önermez', () => {
+    for (const n of ['Forearm Plank', 'Side Plank', 'Neck Flexion Isometric', 'Hollow Body Hold', 'Sorensen Hold', 'Wall Sit', 'Dead Hang']) {
+      expect(isTimedName(n), n).toBe(true)
+    }
+    for (const n of ['Side Plank Hip Abduction', 'Barbell Squat', 'Glute Bridge', 'Cable Row']) {
+      expect(isTimedName(n), n).toBe(false)
     }
   })
 

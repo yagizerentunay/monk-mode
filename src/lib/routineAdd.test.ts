@@ -29,6 +29,22 @@ describe('defaultExCfg', () => {
     })
   })
 
+  it('plank gibi süreli adlarda hedef 30 sn gelir, ağırlık artışı ve tekrar yok', () => {
+    expect(defaultExCfg(ex({ id: 'plank', name: 'Forearm Plank', equipment: 'body only' }))).toEqual({
+      exId: 'plank',
+      sets: 3,
+      reps: 30,
+      weight: 0,
+      prog: 'double',
+      inc: 0,
+      repsMax: 30,
+      side: false,
+      timed: true,
+      bw: true,
+    })
+    expect('timed' in defaultExCfg(ex())).toBe(false)
+  })
+
   it('tek taraflılığı adından, vücut ağırlığını ekipmandan önerir', () => {
     expect(defaultExCfg(ex({ name: 'Bulgarian Split Squat' })).side).toBe(true)
     expect(defaultExCfg(ex({ equipment: 'body only' })).bw).toBe(true)
