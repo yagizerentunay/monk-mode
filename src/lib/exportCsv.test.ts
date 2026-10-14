@@ -27,11 +27,11 @@ describe('workoutsToCsv biçimi', () => {
     expect(csv.startsWith('﻿')).toBe(true)
     expect(csv.split('\r\n')[0]).toBe('﻿' + CSV_HEADERS.join(';'))
     expect(CSV_HEADERS.join(';')).toBe(
-      'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu',
+      'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu;Süre (sn)',
     )
     expect(csv.endsWith('\r\n')).toBe(true)
     expect(csv.replace(/\r\n/g, '')).not.toMatch(/[\r\n]/)
-    expect(rows(csv)[1]).toEqual(['2026-10-05', 'Push', 'Bench Press', 'Çalışma', '1', '', '60', '', '60', '5', '', '', ''])
+    expect(rows(csv)[1]).toEqual(['2026-10-05', 'Push', 'Bench Press', 'Çalışma', '1', '', '60', '', '60', '5', '', '', '', ''])
   })
 
   it('ondalıkta virgül kullanır, binlik ayracı koymaz', () => {
@@ -51,7 +51,7 @@ describe('workoutsToCsv biçimi', () => {
       [workout([entry('bench', [set(60, 5)], { note: 'omuz; "sızı"\nikinci satır' })], { note: 'düz not' })],
       kg,
     )
-    expect(csv).toContain('"omuz; ""sızı""\nikinci satır";düz not\r\n')
+    expect(csv).toContain('"omuz; ""sızı""\nikinci satır";düz not;\r\n')
   })
 
   it('antrenman ve egzersiz adındaki ayracı da tırnaklar', () => {
@@ -61,7 +61,7 @@ describe('workoutsToCsv biçimi', () => {
 
   it('formül gibi başlayan notu metin olarak bırakır', () => {
     const csv = workoutsToCsv([workout([entry('bench', [set(60, 5)], { note: '=1+1' })], { note: '@x' })], kg)
-    expect(csv).toContain(";'=1+1;'@x\r\n")
+    expect(csv).toContain(";'=1+1;'@x;\r\n")
   })
 })
 
@@ -170,5 +170,29 @@ describe('workoutsToCsv satırlar', () => {
     const csv = workoutsToCsv(list, kg)
     expect(list[0].start).toBe(2)
     expect(rows(csv)[2][2]).toBe('zzz')
+  })
+})
+
+describe('workoutsToCsv süreli setler', () => {
+  it('süreyi "Süre (sn)" sütununa yazar, tekrarı boş bırakır', () => {
+    const plank = entry('plank', [set(10, 90)], { timed: true, bw: true, bwKg: 80 })
+    const csv = workoutsToCsv([workout([plank, entry('bench', [set(60, 5)])])], kg)
+    const [header, a, b] = rows(csv)
+    const sec = header.indexOf('Süre (sn)')
+    const reps = header.indexOf('Tekrar')
+    expect([a[reps], a[sec]]).toEqual(['', '90'])
+    expect(a[header.indexOf('Toplam yük')]).toBe('90')
+    expect([b[reps], b[sec]]).toEqual(['5', ''])
+  })
+
+  it('tek taraflı süreli sette her taraf için bir satır yazar', () => {
+    const side = entry(
+      'side-plank',
+      [{ w: 0, r: 30, done: true, sides: { L: { r: 35, done: true }, R: { r: 30, done: true } } }],
+      { timed: true, unilateral: true },
+    )
+    const [, l, r] = rows(workoutsToCsv([workout([side])], kg))
+    expect([l[5], l[10], l[0] && l[l.length - 1]]).toEqual(['Sol', '', '35'])
+    expect([r[5], r[r.length - 1]]).toEqual(['Sağ', '30'])
   })
 })

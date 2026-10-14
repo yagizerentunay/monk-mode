@@ -24,6 +24,8 @@ export const CSV_HEADERS = [
   'RIR',
   'Egzersiz notu',
   'Antrenman notu',
+  // Sona eklendi: önceki sütun konumları (Excel formülleri) değişmesin. Süreli sette tekrar boş, süre dolu.
+  'Süre (sn)',
 ] as const
 
 export interface CsvOptions {
@@ -57,7 +59,7 @@ function num(kg: number, unit: Unit): string {
 
 /**
  * Tamamlanan setleri Excel için CSV'ye çevirir: tamamlanan her set bir satır, tek taraflıda taraf başına
- * bir satır. Tamamlanmamış set atlanır; yalnız bir tarafı yapılmış yarım sette yapılan taraf yazılır.
+ * bir satır (süreli egzersizde "Tekrar" boş, "Süre (sn)" tutulan saniyedir). Tamamlanmamış set atlanır; yalnız bir tarafı yapılmış yarım sette yapılan taraf yazılır.
  * Sıra: tarih / başlangıç, egzersiz sırası, set sırası.
  */
 export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): string {
@@ -80,10 +82,11 @@ export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): s
           num(set.w, unit),
           entry.bw && entry.bwKg !== undefined ? num(entry.bwKg, unit) : '',
           num(effectiveLoad(entry, set.w), unit),
-          String(reps),
+          entry.timed ? '' : String(reps),
           set.rir === undefined ? '' : String(set.rir),
           text(entry.note),
           text(w.note),
+          entry.timed ? String(reps) : '',
         ]
         if (set.sides) {
           for (const s of SIDES) if (set.sides[s].done) rows.push(base(SIDE_LABEL[s], set.sides[s].r))
