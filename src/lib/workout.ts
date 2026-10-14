@@ -153,6 +153,11 @@ export function workoutVolume(workout: Workout): number {
   )
 }
 
+/** Antrenmanda hacme giren (süreli olmayan) en az bir egzersiz var mı? Yoksa hacim satırı gösterilmez. */
+export function hasVolume(workout: Workout): boolean {
+  return workout.entries.some((e) => !e.timed)
+}
+
 /** Kaydedilmiş antrenmandaki yarım (tek tarafı yapılmış) set sayısı. */
 export function partialSetCount(workout: Workout): number {
   return workout.entries.reduce((n, e) => n + e.sets.filter((s) => s.partial).length, 0)

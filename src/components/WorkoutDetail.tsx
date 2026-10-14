@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
-import { formatLoad } from '../lib/load.ts'
+import { formatLoad, formatTimedLoad } from '../lib/load.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
-import { workoutVolume } from '../lib/workout.ts'
+import { hasVolume, workoutVolume } from '../lib/workout.ts'
 import type { Workout } from '../store/schema.ts'
 import { deleteWorkoutWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
@@ -47,7 +47,7 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
 
   return (
     <div className="stack">
-      <div className="eyebrow muted">{hideDate ? '' : `${formatDayTitle(workout.d)} · `}{formatWeight(workoutVolume(workout), unit)} {unit} hacim</div>
+      <div className="eyebrow muted">{hideDate ? '' : formatDayTitle(workout.d)}{hasVolume(workout) && <>{hideDate ? '' : ' · '}{formatWeight(workoutVolume(workout), unit)} {unit} hacim</>}</div>
       {workout.note && <div className="note">{workout.note}</div>}
       {workout.entries.map((e, i) => {
         const zero = zeroWeightFlags(e, byId.get(e.exId)?.equipment)
@@ -63,7 +63,9 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
                     .map(({ s, si }, i) => (
                       <span key={si}>
                         {i > 0 && ' · '}
-                        {formatSet(s, formatLoad(e.bw, s.w, unit))}
+                        {e.timed
+                          ? formatSet(s, formatTimedLoad(e.bw, s.w, unit), true)
+                          : formatSet(s, formatLoad(e.bw, s.w, unit))}
                         {zero[si] && <span className="zeromark"> {formatWeight(0, unit)} {unit}?</span>}
                       </span>
                     ))}

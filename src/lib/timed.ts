@@ -47,3 +47,11 @@ export function parseDuration(text: string): number | null {
   if (!/^\d+(?:\.\d+)?$/.test(t)) return null
   return clampSec(Number(t))
 }
+
+/**
+ * Kronometrenin geçen saniyesi: başlangıç damgasından hesaplanır (aralık sayacı değil), bu yüzden
+ * yeniden çizim, sekme arka plana gitmesi ya da ekran kilidi sayacı kaydırmaz. Saat geri giderse 0.
+ */
+export function elapsedSec(startedAt: number, now: number): number {
+  return clampSec(Math.floor((now - startedAt) / 1000))
+}

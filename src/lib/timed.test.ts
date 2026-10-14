@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampSec, formatClockField, formatDuration, MAX_TIMED_SEC, parseDuration } from './timed.ts'
+import { clampSec, elapsedSec, formatClockField, formatDuration, MAX_TIMED_SEC, parseDuration } from './timed.ts'
 
 describe('süre biçimi', () => {
   it('bir dakikanın altını "45 sn", üstünü "1:30" yazar', () => {
@@ -40,5 +40,15 @@ describe('süre ayrıştırma', () => {
     expect(parseDuration('-5')).toBeNull()
     expect(parseDuration('1:75')).toBeNull()
     expect(parseDuration('99999')).toBe(3600)
+  })
+})
+
+describe('kronometre', () => {
+  it('geçen saniyeyi damgadan hesaplar, saat geri giderse 0 verir, 3600de durur', () => {
+    expect(elapsedSec(1_000, 1_000)).toBe(0)
+    expect(elapsedSec(1_000, 1_999)).toBe(0)
+    expect(elapsedSec(1_000, 46_400)).toBe(45)
+    expect(elapsedSec(5_000, 1_000)).toBe(0)
+    expect(elapsedSec(0, 99_999_000)).toBe(3600)
   })
 })

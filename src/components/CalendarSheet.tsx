@@ -3,7 +3,7 @@ import { draftForDate } from '../lib/backdate.ts'
 import { formatDayTitle, MONTH_NAMES, monthGrid, parseDay, shiftMonth, weekdayOrder } from '../lib/calendar.ts'
 import { DAY_SHORT } from '../lib/dates.ts'
 import { formatWeight } from '../lib/units.ts'
-import { dayString, doneSetCount, workoutVolume } from '../lib/workout.ts'
+import { dayString, doneSetCount, hasVolume, workoutVolume } from '../lib/workout.ts'
 import type { Routine, Workout } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 import { BottomSheet } from './BottomSheet.tsx'
@@ -210,7 +210,7 @@ function DayView({ date, today, workouts, planned, hasRoutines, onOpen, onRecord
           <div>
             <div className="exname">{w.name}</div>
             <div className="sub">
-              {doneSetCount(w).done} set · {formatWeight(workoutVolume(w), unit)} {unit}
+              {doneSetCount(w).done} set{hasVolume(w) && ` · ${formatWeight(workoutVolume(w), unit)} ${unit}`}
             </div>
           </div>
           <span className="badge ok">Aç ▶</span>
