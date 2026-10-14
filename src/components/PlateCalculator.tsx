@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatPlates, platesFor } from '../lib/plates.ts'
 import { formatDecimal, formatWeight, kgToUnit, roundTo, unitToKg } from '../lib/units.ts'
 import { useStore } from '../store/useStore.ts'
+import { ChipRow } from './ChipRow.tsx'
 import { NumberField } from './NumberField.tsx'
 
 interface Props {
@@ -27,13 +28,13 @@ export function PlateCalculator({ initialKg, weights }: Props) {
   return (
     <div className="stack plate-calc">
       {weights.length > 0 && (
-        <div className="chips">
+        <ChipRow>
           {weights.map((w) => (
             <button key={w} className={`chip${w === kg ? ' on' : ''}`} onClick={() => setKg(w)}>
               {formatWeight(w, unit)}
             </button>
           ))}
-        </div>
+        </ChipRow>
       )}
 
       <div className="row between">

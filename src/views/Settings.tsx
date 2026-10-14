@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ChipRow } from '../components/ChipRow.tsx'
 import { CsvExportCard } from '../components/CsvExportCard.tsx'
 import { DiagnosticsCard } from '../components/DiagnosticsCard.tsx'
 import { ImportCard } from '../components/ImportCard.tsx'
@@ -123,11 +124,11 @@ export function Settings() {
         <h2>Tercihler</h2>
         <div className="row between">
           <span>Birim</span>
-          <div className="chips">
+          <ChipRow>
             {(['kg', 'lb'] as const).map((u) => (
               <button key={u} className={`chip${unit === u ? ' on' : ''}`} onClick={() => setSettings({ unit: u })}>{u}</button>
             ))}
-          </div>
+          </ChipRow>
         </div>
         <div className="row between">
           <span>Dinlenme süresi (sn)</span>
@@ -182,7 +183,7 @@ export function Settings() {
         <p className="sub" style={{ margin: 0 }}>
           Haftalık hedef değişim hızı. Ana Sayfa ve İstatistik'te gerçek hızınla karşılaştırılır.
         </p>
-        <div className="chips">
+        <ChipRow>
           <button
             className={`chip${bodyweightGoal === undefined ? ' on' : ''}`}
             aria-pressed={bodyweightGoal === undefined}
@@ -199,7 +200,7 @@ export function Settings() {
               </button>
             )
           })}
-        </div>
+        </ChipRow>
       </div>
 
       <ProgressionRuleCard />
@@ -235,7 +236,7 @@ export function Settings() {
         <button className="btn block" onClick={() => void download()}>Yedeği kaydet (JSON)</button>
         <div className="row between">
           <span>Yedek hatırlatması</span>
-          <div className="chips">
+          <ChipRow>
             {REMIND_CHOICES.map((d) => (
               <button
                 key={d}
@@ -246,7 +247,7 @@ export function Settings() {
                 {d === 0 ? 'Kapalı' : `${d} gün`}
               </button>
             ))}
-          </div>
+          </ChipRow>
         </div>
         <button className="btn block" onClick={() => fileRef.current?.click()}>Yedekten yükle</button>
         <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onFile(e.target.files?.[0])} />

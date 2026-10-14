@@ -7,6 +7,7 @@ import type { Unit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { useStore } from '../store/useStore.ts'
+import { ChipRow } from './ChipRow.tsx'
 
 const FORMAT_LABEL = { strong: 'Strong', hevy: 'Hevy' } as const
 
@@ -103,13 +104,13 @@ export function ImportCard() {
             {parsed.unit ? (
               <b>{parsed.unit} (dosyadan)</b>
             ) : (
-              <div className="chips">
+              <ChipRow>
                 {(['kg', 'lb'] as const).map((u) => (
                   <button key={u} className={`chip${fileUnit === u ? ' on' : ''}`} onClick={() => setFileUnit(u)}>
                     {u}
                   </button>
                 ))}
-              </div>
+              </ChipRow>
             )}
           </div>
           {!parsed.unit && (

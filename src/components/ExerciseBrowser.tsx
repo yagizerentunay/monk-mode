@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { facetValues, filterExercises, type Exercise } from '../lib/exercises.ts'
+import { ChipRow } from './ChipRow.tsx'
 import { ExerciseThumb } from './ExerciseThumb.tsx'
 import { equipmentLabel, muscleLabel } from '../lib/labels.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -42,19 +43,19 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
         }}
       />
       <div className="eyebrow muted">Kas grubu</div>
-      <div className="chips">
+      <ChipRow>
         <button className={`chip${muscle === null ? ' on' : ''}`} onClick={() => { setMuscle(null); reset() }}>Tüm kaslar</button>
         {muscles.map((m) => (
           <button key={m} className={`chip${muscle === m ? ' on' : ''}`} onClick={() => { setMuscle(m); reset() }}>{muscleLabel(m)}</button>
         ))}
-      </div>
+      </ChipRow>
       <div className="eyebrow muted">Ekipman</div>
-      <div className="chips">
+      <ChipRow>
         <button className={`chip${equipment === null ? ' on' : ''}`} onClick={() => { setEquipment(null); reset() }}>Tüm ekipman</button>
         {equipments.map((q) => (
           <button key={q} className={`chip${equipment === q ? ' on' : ''}`} onClick={() => { setEquipment(q); reset() }}>{equipmentLabel(q)}</button>
         ))}
-      </div>
+      </ChipRow>
 
       <p className="sub resultcount">{loading ? 'Yükleniyor…' : `${filtered.length} egzersiz`}</p>
 
