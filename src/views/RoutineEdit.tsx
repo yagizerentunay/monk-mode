@@ -198,15 +198,16 @@ export function RoutineEdit() {
                     onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
                   />
                 </label>
-                <label className="field">
-                  <span className="sub">Dinlenme (sn)</span>
-                  <NumberField
-                    value={cfg.restSec ?? defaultRest}
-                    min={10}
-                    onChange={(v) => patchEx(i, { restSec: Math.round(v) })}
-                  />
-                </label>
               </div>
+
+              <label className="field">
+                <span className="sub">Dinlenme (sn)</span>
+                <NumberField
+                  value={cfg.restSec ?? defaultRest}
+                  min={10}
+                  onChange={(v) => patchEx(i, { restSec: Math.round(v) })}
+                />
+              </label>
               {cfg.restSec !== undefined && (
                 <button className="btn small" onClick={() => patchEx(i, { restSec: undefined })}>
                   Ayardaki süreyi kullan ({defaultRest} sn)
