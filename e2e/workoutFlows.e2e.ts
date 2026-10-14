@@ -130,6 +130,8 @@ test('not kaydedilir ve aynı egzersizin sonraki seansında hatırlatılır', as
   expect((await readState(page)).workouts[0].entries[0].note).toBe('sol omuz sıkıştı')
 
   await page.getByRole('button', { name: 'Ana sayfaya dön' }).click()
+  // Yönlendirme tamamlanmadan hash'i değiştirmek özet ekranını açık bırakır; Ana sayfa görününceye kadar bekle.
+  await expect(page.locator('.home')).toBeVisible()
   await page.goto('./#/workout')
   await page.getByRole('button', { name: /E2E Akış/ }).click()
   await expect(page.getByText(/sol omuz sıkıştı/)).toBeVisible()
