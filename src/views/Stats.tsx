@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { BodyweightCard } from '../components/BodyweightCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
+import { FrequencyCard } from '../components/FrequencyCard.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
 import { RecordsCard } from '../components/RecordsCard.tsx'
 import { WeeklyTrendCard } from '../components/WeeklyTrendCard.tsx'
@@ -98,6 +99,8 @@ export function Stats() {
       <RecordsCard />
 
       <WeeklyTrendCard />
+
+      <FrequencyCard />
 
       <BodyweightCard />
 
