@@ -178,3 +178,31 @@ describe('isRecentRecord', () => {
     expect(isRecentRecord('2026-03-10', new Date(2026, 3, 9, 12))).toBe(false)
   })
 })
+
+describe('personalRecords: süreli egzersiz', () => {
+  it('1RM hesaplamaz, en uzun tutuşu rekor sayar (eşitlikte ağır ek yük)', () => {
+    const [r] = personalRecords([
+      wk('1', '2026-10-01', [entry('plank', [set(0, 40), set(0, 60)], { timed: true, bw: true })]),
+      wk('2', '2026-10-05', [entry('plank', [set(0, 50), set(10, 60)], { timed: true, bw: true })]),
+    ])
+    expect(r.timed).toBe(true)
+    expect(r.e1rm).toBeUndefined()
+    expect(r.top).toMatchObject({ d: '2026-10-05', set: { w: 10, r: 60 } })
+    expect(r.d).toBe('2026-10-05')
+    expect(r.sessions).toBe(2)
+  })
+
+  it('aynı egzersizin tekrarlı ve süreli kayıtlarını ayrı tutar', () => {
+    const recs = personalRecords([
+      wk('1', '2026-10-01', [entry('x', [set(20, 8)])]),
+      wk('2', '2026-10-02', [entry('x', [set(0, 45)], { timed: true })]),
+    ])
+    expect(recs).toHaveLength(2)
+    const timed = recs.find((r) => r.timed)!
+    const reps = recs.find((r) => !r.timed)!
+    expect(timed.e1rm).toBeUndefined()
+    expect(timed.top.set.r).toBe(45)
+    expect(reps.e1rm?.value).toBeGreaterThan(20)
+  })
+})
+

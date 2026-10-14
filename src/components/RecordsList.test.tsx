@@ -101,3 +101,19 @@ describe('RecordsList', () => {
     expect(html).toContain('Bench Press')
   })
 })
+
+describe('RecordsList: süreli egzersiz', () => {
+  it('1RM yazmaz, en uzun tutuşu süre olarak gösterir', () => {
+    const text = textOf(
+      render([wk('1', '2026-08-03', [entry('plank', [set(0, 45), set(0, 90)], { timed: true, bw: true })])]),
+    )
+    expect(text).not.toContain('1RM')
+    expect(text).toContain('En uzun: 1:30 · 3 Ağustos')
+  })
+
+  it('ek yükü süreyle birlikte yazar', () => {
+    const text = textOf(render([wk('1', '2026-08-03', [entry('plank', [set(10, 60)], { timed: true, bw: true })])]))
+    expect(text).toContain('En uzun: +10 kg · 1:00')
+  })
+})
+

@@ -1,5 +1,5 @@
 import { formatShortDay } from '../lib/calendar.ts'
-import { formatLoadWithUnit } from '../lib/load.ts'
+import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
 import { isRecentRecord, RECENT_RECORD_DAYS, type ExerciseRecord, type RecordSet } from '../lib/records.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatWeight, type Unit } from '../lib/units.ts'
@@ -19,9 +19,10 @@ interface Props {
   onOpen: (exId: string) => void
 }
 
-/** "60 kg×8 @2", vücut ağırlığında "+10 kg×5" ya da "Vücut ağırlığı×25". */
+/** "60 kg×8 @2", vücut ağırlığında "+10 kg×5" ya da "Vücut ağırlığı×25"; süreli sette "45 sn". */
 function setText(r: ExerciseRecord, s: RecordSet, unit: Unit): string {
-  return formatSet(s.set, formatLoadWithUnit(r.bw, s.set.w, unit))
+  const load = r.timed ? formatTimedLoad(r.bw, s.set.w, unit) : formatLoadWithUnit(r.bw, s.set.w, unit)
+  return formatSet(s.set, load, r.timed)
 }
 
 /** Rekor listesi (hook yok, saf). Yeni rekorlar önde; son 30 günde kırılanlar rozetlidir. */
@@ -36,7 +37,7 @@ export function RecordsList({ records, nameOf, unit, today, showAll, onToggleAll
           const topSame = best !== undefined && best.set === r.top.set
           const recent = isRecentRecord(r.d, today)
           return (
-            <button key={r.exId} type="button" className="exrow rec-row" onClick={() => onOpen(r.exId)}>
+            <button key={r.timed ? `${r.exId}-timed` : r.exId} type="button" className="exrow rec-row" onClick={() => onOpen(r.exId)}>
               <div className="grow">
                 <div className="exname">
                   {nameOf(r.exId)}
@@ -49,7 +50,7 @@ export function RecordsList({ records, nameOf, unit, today, showAll, onToggleAll
                 )}
                 {!topSame && (
                   <div className="sub">
-                    {best ? 'En ağır' : 'En iyi'}: {setText(r, r.top, unit)} · {formatShortDay(r.top.d, today)}
+                    {best ? 'En ağır' : r.timed ? 'En uzun' : 'En iyi'}: {setText(r, r.top, unit)} · {formatShortDay(r.top.d, today)}
                   </div>
                 )}
               </div>
