@@ -132,7 +132,7 @@ export function Settings() {
         <div className="row between">
           <span>Dinlenme süresi (sn)</span>
           <div style={{ width: 90 }}>
-            <NumberField value={restSec} min={10} onChange={(v) => setSettings({ restSec: Math.round(v) })} />
+            <NumberField label="Dinlenme süresi (sn)" value={restSec} min={10} onChange={(v) => setSettings({ restSec: Math.round(v) })} />
           </div>
         </div>
         <div className="row between">

@@ -91,7 +91,8 @@ export function RoutineEdit() {
       </div>
 
       <div>
-        <div className="eyebrow">{existing ? 'Rutini düzenle' : 'Yeni rutin'}</div>
+        <h1 className="sr-only">{existing ? 'Rutini düzenle' : 'Yeni rutin'}</h1>
+        <div className="eyebrow" aria-hidden="true">{existing ? 'Rutini düzenle' : 'Yeni rutin'}</div>
         <div className="sub">{draft.ex.length} egzersiz</div>
       </div>
       <input
