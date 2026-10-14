@@ -3,6 +3,7 @@ import { BodyweightCard } from '../components/BodyweightCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
+import { RecordsCard } from '../components/RecordsCard.tsx'
 import { WeeklyTrendCard } from '../components/WeeklyTrendCard.tsx'
 import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
@@ -93,6 +94,8 @@ export function Stats() {
           </>
         )}
       </div>
+
+      <RecordsCard />
 
       <WeeklyTrendCard />
 

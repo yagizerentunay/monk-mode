@@ -70,3 +70,11 @@
 .tgt-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .tgt-had { display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 12px; color: var(--muted); font-size: 13px; }
 .tgt-notice { color: var(--ok); }
+
+/* Rekorlar (rec-): kişisel rekor listesi */
+.rec-row { flex-wrap: wrap; }
+.rec-row .exname { overflow-wrap: anywhere; }
+.rec-new {
+  display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; vertical-align: 1px;
+  font-size: 12px; font-weight: 700; background: var(--accent-soft); color: var(--accent);
+}
