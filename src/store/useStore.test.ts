@@ -196,6 +196,90 @@ describe('store akışı', () => {
   })
 })
 
+describe('serbest antrenman', () => {
+  it('rutinsiz başlar, egzersiz eklenip bitirilince geçmişe yazılır', () => {
+    useStore.getState().startFreeWorkout()
+    const active = useStore.getState().active
+    expect(active?.routineId).toBeUndefined()
+    expect(active?.entries).toHaveLength(0)
+
+    useStore.getState().addExerciseToActive('squat')
+    expect(useStore.getState().active?.entries[0].sets).toEqual([
+      { w: 0, r: 8, done: false },
+      { w: 0, r: 8, done: false },
+      { w: 0, r: 8, done: false },
+    ])
+    useStore.getState().updateSet(0, 0, { w: 100, r: 5, done: true })
+    const finished = useStore.getState().finishWorkout()
+    expect(finished?.routineId).toBeUndefined()
+    expect(finished?.entries[0].sets).toEqual([{ w: 100, r: 5, done: true }])
+    expect(useStore.getState().workouts).toHaveLength(1)
+  })
+
+  it('aktif seans varken ikinci seans başlatmaz', () => {
+    const s = useStore.getState()
+    s.saveRoutine(routine)
+    s.startWorkout('r1')
+    const id = useStore.getState().active?.id
+    useStore.getState().startFreeWorkout()
+    expect(useStore.getState().active?.id).toBe(id)
+  })
+
+  it('egzersizi hiç yapılmadıysa kaydetmez', () => {
+    useStore.getState().startFreeWorkout()
+    useStore.getState().addExerciseToActive('squat')
+    expect(useStore.getState().finishWorkout()).toBeNull()
+    expect(useStore.getState().workouts).toHaveLength(0)
+    expect(useStore.getState().active).toBeNull()
+  })
+})
+
+describe('sonradan eklenen egzersizin başlangıç değeri', () => {
+  const historyWorkout = {
+    id: 'h1',
+    d: '2026-10-01',
+    start: 1,
+    name: 'Eski',
+    entries: [
+      {
+        exId: 'bench',
+        sets: [
+          { w: 20, r: 8, done: true, warmup: true },
+          { w: 70, r: 6, done: true },
+          { w: 70, r: 5, done: true },
+        ],
+      },
+    ],
+  }
+
+  it('son seansın set sayısı, ağırlığı ve tekrarıyla gelir', () => {
+    useStore.getState().importWorkouts([historyWorkout], [])
+    useStore.getState().startFreeWorkout()
+    useStore.getState().addExerciseToActive('bench')
+    expect(useStore.getState().active?.entries[0].sets).toEqual([
+      { w: 70, r: 5, done: false },
+      { w: 70, r: 5, done: false },
+    ])
+  })
+
+  it('açıkça verilen plan geçmişin önüne geçer', () => {
+    useStore.getState().importWorkouts([historyWorkout], [])
+    useStore.getState().startFreeWorkout()
+    useStore.getState().addExerciseToActive('bench', { sets: 4, weight: 40, reps: 10 })
+    expect(useStore.getState().active?.entries[0].sets).toEqual(
+      Array.from({ length: 4 }, () => ({ w: 40, r: 10, done: false })),
+    )
+  })
+
+  it('geçmişi olmayan egzersiz eski varsayılanla (3×8, 0 kg) başlar', () => {
+    useStore.getState().importWorkouts([historyWorkout], [])
+    useStore.getState().startFreeWorkout()
+    useStore.getState().addExerciseToActive('curl')
+    expect(useStore.getState().active?.entries[0].sets).toHaveLength(3)
+    expect(useStore.getState().active?.entries[0].sets[0]).toEqual({ w: 0, r: 8, done: false })
+  })
+})
+
 describe('süperset', () => {
   const two = {
     ...routine,

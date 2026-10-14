@@ -94,6 +94,38 @@ export function buildWorkout(
   }
 }
 
+/** Rutinsiz, egzersizleri seans sırasında seçilen antrenmanın adı. */
+export const FREE_WORKOUT_NAME = 'Serbest antrenman'
+
+/** Rutinsiz boş bir seans kurar; egzersizler seans sırasında eklenir (`addExerciseToActive`). */
+export function buildFreeWorkout(now: number): Workout {
+  return { id: newId(), d: dayString(new Date(now)), start: now, name: FREE_WORKOUT_NAME, entries: [] }
+}
+
+/** Sonradan eklenen bir egzersizin kaç set kurulacağının üst sınırı (uzun bir geçmiş seansı şişirmesin). */
+const MAX_PREFILL_SETS = 6
+
+/**
+ * Egzersizin son karşılaştırılabilir seansındaki kurulum: tamamlanan çalışma seti sayısı, en ağır set
+ * ağırlığı ve en düşük tekrar ("son seansındaki gibi"). Isınma ve dropset sayılmaz; geçmiş yoksa null.
+ * Rutin planı ve ilerleme kuralı yerine, rutinsiz eklenen egzersizlerde başlangıç değeri olarak kullanılır.
+ */
+export function lastSetup(
+  history: Workout[],
+  exId: string,
+  bw: boolean,
+): { sets: number; w: number; r: number } | null {
+  const { last } = lastTwoEntriesFor(history, exId, bw)
+  if (!last) return null
+  const work = workSets(last.sets).filter((s) => !s.drop)
+  if (work.length === 0) return null
+  return {
+    sets: Math.min(work.length, MAX_PREFILL_SETS),
+    w: Math.max(...work.map((s) => s.w)),
+    r: Math.max(1, Math.min(...work.map((s) => s.r))),
+  }
+}
+
 /**
  * Tamamlanan çalışma setlerinde toplam hacim (kg × tekrar). Tek taraflı setlerde sol + sağ
  * tekrarların toplamı kullanılır; ağırlık taraf başına olduğundan her iki tarafın işi sayılır.

@@ -9,7 +9,7 @@ import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
-import { buildWorkout, dayString, finalizeSet, newId } from '../lib/workout.ts'
+import { buildFreeWorkout, buildWorkout, dayString, finalizeSet, lastSetup, newId } from '../lib/workout.ts'
 import { loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
 import { createSaveScheduler } from './saveScheduler.ts'
 import {
@@ -56,6 +56,8 @@ export interface Actions {
   restoreRoutine(routine: Routine, index: number, days: number[]): void
   assignDay(day: number, routineId: string | null): void
   startWorkout(routineId: string): void
+  /** Rutinsiz boş bir antrenman başlatır; egzersizler `addExerciseToActive` ile eklenir. Aktif seans varsa dokunmaz. */
+  startFreeWorkout(): void
   updateSet(entry: number, set: number, patch: Partial<SetEntry>): void
   updateSide(entry: number, set: number, side: Side, patch: Partial<SideSet>): void
   toggleUnilateral(entry: number): void
@@ -153,6 +155,11 @@ export const useStore = create<Store>((set, get) => ({
     const routine = s.routines.find((r) => r.id === routineId)
     if (!routine || s.active) return
     set(() => ({ active: buildWorkout(routine, s.workouts, Date.now(), s.bodyweight, s.settings.progressionRule) }))
+  },
+
+  startFreeWorkout: () => {
+    if (get().active) return
+    set(() => ({ active: buildFreeWorkout(Date.now()) }))
   },
 
   updateSet: (entry, setIdx, patch) =>
@@ -272,9 +279,11 @@ export const useStore = create<Store>((set, get) => ({
       entries: [
         ...w.entries,
         (() => {
-          const sets = Array.from({ length: cfg?.sets ?? 3 }, () => ({
-            w: cfg?.weight ?? 0,
-            r: cfg?.reps ?? 8,
+          // Plan verilmediyse egzersizin son seansındaki set sayısı, ağırlık ve tekrarla başlar.
+          const prior = lastSetup(get().workouts, exId, !!cfg?.bw)
+          const sets = Array.from({ length: cfg?.sets ?? prior?.sets ?? 3 }, () => ({
+            w: cfg?.weight ?? prior?.w ?? 0,
+            r: cfg?.reps ?? prior?.r ?? 8,
             done: false,
           }))
           const bwKg = cfg?.bw ? bodyweightOn(get().bodyweight, w.d) : undefined

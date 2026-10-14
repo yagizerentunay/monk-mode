@@ -8,7 +8,10 @@ import {
   exerciseHistory,
   finalizeSet,
   isPR,
+  buildFreeWorkout,
+  FREE_WORKOUT_NAME,
   lastEntryFor,
+  lastSetup,
   lastTwoEntriesFor,
   partialSetCount,
   workoutVolume,
@@ -297,5 +300,57 @@ describe('lastTwoEntriesFor', () => {
     expect(buildWorkout(routine, one, at).entries[0].sets[0].w).toBe(60)
     expect(buildWorkout(routine, two, at).entries[0].sets[0].w).toBe(62.5)
     expect(buildWorkout(routine, one, at, [], 'fast').entries[0].sets[0].w).toBe(62.5)
+  })
+})
+
+describe('serbest antrenman', () => {
+  it('rutinsiz ve egzersizsiz kurulur', () => {
+    const w = buildFreeWorkout(Date.UTC(2026, 9, 14, 12))
+    expect(w.name).toBe(FREE_WORKOUT_NAME)
+    expect(w.entries).toEqual([])
+    expect(w).not.toHaveProperty('routineId')
+    expect(w.start).toBe(Date.UTC(2026, 9, 14, 12))
+  })
+})
+
+describe('lastSetup', () => {
+  it('geçmiş yoksa null verir', () => {
+    expect(lastSetup([], 'bench', false)).toBeNull()
+  })
+
+  it('set sayısı, en ağır ağırlık ve en düşük tekrarı verir; ısınma ve drop sayılmaz', () => {
+    const history = [
+      wk('2026-10-01', 'bench', [
+        { w: 20, r: 8, done: true, warmup: true },
+        done(60, 10),
+        done(62.5, 8),
+        done(62.5, 9),
+        { w: 50, r: 6, done: true, drop: true },
+        { w: 62.5, r: 5, done: false },
+      ]),
+    ]
+    expect(lastSetup(history, 'bench', false)).toEqual({ sets: 3, w: 62.5, r: 8 })
+  })
+
+  it('en yeni seansı kullanır', () => {
+    const history = [wk('2026-10-01', 'bench', [done(50, 10)]), wk('2026-10-08', 'bench', [done(55, 8), done(55, 8)])]
+    expect(lastSetup(history, 'bench', false)).toEqual({ sets: 2, w: 55, r: 8 })
+  })
+
+  it('set sayısını 6 ile sınırlar', () => {
+    const sets = Array.from({ length: 9 }, () => done(40, 12))
+    expect(lastSetup([wk('2026-10-01', 'row', sets)], 'row', false)?.sets).toBe(6)
+  })
+
+  it('yalnız ısınma yapılmışsa null verir', () => {
+    expect(lastSetup([wk('2026-10-01', 'bench', [{ w: 20, r: 8, done: true, warmup: true }])], 'bench', false)).toBeNull()
+  })
+
+  it('vücut ağırlığı anlamı farklıysa eski kaydı kullanmaz', () => {
+    const history: Workout[] = [
+      { id: 'a', d: '2026-10-01', start: 0, name: 't', entries: [{ exId: 'pullup', sets: [done(67, 8)] }] },
+    ]
+    expect(lastSetup(history, 'pullup', true)).toBeNull()
+    expect(lastSetup(history, 'pullup', false)).toEqual({ sets: 1, w: 67, r: 8 })
   })
 })

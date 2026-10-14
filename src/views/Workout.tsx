@@ -48,6 +48,7 @@ function Starter() {
   const routines = useStore((s) => s.routines)
   const week = useStore((s) => s.week)
   const start = useStore((s) => s.startWorkout)
+  const startFree = useStore((s) => s.startFreeWorkout)
   const navigate = useNavigate()
   const [today] = useState(() => new Date().getDay())
   const todayId = week[today]
@@ -78,6 +79,13 @@ function Starter() {
           <span className={r.id === todayId ? 'badge on' : 'badge'}>Başla ▶</span>
         </button>
       ))}
+      <button className="card tap row between starter" onClick={startFree}>
+        <div>
+          <div className="exname">Serbest antrenman</div>
+          <div className="sub">Rutin olmadan, egzersizleri sen seç</div>
+        </div>
+        <span className="badge">Başla ▶</span>
+      </button>
     </div>
   )
 }
@@ -376,7 +384,12 @@ export function Workout() {
         )
       })}
 
-      <button className="btn block" onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
+      {active.entries.length === 0 && (
+        <div className="card">
+          <p className="sub" style={{ margin: 0 }}>Henüz egzersiz yok. Aşağıdan ekleyerek başla; daha önce yaptığın egzersiz son seansındaki ağırlık ve tekrarla gelir.</p>
+        </div>
+      )}
+      <button className={`btn block${active.entries.length === 0 ? ' primary' : ''}`} onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
       <button className="btn primary block wk-finish" onClick={finish}>Bitir ✓</button>
 
       {restEnds && <RestTimer endsAt={restEnds} onChange={setRestEnds} />}
