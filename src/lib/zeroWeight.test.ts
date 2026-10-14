@@ -30,6 +30,10 @@ describe('needsExternalLoad', () => {
 })
 
 describe('isZeroWeightSet', () => {
+  it('süreli girdide ağırlık 0 şüpheli sayılmaz', () => {
+    expect(isZeroWeightSet({ timed: true }, set({ r: 45 }), 'barbell')).toBe(false)
+  })
+
   it('tamamlanmış çalışma setinde w=0 ve dış yüklü ekipman uyarır', () => {
     expect(isZeroWeightSet(entry([]), set(), 'barbell')).toBe(true)
   })

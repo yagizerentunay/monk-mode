@@ -136,7 +136,15 @@ export function nameLang(ex: Pick<Exercise, 'custom'> | undefined): 'en' | undef
 }
 
 const UNILATERAL_NAME =
-  /\b(one|single)[- ](arm|leg|handed)|unilateral|bulgarian|split squat|\blunges?\b|step[- ]?ups?|pistol|concentration curl|kickback/i
+  /\b(one|single)[- ](arm|leg|handed)|unilateral|bulgarian|split squat|\blunges?\b|step[- ]?ups?|pistol|concentration curl|kickback|side plank|copenhagen/i
+
+/** Süre tutularak yapılan egzersizler (plank, izometrik, tutuş); "Side Plank Hip Abduction" gibi tekrarlı varyantlar hariç. */
+const TIMED_NAME = /plank(?!.*abduction)|isometric|\bhold\b|wall sit|dead hang|l-sit/i
+
+/** Adından süreli olduğu anlaşılan egzersizler için varsayılan öneri (kullanıcı "Süreli" ile değiştirebilir). */
+export function isTimedName(name: string): boolean {
+  return TIMED_NAME.test(name)
+}
 
 /**
  * Adından tek taraflı olduğu anlaşılan egzersizler için varsayılan öneri (kullanıcı değiştirebilir).

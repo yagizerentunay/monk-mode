@@ -2,7 +2,8 @@ import type { ProgressionRule, SetEntry, Workout, WorkoutEntry } from '../store/
 import type { Exercise } from './exercises.ts'
 import { dropSet, warmupSet } from './intensity.ts'
 import { toUnilateral } from './sets.ts'
-import { lastTwoEntriesFor } from './workout.ts'
+import { DEFAULT_TIMED_SEC } from './timed.ts'
+import { lastSetup, lastTwoEntriesFor } from './workout.ts'
 import { nextPrescription } from './progression.ts'
 
 /** Değiştir listesinde en fazla gösterilen alternatif sayısı. */
@@ -38,6 +39,22 @@ export function hasCompletedWork(entry: WorkoutEntry): boolean {
 }
 
 /**
+ * Henüz çalışılmamış bir egzersizi süreli ↔ tekrarlı çevirir; yapılmışsa girdi aynen döner. Hedefler yeni
+ * türün son seansındaki en kısa değerden (`history`), yoksa 30 sn / 8 tekrardan başlar; süreliye geçerken
+ * ısınma satırları düşer (bkz. lib/timed.ts). Ağırlıklar ve diğer bayraklar korunur.
+ */
+export function toggleTimedEntry(entry: WorkoutEntry, history: Workout[] = []): WorkoutEntry {
+  if (hasCompletedWork(entry)) return entry
+  const timed = !entry.timed
+  const r = lastSetup(history, entry.exId, !!entry.bw, timed)?.r ?? (timed ? DEFAULT_TIMED_SEC : 8)
+  const sets = (timed ? entry.sets.filter((s) => !s.warmup) : entry.sets).map((s): SetEntry =>
+    s.sides ? { ...s, r, sides: { L: { ...s.sides.L, r }, R: { ...s.sides.R, r } } } : { ...s, r },
+  )
+  const { timed: _timed, ...rest } = entry
+  return timed ? { ...rest, timed: true, sets } : { ...rest, sets }
+}
+
+/**
  * Henüz çalışılmamış bir egzersiz satırının yerine `exId` koyar; yapılmışsa null döner.
  *
  * - Çalışma seti sayısı korunur. Ağırlık/tekrar hedefi yeni egzersizin kendi geçmişinden (çift ilerleme,
@@ -50,22 +67,26 @@ export function hasCompletedWork(entry: WorkoutEntry): boolean {
  * - Vücut ağırlığı: `opts.bw` yeni egzersizin ağırlık anlamını (ek yük / mutlak yük) belirler, `opts.bwKg`
  *   o günün vücut ağırlığıdır. Anlam değişiyorsa taşınan ağırlık 0'lanır (mutlak yük ile ek yük
  *   karışmasın); geçmiş kaydı da yalnız aynı anlamdaysa kullanılır.
+ * - Süreli: `opts.timed` yeni egzersizin süreli olup olmadığını belirler (bkz. lib/timed.ts). Tür
+ *   değişiyorsa tekrar hedefi saniyeye (30 sn) ya da tersine (8) döner, süreli egzersizde ısınma satırları düşer.
  */
 export function swapEntry(
   entry: WorkoutEntry,
   exId: string,
   side: boolean,
   history: Workout[],
-  opts: { bw?: boolean; bwKg?: number; rule?: ProgressionRule } = {},
+  opts: { bw?: boolean; bwKg?: number; rule?: ProgressionRule; timed?: boolean } = {},
 ): WorkoutEntry | null {
   if (hasCompletedWork(entry)) return null
   const bw = !!opts.bw
+  const timed = !!opts.timed
   const work = entry.sets.filter((s) => !s.warmup && !s.drop)
-  const reps = work[0]?.r ?? 8
+  const fallback = timed ? DEFAULT_TIMED_SEC : 8
+  const reps = !!entry.timed === timed ? (work[0]?.r ?? fallback) : fallback
   const carried = !!entry.bw === bw ? (work[0]?.w ?? 0) : 0
-  const { last, prev } = lastTwoEntriesFor(history, exId, bw)
+  const { last, prev } = lastTwoEntriesFor(history, exId, bw, timed)
   const p = nextPrescription(
-    { exId, sets: work.length, reps, weight: carried, prog: 'double', inc: 2.5, repsMax: reps },
+    { exId, sets: work.length, reps, weight: carried, prog: 'double', inc: 2.5, repsMax: reps, ...(timed ? { timed } : {}) },
     last,
     { prev, rule: opts.rule },
   )
@@ -73,12 +94,16 @@ export function swapEntry(
   const bwKg = bw ? opts.bwKg : undefined
   let warm = 0
   for (const s of entry.sets) {
-    if (s.warmup) rebuilt.push(warmupSet(p.w, warm++, bwKg))
-    else if (s.drop && rebuilt.length > 0) rebuilt.push(dropSet(rebuilt[rebuilt.length - 1], bwKg))
+    if (s.warmup) {
+      if (!timed) rebuilt.push(warmupSet(p.w, warm++, bwKg))
+    } else if (s.drop && rebuilt.length > 0) rebuilt.push(dropSet(rebuilt[rebuilt.length - 1], bwKg))
     else rebuilt.push({ w: p.w, r: p.r, done: false })
   }
-  const { note: _note, unilateral: _uni, bw: _bw, bwKg: _bwKg, ...rest } = entry
-  const load = bw ? { bw: true, ...(opts.bwKg !== undefined ? { bwKg: opts.bwKg } : {}) } : {}
+  const { note: _note, unilateral: _uni, bw: _bw, bwKg: _bwKg, timed: _timed, ...rest } = entry
+  const load = {
+    ...(bw ? { bw: true, ...(opts.bwKg !== undefined ? { bwKg: opts.bwKg } : {}) } : {}),
+    ...(timed ? { timed: true } : {}),
+  }
   return side
     ? { ...rest, ...load, exId, unilateral: true, sets: toUnilateral(rebuilt) }
     : { ...rest, ...load, exId, sets: rebuilt }

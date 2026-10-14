@@ -10,7 +10,7 @@ import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
-import { doneSetCount, exerciseHistory, workoutVolume } from '../lib/workout.ts'
+import { doneSetCount, exerciseHistory, hasVolume, workoutVolume } from '../lib/workout.ts'
 import { useStore } from '../store/useStore.ts'
 
 type Metric = 'e1rm' | 'topW'
@@ -36,16 +36,20 @@ export function Stats() {
   }, [workouts])
 
   const selected = chosen && exIds.includes(chosen) ? chosen : exIds[0]
-  const points = selected
-    ? exerciseHistory(workouts, selected).map((p) => ({
-        label: formatAxisDay(p.d),
-        value: Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
-      }))
-    : []
+  const history = selected ? exerciseHistory(workouts, selected) : []
+  // Grafik son seansın türünü izler (bkz. ExerciseHistory): süreliyse en uzun tutuş, saniye olarak.
+  const timedSel = !!history[history.length - 1]?.timed
+  const points = history
+    .filter((p) => !!p.timed === timedSel)
+    .map((p) => ({
+      label: formatAxisDay(p.d),
+      value: timedSel ? (p.topSec ?? 0) : Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
+    }))
   const open = workouts.find((w) => w.id === openId) ?? null
   const recent = [...workouts].reverse().slice(0, 30)
 
-  const metricLabel = metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
+  const metricLabel = timedSel ? 'en uzun tutuş' : metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
+  const valueUnit = timedSel ? 'sn' : unit
   const lastPt = points[points.length - 1]
   const prevPt = points.length >= 2 ? points[points.length - 2] : null
   // Değişim yalnız iki seans varsa hesaplanır; veri yoksa uydurulmaz.
@@ -76,22 +80,24 @@ export function Stats() {
               <div>
                 <div className="row statbig">
                   <span className="bignum">{fmtNum(lastPt.value)}</span>
-                  <span className="statunit">{unit} · {metricLabel}</span>
+                  <span className="statunit">{valueUnit} · {metricLabel}</span>
                 </div>
                 {delta === null ? (
                   <div className="sub">Karşılaştırma için bir seans daha gerekli.</div>
                 ) : (
                   <div className={`statdelta${delta > 0 ? ' up' : ''}`}>
-                    {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{fmtNum(delta)} {unit} · önceki seansa göre
+                    {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{fmtNum(delta)} {valueUnit} · önceki seansa göre
                   </div>
                 )}
               </div>
             )}
-            <LineChart points={points} unit={unit} />
-            <div className="chips statseg" role="group" aria-label="Ölçü">
-              <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
-              <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>En ağır set</button>
-            </div>
+            <LineChart points={points} unit={valueUnit} />
+            {!timedSel && (
+              <div className="chips statseg" role="group" aria-label="Ölçü">
+                <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
+                <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>En ağır set</button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -118,7 +124,7 @@ export function Stats() {
               <div className="exname">{w.name}</div>
               <div className="sub">{formatShortDay(w.d)} · {doneSetCount(w).done} set</div>
             </div>
-            <span className="sub">{formatWeight(workoutVolume(w), unit)} {unit}</span>
+            {hasVolume(w) && <span className="sub">{formatWeight(workoutVolume(w), unit)} {unit}</span>}
           </button>
         ))}
       </div>

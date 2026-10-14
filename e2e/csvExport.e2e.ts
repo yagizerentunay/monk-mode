@@ -27,7 +27,7 @@ test('CSV dışa aktarma: dosya adı, BOM + başlık ve Türkçe Excel biçimi',
   expect([...bytes.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
   const lines = bytes.toString('utf8').replace(/^﻿/, '').split('\r\n')
   expect(lines[0]).toBe(
-    'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu',
+    'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu;Süre (sn)',
   )
   // 2 tamamlanmış set + sondaki boş satır; egzersiz adı kütüphaneden gelir.
   expect(lines).toHaveLength(4)

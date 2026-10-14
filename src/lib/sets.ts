@@ -1,4 +1,5 @@
 import type { SetEntry, SideSet } from '../store/schema.ts'
+import { formatDuration } from './timed.ts'
 
 export type Side = 'L' | 'R'
 export const SIDES: Side[] = ['L', 'R']
@@ -36,9 +37,19 @@ export function toBilateral(sets: SetEntry[]): SetEntry[] {
   })
 }
 
-/** Kısa özet: `60×8 @2`, tek taraflıda `20×L10/R8 @1`, dropsette başına `↓`. */
-export function formatSet(set: SetEntry, weight: string): string {
-  const reps = set.sides ? `L${set.sides.L.r}/R${set.sides.R.r}` : String(set.r)
+/**
+ * Kısa özet: `60×8 @2`, tek taraflıda `20×L10/R8 @1`, dropsette başına `↓`. Süreli sette (`timed`)
+ * `weight` ek yükün hazır metnidir (bkz. formatTimedLoad, yoksa boş) ve süre yazılır: `+10 kg · 45 sn @2`,
+ * tek taraflıda `L45 sn/R40 sn`.
+ */
+export function formatSet(set: SetEntry, weight: string, timed = false): string {
   const half = set.partial ? ' (yarım)' : ''
+  if (timed) {
+    const time = set.sides
+      ? `L${formatDuration(set.sides.L.r)}/R${formatDuration(set.sides.R.r)}`
+      : formatDuration(set.r)
+    return `${set.drop ? '↓' : ''}${weight ? `${weight} · ` : ''}${time}${set.rir !== undefined ? ` @${set.rir}` : ''}${half}`
+  }
+  const reps = set.sides ? `L${set.sides.L.r}/R${set.sides.R.r}` : String(set.r)
   return `${set.drop ? '↓' : ''}${weight}×${reps}${set.rir !== undefined ? ` @${set.rir}` : ''}${half}`
 }

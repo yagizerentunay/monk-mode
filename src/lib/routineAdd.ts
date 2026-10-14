@@ -1,21 +1,25 @@
 import type { ExCfg, Routine } from '../store/schema.ts'
-import { isBodyOnly, isUnilateralName, type Exercise } from './exercises.ts'
+import { isBodyOnly, isTimedName, isUnilateralName, type Exercise } from './exercises.ts'
+import { DEFAULT_TIMED_SEC } from './timed.ts'
 
 /**
  * Rutine yeni eklenen egzersizin varsayılan planı: çift ilerleme, ısınma/drop/süperset yok; tek taraflılık
- * ve vücut ağırlığı egzersiz adı/ekipmanından önerilir. Rutin düzenleyici ve "Rutine ekle" önerisi aynı
+ * ve vücut ağırlığı egzersiz adı/ekipmanından önerilir; plank/izometrik gibi adlar süreli (hedef 30 sn) gelir.
+ * Rutin düzenleyici ve "Rutine ekle" önerisi aynı
  * varsayılanı kullanır; değişirse ikisi birlikte değişir.
  */
 export function defaultExCfg(ex: Pick<Exercise, 'id' | 'name' | 'equipment'>): ExCfg {
+  const timed = isTimedName(ex.name)
   return {
     exId: ex.id,
     sets: 3,
-    reps: 8,
+    reps: timed ? DEFAULT_TIMED_SEC : 8,
     weight: 0,
     prog: 'double',
-    inc: 2.5,
-    repsMax: 12,
+    inc: timed ? 0 : 2.5,
+    repsMax: timed ? DEFAULT_TIMED_SEC : 12,
     side: isUnilateralName(ex.name),
+    ...(timed ? { timed: true } : {}),
     ...(isBodyOnly(ex) ? { bw: true } : {}),
   }
 }

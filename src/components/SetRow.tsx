@@ -4,6 +4,8 @@ import { effectiveLoad } from '../lib/load.ts'
 import { RIR_CHOICES, rirLabel } from '../lib/rir.ts'
 import { formatWeight, kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import type { SetEntry, SideSet } from '../store/schema.ts'
+import { DurationField } from './DurationField.tsx'
+import { HoldTimer } from './HoldTimer.tsx'
 import { NumberField } from './NumberField.tsx'
 
 const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
@@ -23,6 +25,8 @@ interface Props {
   /** Vücut ağırlığı egzersizi: ağırlık ek yüktür (negatif = asist); `bwKg` o günün vücut ağırlığı. */
   bw?: boolean
   bwKg?: number
+  /** Süreli egzersiz: tekrar yerine saniye girilir (`set.r` saniyedir) ve kronometre düğmesi çıkar. */
+  timed?: boolean
   /** "↓ Drop" düğmesi gösterilsin mi (yalnız tamamlanmış ve zincirin son setinde). */
   canDrop: boolean
   onChange: (patch: Partial<SetEntry>) => void
@@ -59,6 +63,7 @@ export function SetRow({
   unit,
   bw = false,
   bwKg,
+  timed = false,
   canDrop,
   onChange,
   onSide,
@@ -103,12 +108,21 @@ export function SetRow({
             return (
               <div key={side} className="setrow siderow">
                 <span className="sidelabel">{SIDE_LABEL[side]}</span>
-                <NumberField
-                  className="grow"
-                  label={`${name} ${SIDE_LABEL[side]} tekrar`}
-                  value={s.r}
-                  onChange={(v) => onSide(side, { r: Math.round(v) })}
-                />
+                {timed ? (
+                  <DurationField
+                    className="grow"
+                    label={`${name} ${SIDE_LABEL[side]} süre`}
+                    value={s.r}
+                    onChange={(v) => onSide(side, { r: v })}
+                  />
+                ) : (
+                  <NumberField
+                    className="grow"
+                    label={`${name} ${SIDE_LABEL[side]} tekrar`}
+                    value={s.r}
+                    onChange={(v) => onSide(side, { r: Math.round(v) })}
+                  />
+                )}
                 <CheckButton
                   on={s.done}
                   label={`${SIDE_LABEL[side]} tarafı ${s.done ? 'geri al' : 'tamamla'}`}
@@ -125,12 +139,16 @@ export function SetRow({
         <div className="setrow">
           <span className="setno">{badge}</span>
           {weight}
-          <NumberField
-            className="grow"
-            label={`${name} tekrar`}
-            value={set.r}
-            onChange={(v) => onChange({ r: Math.round(v) })}
-          />
+          {timed ? (
+            <DurationField className="grow" label={`${name} süre`} value={set.r} onChange={(v) => onChange({ r: v })} />
+          ) : (
+            <NumberField
+              className="grow"
+              label={`${name} tekrar`}
+              value={set.r}
+              onChange={(v) => onChange({ r: Math.round(v) })}
+            />
+          )}
           <CheckButton
             on={set.done}
             label={set.done ? 'Seti geri al' : 'Seti tamamla'}
@@ -142,6 +160,23 @@ export function SetRow({
         </div>
       )}
 
+      {/* Kronometre yalnız yapılmamış sette; durunca süre alana yazılır, seti tamamlamak kullanıcıya kalır. */}
+      {timed && !set.done && (
+        <div className="holdrow">
+          {sides ? (
+            SIDES.map((side) => (
+              <HoldTimer
+                key={side}
+                label={`${name} ${SIDE_LABEL[side]} süre`}
+                caption={SIDE_LABEL[side]}
+                onStop={(sec) => onSide(side, { r: sec })}
+              />
+            ))
+          ) : (
+            <HoldTimer label={`${name} süre`} onStop={(sec) => onChange({ r: sec })} />
+          )}
+        </div>
+      )}
       {warnZero && <div className="zerowarn" role="note">Ağırlık 0 görünüyor. Yanlışlıkla mı girdin?</div>}
       {bw && bwKg !== undefined && (
         <div className="sub bwhint">Toplam {formatWeight(Math.max(0, effectiveLoad({ bw, bwKg }, set.w)), unit)} {unit}</div>

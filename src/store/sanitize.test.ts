@@ -373,3 +373,83 @@ describe('importBackupWithReport', () => {
     expect(droppedTotal(report)).toBe(1)
   })
 })
+
+describe('süreli setler', () => {
+  /** Plank (ek yük), yan plank (tek taraflı) ve süreli rutin satırı içeren geçerli state. */
+  function withTimed(): State {
+    const s = defaultState()
+    s.routines = [
+      {
+        id: 'rt',
+        name: 'Core',
+        ex: [
+          { exId: 'plank', sets: 3, reps: 45, weight: 0, prog: 'double', inc: 0, repsMax: 60, timed: true, bw: true },
+          { exId: 'side-plank', sets: 2, reps: 30, weight: 0, prog: 'off', inc: 0, repsMax: 30, timed: true, side: true },
+        ],
+      },
+    ]
+    s.workouts = [
+      {
+        id: 'wt',
+        d: '2026-10-03',
+        start: 3,
+        name: 'Core',
+        entries: [
+          { exId: 'plank', timed: true, bw: true, bwKg: 80, sets: [{ w: 10, r: 90, done: true }] },
+          {
+            exId: 'side-plank',
+            timed: true,
+            unilateral: true,
+            sets: [{ w: 0, r: 30, done: true, sides: { L: { r: 35, done: true }, R: { r: 30, done: true } } }],
+          },
+        ],
+      },
+    ]
+    return s
+  }
+
+  it('geçerli süreli veri bayt bayt aynı kalır ve yedek gidiş-dönüşü korunur', () => {
+    const s = withTimed()
+    const { state, report } = migrateWithReport(JSON.parse(JSON.stringify(s)))
+    expect(JSON.stringify(state)).toBe(JSON.stringify(s))
+    expect(repairedTotal(report)).toBe(0)
+    expect(importBackupWithReport(exportBackup(s)).state).toEqual(s)
+  })
+
+  it('süreli girdide saniyeyi 3600e kırpar (tek taraflıda iki taraf da) ve onarım sayar', () => {
+    const s = withTimed()
+    s.workouts[0].entries[0].sets[0].r = 99_999
+    s.workouts[0].entries[1].sets[0].sides = { L: { r: 5000, done: true }, R: { r: 20.4, done: true } }
+    const { state, report } = migrateWithReport(JSON.parse(JSON.stringify(s)))
+    expect(state.workouts[0].entries[0].sets[0].r).toBe(3600)
+    expect(state.workouts[0].entries[1].sets[0].sides).toEqual({ L: { r: 3600, done: true }, R: { r: 20, done: true } })
+    expect(report.repaired.entry).toBe(2)
+    expect(droppedTotal(report)).toBe(0)
+  })
+
+  it('süreli olmayan girdide büyük tekrar değerine dokunmaz', () => {
+    const w = good('big')
+    w.entries[0].sets[0].r = 5000
+    expect(migrate({ workouts: [w] }).workouts[0].entries[0].sets[0].r).toBe(5000)
+  })
+
+  it('rutinde süreli hedefi 3600e kırpar; süreli olmayanda kırpmaz', () => {
+    const s = withTimed()
+    s.routines[0].ex[0].reps = 7200
+    s.routines[0].ex[0].repsMax = 9000
+    s.routines[0].ex.push({ exId: 'x', sets: 3, reps: 5000, weight: 0, prog: 'off', inc: 0, repsMax: 5000 })
+    const { state, report } = migrateWithReport(JSON.parse(JSON.stringify(s)))
+    expect(state.routines[0].ex[0].reps).toBe(3600)
+    expect(state.routines[0].ex[0].repsMax).toBe(3600)
+    expect(state.routines[0].ex[2].reps).toBe(5000)
+    expect(report.repaired.routineEx).toBe(1)
+  })
+
+  it('timed alanı boolean değilse atılır ve girdi onarılır', () => {
+    const s = JSON.parse(JSON.stringify(withTimed()))
+    s.workouts[0].entries[0].timed = 'evet'
+    const { state, report } = migrateWithReport(s)
+    expect(state.workouts[0].entries[0].timed).toBeUndefined()
+    expect(report.repaired.entry).toBe(1)
+  })
+})

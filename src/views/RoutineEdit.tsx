@@ -8,6 +8,7 @@ import { defaultExCfg } from '../lib/routineAdd.ts'
 import { duplicateRoutine } from '../lib/routineCopy.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
+import { DEFAULT_TIMED_SEC, MAX_TIMED_SEC, TIMED_STEP_SEC } from '../lib/timed.ts'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
 import type { ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
@@ -32,7 +33,7 @@ const round2 = (v: number) => Math.round(v * 100) / 100
 /** Varsayılandan (yeni eklenen egzersiz: çift ilerleme, ısınma/drop/süperset yok) farklı bir gelişmiş ayar var mı? */
 function isCustom(cfg: ExCfg, i: number): boolean {
   return (
-    (cfg.warmups ?? 0) > 0 ||
+    (!cfg.timed && (cfg.warmups ?? 0) > 0) ||
     (cfg.drops ?? 0) > 0 ||
     (i > 0 && !!cfg.superset) ||
     cfg.prog !== 'double' ||
@@ -43,8 +44,9 @@ function isCustom(cfg: ExCfg, i: number): boolean {
 /** Kapalı bölümde görünen tek satırlık özet: hiçbir ayar gizlenip kaybolmaz. */
 function advSummary(cfg: ExCfg, unit: Unit): string {
   const parts: string[] = [PROG_SHORT[cfg.prog]]
-  if (cfg.prog !== 'off') parts.push(`+${round2(kgToUnit(cfg.inc, unit))} ${unit}`)
-  if ((cfg.warmups ?? 0) > 0) parts.push(`${cfg.warmups} ısınma`)
+  // Süreli egzersizde ilerleme süreyi artırır; kg artışı kullanılmaz (bkz. lib/progression.ts).
+  if (cfg.prog !== 'off') parts.push(cfg.timed ? `+${TIMED_STEP_SEC} sn` : `+${round2(kgToUnit(cfg.inc, unit))} ${unit}`)
+  if (!cfg.timed && (cfg.warmups ?? 0) > 0) parts.push(`${cfg.warmups} ısınma`)
   if ((cfg.drops ?? 0) > 0) parts.push(`${cfg.drops} drop`)
   if (cfg.superset) parts.push('süperset')
   if (cfg.restSec !== undefined) parts.push(`${cfg.restSec} sn dinlenme`)
@@ -139,8 +141,12 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
               />
             </label>
             <label className="field">
-              <span className="sub">Tekrar</span>
-              <NumberField value={cfg.reps} min={1} onChange={(v) => patchEx(i, { reps: Math.max(1, Math.round(v)) })} />
+              <span className="sub">{cfg.timed ? 'Süre (sn)' : 'Tekrar'}</span>
+              <NumberField
+                value={cfg.reps}
+                min={1}
+                onChange={(v) => patchEx(i, { reps: Math.min(cfg.timed ? MAX_TIMED_SEC : Infinity, Math.max(1, Math.round(v))) })}
+              />
             </label>
             <label className="field">
               <span className="sub">{cfg.bw ? 'Ek yük' : 'Ağırlık'} ({unit})</span>
@@ -174,6 +180,23 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
             <span>Vücut ağırlığı egzersizi <span className="sub">(ağırlık = ek yük)</span></span>
           </label>
 
+          <label className="row">
+            <input
+              type="checkbox"
+              checked={!!cfg.timed}
+              // Hedef sayının anlamı değişir (tekrar ↔ saniye); eski değer yeni anlamda yanlış olurdu.
+              onChange={(e) =>
+                patchEx(
+                  i,
+                  e.target.checked
+                    ? { timed: true, reps: DEFAULT_TIMED_SEC, repsMax: DEFAULT_TIMED_SEC, warmups: 0 }
+                    : { timed: undefined, reps: 8, repsMax: 12 },
+                )
+              }
+            />
+            <span>Süreli <span className="sub">(plank, izometrik: hedef saniyedir)</span></span>
+          </label>
+
           <details
             key={`adv-${cfg.exId}-${i}`}
             className="adv"
@@ -196,13 +219,15 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
               )}
 
               <div className="grid3">
-                <label className="field">
-                  <span className="sub">Isınma seti</span>
-                  <NumberField
-                    value={cfg.warmups ?? 0}
-                    onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
-                  />
-                </label>
+                {!cfg.timed && (
+                  <label className="field">
+                    <span className="sub">Isınma seti</span>
+                    <NumberField
+                      value={cfg.warmups ?? 0}
+                      onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
+                    />
+                  </label>
+                )}
                 <label className="field">
                   <span className="sub">Son sete drop</span>
                   <NumberField
@@ -241,23 +266,34 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
 
               {cfg.prog !== 'off' && (
                 <div className="grid3">
-                  <label className="field">
-                    <span className="sub">Artış ({unit})</span>
-                    <NumberField
-                      value={cfg.inc}
-                      toDisplay={(v) => kgToUnit(v, unit)}
-                      fromDisplay={(v) => unitToKg(v, unit)}
-                      step={0.5}
-                      onChange={(v) => patchEx(i, { inc: v })}
-                    />
-                  </label>
+                  {!cfg.timed && (
+                    <label className="field">
+                      <span className="sub">Artış ({unit})</span>
+                      <NumberField
+                        value={cfg.inc}
+                        toDisplay={(v) => kgToUnit(v, unit)}
+                        fromDisplay={(v) => unitToKg(v, unit)}
+                        step={0.5}
+                        onChange={(v) => patchEx(i, { inc: v })}
+                      />
+                    </label>
+                  )}
                   {cfg.prog === 'double' && (
                     <label className="field">
-                      <span className="sub">Maks. tekrar</span>
-                      <NumberField value={cfg.repsMax} min={1} onChange={(v) => patchEx(i, { repsMax: Math.round(v) })} />
+                      <span className="sub">{cfg.timed ? 'Maks. süre (sn)' : 'Maks. tekrar'}</span>
+                      <NumberField
+                        value={cfg.repsMax}
+                        min={1}
+                        onChange={(v) => patchEx(i, { repsMax: Math.min(cfg.timed ? MAX_TIMED_SEC : Infinity, Math.round(v)) })}
+                      />
                     </label>
                   )}
                 </div>
+              )}
+              {cfg.timed && cfg.prog !== 'off' && (
+                <p className="sub" style={{ margin: 0 }}>
+                  Tüm setlerde hedef süre tutulunca bir sonraki seans hedefi +{TIMED_STEP_SEC} sn artar; ağırlık değişmez.
+                </p>
               )}
             </div>
           </details>

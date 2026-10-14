@@ -1,5 +1,6 @@
 import type { CustomExercise, ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
 import { MAX_DROPS, MAX_WARMUPS } from './intensity.ts'
+import { clampSec, DEFAULT_TIMED_SEC } from './timed.ts'
 
 const PROGRESSIONS: readonly ProgressionMode[] = ['off', 'linear', 'double']
 
@@ -11,7 +12,10 @@ const num = (v: unknown, fallback: number, min: number): number =>
 
 function sanitizeEx(raw: unknown): ExCfg | null {
   if (!isRecord(raw) || typeof raw.exId !== 'string' || raw.exId === '') return null
-  const reps = Math.round(num(raw.reps, 8, 1))
+  const timed = raw.timed === true
+  // Süreli egzersizde hedef saniyedir (1-3600, bkz. lib/timed.ts).
+  const limit = (n: number): number => (timed ? Math.max(1, clampSec(n)) : n)
+  const reps = limit(Math.round(num(raw.reps, timed ? DEFAULT_TIMED_SEC : 8, 1)))
   const bw = raw.bw === true
   const cfg: ExCfg = {
     exId: raw.exId,
@@ -21,11 +25,12 @@ function sanitizeEx(raw: unknown): ExCfg | null {
     weight: num(raw.weight, 0, bw ? -Infinity : 0),
     prog: PROGRESSIONS.includes(raw.prog as ProgressionMode) ? (raw.prog as ProgressionMode) : 'double',
     inc: num(raw.inc, 2.5, 0),
-    repsMax: Math.max(reps, Math.round(num(raw.repsMax, 12, 1))),
+    repsMax: Math.max(reps, limit(Math.round(num(raw.repsMax, timed ? DEFAULT_TIMED_SEC : 12, 1)))),
   }
   if (raw.side === true) cfg.side = true
   if (raw.superset === true) cfg.superset = true
   if (bw) cfg.bw = true
+  if (timed) cfg.timed = true
   if (typeof raw.warmups === 'number') cfg.warmups = Math.min(MAX_WARMUPS, Math.max(0, Math.round(raw.warmups)))
   if (typeof raw.drops === 'number') cfg.drops = Math.min(MAX_DROPS, Math.max(0, Math.round(raw.drops)))
   if (typeof raw.restSec === 'number' && raw.restSec > 0) cfg.restSec = raw.restSec

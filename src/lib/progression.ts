@@ -1,12 +1,13 @@
 import type { ExCfg, ProgressionRule, SetEntry, WorkoutEntry } from '../store/schema.ts'
+import { MAX_TIMED_SEC, TIMED_STEP_SEC } from './timed.ts'
 
 export interface Prescription {
   /** Önerilen çalışma ağırlığı (kg). */
   w: number
-  /** Önerilen hedef tekrar. */
+  /** Önerilen hedef tekrar (süreli egzersizde hedef süre, sn). */
   r: number
   /** Bu öneriyi doğuran gerekçe, arayüzde ipucu olarak gösterilir. */
-  reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'confirm' | 'need-rir' | 'assist-rep'
+  reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'add-sec' | 'confirm' | 'need-rir' | 'assist-rep'
 }
 
 /**
@@ -81,6 +82,7 @@ function sameLoadAndSets(a: WorkoutEntry, b: WorkoutEntry): boolean {
  * hedef tekrar aralığın altına döner.
  */
 export function nextPrescription(cfg: ExCfg, last?: WorkoutEntry, opts: PrescribeOptions = {}): Prescription {
+  if (cfg.timed) return prescribeTimed(cfg, last)
   const p = prescribe(cfg, last, opts)
   if (!last?.bw || p.reason === 'plan') return p
   const sets = workSets(last).filter((s) => s.done)
@@ -92,6 +94,27 @@ export function nextPrescription(cfg: ExCfg, last?: WorkoutEntry, opts: Prescrib
   const minReps = Math.min(...sets.map((s) => s.r))
   if (p.reason === 'increase') return { w: lastW, r: minReps + 1, reason: 'assist-rep' }
   return { ...p, r: Math.max(p.r, minReps) }
+}
+
+/**
+ * Süreli egzersiz (`cfg.timed`; `reps`/`repsMax` saniyedir): ağırlık değişmez (artış `inc` yok sayılır),
+ * süre artar. Hedef `T`: doğrusalda `reps`, çiftte `repsMax`. Tüm hedef çalışma setleri yapıldıysa
+ * ('off' kapalıysa plan) bir sonraki hedef en kısa tutuş + TIMED_STEP_SEC olur; en kısa tutuş `T`nin
+ * altındaysa artış `T`de durur. Yapılmamış set varsa en kısa tutuş (en az plan hedefi) tekrarlanır.
+ * RIR ve "iki seans onayı" kuralı süreli sette aranmaz (tekrar yok, ilerleme tek ölçüyle: süre).
+ * `last` yalnız süreli kayıt olabilir (bkz. comparableLast).
+ */
+function prescribeTimed(cfg: ExCfg, last: WorkoutEntry | undefined): Prescription {
+  const plan: Prescription = { w: cfg.weight, r: cfg.reps, reason: 'plan' }
+  if (!last || cfg.prog === 'off') return plan
+  const sets = workSets(last).filter((s) => s.done)
+  if (sets.length === 0) return plan
+  const lastW = Math.max(...sets.map((s) => s.w))
+  const shortest = Math.min(...sets.map((s) => s.r))
+  if (!completedAll(last, cfg.sets)) return { w: lastW, r: Math.max(shortest, cfg.reps), reason: 'repeat' }
+  const goal = cfg.prog === 'linear' ? cfg.reps : Math.max(cfg.repsMax, cfg.reps)
+  const next = shortest < goal ? Math.min(shortest + TIMED_STEP_SEC, goal) : shortest + TIMED_STEP_SEC
+  return { w: lastW, r: Math.min(next, MAX_TIMED_SEC), reason: 'add-sec' }
 }
 
 function prescribe(cfg: ExCfg, last: WorkoutEntry | undefined, opts: PrescribeOptions): Prescription {

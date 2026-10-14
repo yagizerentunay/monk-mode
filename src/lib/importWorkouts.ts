@@ -89,6 +89,7 @@ export function buildImport(
     for (const ie of iw.entries) {
       const done: SetEntry[] = ie.sets.map((s) => {
         // roundTo(…, 0.01) 52.160000000000004 gibi kayan nokta artığı bırakır; yüzle çarpıp bölmek bırakmaz.
+        // Süreli sette `reps` saniyedir (bkz. lib/timed.ts); ağırlık varsa ek yüktür.
         const set: SetEntry = { w: Math.max(0, Math.round(unitToKg(s.weight, unit) * 100) / 100), r: s.reps, done: true }
         if (s.type === 'warmup') set.warmup = true
         if (s.type === 'drop') set.drop = true
@@ -102,6 +103,8 @@ export function buildImport(
       mapping.sets += done.length
       sets += done.length
       const entry: WorkoutEntry = { exId: mapping.exId, sets: done }
+      // Ayrıştırıcı bir egzersizin setlerini ya hep süreli ya hep tekrarlı tutar.
+      if (ie.sets.every((s) => s.timed)) entry.timed = true
       if (ie.supersetId && ie.supersetId === prevSuperset) entry.linked = true
       prevSuperset = ie.supersetId
       entries.push(entry)

@@ -140,3 +140,8 @@
 /* süperset */
 .card.ss { border-left: 3px solid var(--accent); border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
 .exswaphint { font-size: 13px; }
+
+/* süreli set: kronometre düğmeleri (durunca süre alana yazılır) */
+.holdrow { display: flex; gap: 6px; align-items: center; padding: 8px 0 2px 44px; flex-wrap: wrap; }
+.holdrow .chip { min-height: var(--tap); min-width: var(--tap); padding: 4px 16px; font-variant-numeric: tabular-nums; }
+.holdrow .chip.hold.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }

@@ -17,6 +17,7 @@ import { useExercises } from '../lib/useExercises.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import type { Workout } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
+import { DurationField } from './DurationField.tsx'
 import { NumberField } from './NumberField.tsx'
 
 interface Props {
@@ -123,30 +124,57 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 <span className="sub">{unit}</span>
                 {set.sides ? (
                   <>
-                    <NumberField
-                      className="grow"
-                      label={`${name} ${meta[si].name} sol tekrar`}
-                      value={set.sides.L.r}
-                      onChange={(v) => setDraft((d) => editSet(d, ei, si, { L: v }))}
-                    />
+                    {entry.timed ? (
+                      <DurationField
+                        className="grow"
+                        label={`${name} ${meta[si].name} sol süre`}
+                        value={set.sides.L.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { L: v }))}
+                      />
+                    ) : (
+                      <NumberField
+                        className="grow"
+                        label={`${name} ${meta[si].name} sol tekrar`}
+                        value={set.sides.L.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { L: v }))}
+                      />
+                    )}
                     <span className="sub">L</span>
-                    <NumberField
-                      className="grow"
-                      label={`${name} ${meta[si].name} sağ tekrar`}
-                      value={set.sides.R.r}
-                      onChange={(v) => setDraft((d) => editSet(d, ei, si, { R: v }))}
-                    />
+                    {entry.timed ? (
+                      <DurationField
+                        className="grow"
+                        label={`${name} ${meta[si].name} sağ süre`}
+                        value={set.sides.R.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { R: v }))}
+                      />
+                    ) : (
+                      <NumberField
+                        className="grow"
+                        label={`${name} ${meta[si].name} sağ tekrar`}
+                        value={set.sides.R.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { R: v }))}
+                      />
+                    )}
                     <span className="sub">R</span>
                   </>
                 ) : (
                   <>
-                    <NumberField
-                      className="grow"
-                      label={`${name} ${meta[si].name} tekrar`}
-                      value={set.r}
-                      onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
-                    />
-                    <span className="sub">tkr</span>
+                    {entry.timed ? (
+                      <DurationField
+                        className="grow"
+                        label={`${name} ${meta[si].name} süre`}
+                        value={set.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
+                      />
+                    ) : (
+                      <NumberField
+                        className="grow"
+                        label={`${name} ${meta[si].name} tekrar`}
+                        value={set.r}
+                        onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
+                      />
+                    )}
+                    <span className="sub">{entry.timed ? 'sn' : 'tkr'}</span>
                   </>
                 )}
                 <button

@@ -13,10 +13,10 @@ import { SwapSheet } from '../components/SwapSheet.tsx'
 import { WorkoutClock } from '../components/WorkoutClock.tsx'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { isBodyOnly, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
+import { isBodyOnly, isTimedName, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
 import { ExerciseThumb } from '../components/ExerciseThumb.tsx'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
-import { formatLoadWithUnit } from '../lib/load.ts'
+import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { requestPersistOnce } from '../lib/persistStorage.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
@@ -27,12 +27,13 @@ import { loadRest, saveRest } from '../lib/restState.ts'
 import { applyRirToEntry, previousRir } from '../lib/rir.ts'
 import { formatSet } from '../lib/sets.ts'
 import { hasCompletedWork } from '../lib/swap.ts'
+import { formatDuration } from '../lib/timed.ts'
 import { groupLetter, restAfter, supersetInfo } from '../lib/superset.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { useWakeLock } from '../lib/useWakeLock.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
-import { doneSetCount, isPR, lastEntryFor, lastTwoEntriesFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
+import { doneSetCount, hasVolume, isPR, lastEntryFor, lastTwoEntriesFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -99,6 +100,7 @@ export function Workout() {
     updateSet,
     updateSide,
     toggleUnilateral,
+    toggleTimed,
     toggleSuperset,
     setEntryNote,
     setWorkoutNote,
@@ -155,7 +157,7 @@ export function Workout() {
     return exIds.split('|').map((exId) => {
       const cfg = routine?.ex.find((c) => c.exId === exId)
       if (!cfg) return null
-      const { last, prev } = lastTwoEntriesFor(workouts, exId, !!cfg.bw)
+      const { last, prev } = lastTwoEntriesFor(workouts, exId, !!cfg.bw, !!cfg.timed)
       return prescriptionHint(nextPrescription(cfg, last, { prev, rule }).reason, rule)
     })
   }, [routines, routineId, exIds, workouts, rule])
@@ -178,7 +180,9 @@ export function Workout() {
           {partialSetCount(workout) > 0 && (
             <div className="row between"><span className="sub">Yarım set (tek taraf)</span><b>{partialSetCount(workout)}</b></div>
           )}
-          <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
+          {hasVolume(workout) && (
+            <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
+          )}
         </div>
         <RirSummary
           workout={workout}
@@ -261,7 +265,10 @@ export function Workout() {
       {active.entries.map((entry, ei) => {
         const ex = byId.get(entry.exId)
         const last = lastEntryFor(workouts, entry.exId)
-        const lastTop = last?.sets.filter((s) => s.done && !s.warmup && !s.drop).sort((a, b) => b.w - a.w)[0]
+        // Süreli kayıtta "en iyi set" en uzun tutuştur (aynıysa en ağır ek yük).
+        const lastTop = last?.sets
+          .filter((s) => s.done && !s.warmup && !s.drop)
+          .sort((a, b) => (last.timed ? b.r - a.r || b.w - a.w : b.w - a.w))[0]
         const lastNote = lastNoteFor(workouts, entry.exId)
         // Hedef: ilk yapılmamış çalışma setinin (ilerleme önerisi dahil) ağırlık × tekrarı.
         const targetSet = entry.sets.find((s) => !s.done && !s.warmup && !s.drop)
@@ -279,11 +286,26 @@ export function Workout() {
                 </div>
                 <div className="exname exhead" lang={nameLang(ex)}>{ex?.name ?? entry.exId}</div>
                 <div className="sub">
-                  {lastTop ? `Önceki seans: ${formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit))}` : 'İlk kez'}
+                  {lastTop
+                    ? `Önceki seans: ${
+                        last?.timed
+                          ? formatSet(lastTop, formatTimedLoad(last.bw, lastTop.w, unit), true)
+                          : formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit))
+                      }`
+                    : 'İlk kez'}
                 </div>
                 {targetSet && lastTop && (
                   <div className="extarget">
-                    Hedef {formatLoadWithUnit(entry.bw, targetSet.w, unit)} × {targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}
+                    {entry.timed
+                      ? `Hedef ${[
+                          formatTimedLoad(entry.bw, targetSet.w, unit),
+                          targetSet.sides
+                            ? `${formatDuration(targetSet.sides.L.r)} / ${formatDuration(targetSet.sides.R.r)}`
+                            : formatDuration(targetSet.r),
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}`
+                      : `Hedef ${formatLoadWithUnit(entry.bw, targetSet.w, unit)} × ${targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}`}
                   </div>
                 )}
                 {hints[ei] && <div className="sub exhint">{hints[ei]}</div>}
@@ -308,14 +330,17 @@ export function Workout() {
             {entry.unilateral ? (
               <div className="setcols side" aria-hidden="true">
                 <span>Set</span>
-                <span>{entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()} · Tekrar (taraf başına)</span>
+                <span>
+                  {entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()} ·{' '}
+                  {entry.timed ? 'Süre (taraf başına)' : 'Tekrar (taraf başına)'}
+                </span>
                 <span>Sonuç</span>
               </div>
             ) : (
               <div className="setcols" aria-hidden="true">
                 <span>Set</span>
                 <span>{entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
-                <span>Tekrar</span>
+                <span>{entry.timed ? 'Süre' : 'Tekrar'}</span>
                 <span>Sonuç</span>
               </div>
             )}
@@ -337,6 +362,7 @@ export function Workout() {
                   unit={unit}
                   bw={entry.bw}
                   bwKg={entry.bwKg}
+                  timed={entry.timed}
                   onChange={(patch) => updateSet(ei, si, patch)}
                   onSide={(side, patch) => updateSide(ei, si, side, patch)}
                   onDrop={() => addDrop(ei, si)}
@@ -353,7 +379,7 @@ export function Workout() {
               <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
               <button
                 className="btn small"
-                disabled={entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
+                disabled={entry.timed || entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
                 onClick={() => addWarmup(ei)}
               >
                 + Isınma
@@ -395,6 +421,14 @@ export function Workout() {
                 Tek taraflı (sol/sağ)
               </button>
               <button
+                className={`chip${entry.timed ? ' on' : ''}`}
+                aria-pressed={!!entry.timed}
+                disabled={hasCompletedWork(entry)}
+                onClick={() => toggleTimed(ei)}
+              >
+                Süreli (sn)
+              </button>
+              <button
                 className={`chip${entry.note ? ' on' : ''}`}
                 aria-pressed={noteOpen.has(ei) || !!entry.note}
                 onClick={() =>
@@ -430,7 +464,12 @@ export function Workout() {
         <ExerciseBrowser
           actionLabel="Ekle"
           onSelect={(ex) => {
-            addExerciseToActive(ex.id, { side: isUnilateralName(ex.name), bw: isBodyOnly(ex) })
+            addExerciseToActive(ex.id, {
+              side: isUnilateralName(ex.name),
+              bw: isBodyOnly(ex),
+              // Adı süreliyse süreli; değilse undefined: egzersizin son seansı süreliyse oradan miras alınır.
+              timed: isTimedName(ex.name) || undefined,
+            })
             setPicking(false)
           }}
         />
@@ -442,7 +481,7 @@ export function Workout() {
             current={byId.get(active.entries[swapEntryIdx].exId)!}
             excludeIds={new Set(active.entries.map((e) => e.exId))}
             onSelect={(next) => {
-              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name), isBodyOnly(next))
+              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name), isBodyOnly(next), isTimedName(next.name) || undefined)
               setSwapEntryIdx(null)
             }}
           />
