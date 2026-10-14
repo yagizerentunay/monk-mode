@@ -3,6 +3,7 @@ import {
   addSetTo,
   editSet,
   finalizeEdit,
+  moveEntryAt,
   removeEntryAt,
   removeSetAt,
   setEntryBwKgIn,
@@ -26,7 +27,7 @@ interface Props {
 
 /**
  * Kaydedilmiş antrenmanı düzeltme ekranı: ağırlık, tekrar (tek taraflıda sol/sağ), set ekle/sil,
- * egzersiz sil ve notlar. Değişiklikler bir taslakta tutulur, "Kaydet" ile yazılır.
+ * egzersiz sil/sırala ve notlar. Değişiklikler bir taslakta tutulur, "Kaydet" ile yazılır.
  */
 export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
   const unit = useStore((s) => s.settings.unit)
@@ -65,6 +66,22 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
           <div key={ei} className="stack editentry">
             <div className="row between">
               <div className="exname grow">{name}</div>
+              <button
+                className="btn small"
+                aria-label={`${name} yukarı taşı`}
+                disabled={ei === 0}
+                onClick={() => setDraft((d) => moveEntryAt(d, ei, -1))}
+              >
+                ↑
+              </button>
+              <button
+                className="btn small"
+                aria-label={`${name} aşağı taşı`}
+                disabled={ei === draft.entries.length - 1}
+                onClick={() => setDraft((d) => moveEntryAt(d, ei, 1))}
+              >
+                ↓
+              </button>
               <button
                 className="btn small danger"
                 aria-label={`${name} egzersizini sil`}

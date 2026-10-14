@@ -713,3 +713,45 @@ describe('yedekle birleştirme', () => {
     expect(snapshot(useStore.getState())).toEqual(before)
   })
 })
+
+describe('seansta egzersiz taşıma', () => {
+  const cfg = (exId: string, superset?: boolean) => ({
+    exId, sets: 2, reps: 5, weight: 60, prog: 'off' as const, inc: 2.5, repsMax: 8, ...(superset ? { superset } : {}),
+  })
+  const start = () => {
+    const s = useStore.getState()
+    s.saveRoutine({ id: 'r1', name: 'Push', ex: [cfg('a'), cfg('b', true), cfg('c')] })
+    s.startWorkout('r1')
+  }
+
+  it('aktif seanstaki sırayı değiştirir; rutin ve tamamlanan setler korunur', () => {
+    start()
+    useStore.getState().updateSet(0, 0, { done: true, r: 5 })
+    useStore.getState().moveEntry(0, 1)
+    const { active, routines } = useStore.getState()
+    expect(active?.entries.map((e) => e.exId)).toEqual(['b', 'a', 'c'])
+    expect(active?.entries[1].sets[0].done).toBe(true)
+    expect(active?.entries.map((e) => !!e.linked)).toEqual([false, true, false])
+    expect(routines[0].ex.map((e) => e.exId)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('"sıradaki set" taşınan egzersize göre yeniden belirlenir', () => {
+    start()
+    useStore.getState().updateSet(0, 0, { done: true, r: 5 })
+    useStore.getState().updateSet(0, 1, { done: true, r: 5 })
+    const next = () => useStore.getState().active!.entries.findIndex((e) => e.sets.some((x) => !x.done))
+    expect(next()).toBe(1)
+    useStore.getState().moveEntry(1, -1)
+    expect(next()).toBe(0)
+    expect(useStore.getState().active?.entries[0].exId).toBe('b')
+  })
+
+  it('uçta ve aktif seans yokken bir şey yapmaz', () => {
+    useStore.getState().moveEntry(0, 1)
+    expect(useStore.getState().active).toBeNull()
+    start()
+    const before = useStore.getState().active
+    useStore.getState().moveEntry(0, -1)
+    expect(useStore.getState().active?.entries).toEqual(before?.entries)
+  })
+})
