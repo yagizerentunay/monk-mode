@@ -29,7 +29,13 @@ const round2 = (v: number) => Math.round(v * 100) / 100
 
 /** Varsayılandan (yeni eklenen egzersiz: çift ilerleme, ısınma/drop/süperset yok) farklı bir gelişmiş ayar var mı? */
 function isCustom(cfg: ExCfg, i: number): boolean {
-  return (cfg.warmups ?? 0) > 0 || (cfg.drops ?? 0) > 0 || (i > 0 && !!cfg.superset) || cfg.prog !== 'double'
+  return (
+    (cfg.warmups ?? 0) > 0 ||
+    (cfg.drops ?? 0) > 0 ||
+    (i > 0 && !!cfg.superset) ||
+    cfg.prog !== 'double' ||
+    cfg.restSec !== undefined
+  )
 }
 
 /** Kapalı bölümde görünen tek satırlık özet: hiçbir ayar gizlenip kaybolmaz. */
@@ -39,6 +45,7 @@ function advSummary(cfg: ExCfg, unit: Unit): string {
   if ((cfg.warmups ?? 0) > 0) parts.push(`${cfg.warmups} ısınma`)
   if ((cfg.drops ?? 0) > 0) parts.push(`${cfg.drops} drop`)
   if (cfg.superset) parts.push('süperset')
+  if (cfg.restSec !== undefined) parts.push(`${cfg.restSec} sn dinlenme`)
   return parts.join(' · ')
 }
 
@@ -51,6 +58,7 @@ export function RoutineEdit() {
   const navigate = useNavigate()
   const routines = useStore((s) => s.routines)
   const unit = useStore((s) => s.settings.unit)
+  const defaultRest = useStore((s) => s.settings.restSec)
   const saveRoutine = useStore((s) => s.saveRoutine)
   const { byId } = useExercises()
 
@@ -190,7 +198,20 @@ export function RoutineEdit() {
                     onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
                   />
                 </label>
+                <label className="field">
+                  <span className="sub">Dinlenme (sn)</span>
+                  <NumberField
+                    value={cfg.restSec ?? defaultRest}
+                    min={10}
+                    onChange={(v) => patchEx(i, { restSec: Math.round(v) })}
+                  />
+                </label>
               </div>
+              {cfg.restSec !== undefined && (
+                <button className="btn small" onClick={() => patchEx(i, { restSec: undefined })}>
+                  Ayardaki süreyi kullan ({defaultRest} sn)
+                </button>
+              )}
 
               <label className="field">
                 <span className="sub">İlerleme</span>
