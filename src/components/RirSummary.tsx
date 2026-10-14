@@ -20,7 +20,7 @@ export function RirSummary({ workout, describeEx, skipped, onApply, onSkip }: Pr
   const { pct } = rirCoverage(workout)
   if (pct === null) return null // tamamlanmış çalışma seti yok: söylenecek bir şey de yok
 
-  const coverage = <div className="sub rir-coverage">Bu antrenmanda setlerin %{pct}'inde RIR var</div>
+  const coverage = <div className="sub rir-coverage">RIR girilen set oranı: %{pct}</div>
   const rows = missingRirByExercise(workout)
   if (skipped || rows.length === 0) return coverage
 

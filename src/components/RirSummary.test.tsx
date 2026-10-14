@@ -37,7 +37,7 @@ describe('RirSummary', () => {
   it('eksik varsa sayıyı, kapsamayı ve egzersiz başına satırı gösterir', () => {
     const out = html(props(wk(['bench', [warmup, work(), work(), work(1)]], ['row', [work()]])))
     expect(out).toContain('RIR eksik: 3 set')
-    expect(out).toContain("Bu antrenmanda setlerin %25'inde RIR var")
+    expect(out).toContain("RIR girilen set oranı: %25")
     expect(out).toContain('Bench Press')
     expect(out).toContain('Barbell Row')
     expect(out).toContain('2 set')
@@ -57,7 +57,7 @@ describe('RirSummary', () => {
     expect(out).not.toContain('RIR eksik')
     expect(out).not.toContain('Atla')
     expect(out).not.toContain('rir-card')
-    expect(out).toContain("%100'inde RIR var")
+    expect(out).toContain("RIR girilen set oranı: %100")
   })
 
   it('tamamlanmış çalışma seti yoksa hiçbir şey çizmez', () => {
@@ -69,7 +69,7 @@ describe('RirSummary', () => {
     const out = html(props(wk(['bench', [work(), work(1)]]), { skipped: true }))
     expect(out).not.toContain('RIR eksik')
     expect(out).not.toContain('Hepsi')
-    expect(out).toContain("%50'inde RIR var")
+    expect(out).toContain("RIR girilen set oranı: %50")
   })
 
   it('"Hepsi" chip\'ine dokununca o egzersizin sırası ve değerle onApply çağrılır', () => {
@@ -103,9 +103,9 @@ describe('RirSummary', () => {
     const out1 = html(props(w1))
     expect(out1).toContain('RIR eksik: 1 set')
     expect(out1).not.toContain('Bench Press')
-    expect(out1).toContain("%67'inde RIR var")
+    expect(out1).toContain("RIR girilen set oranı: %67")
     const out2 = html(props(applyRirToEntry(w1, 1, 1)))
     expect(out2).not.toContain('RIR eksik')
-    expect(out2).toContain("%100'inde RIR var")
+    expect(out2).toContain("RIR girilen set oranı: %100")
   })
 })
