@@ -1,4 +1,4 @@
-import type { SetEntry, Workout } from '../store/schema.ts'
+import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { cleanNote, NOTE_MAX } from './notes.ts'
 import { deriveSet } from './sets.ts'
 
@@ -89,6 +89,35 @@ export function removeEntryAt(workout: Workout, ei: number): Workout {
   const entries = workout.entries.filter((_, i) => i !== ei)
   if (!workout.entries[ei]?.linked && entries[ei]?.linked) entries[ei] = { ...entries[ei], linked: false }
   return { ...workout, entries }
+}
+
+/**
+ * Egzersizi (`ei`) bir adım yukarı (-1) ya da aşağı (+1) taşır; uçta ya da geçersiz sırada girdiyi
+ * olduğu gibi döner. Hem aktif seansta hem geçmiş antrenman düzenlemede kullanılır.
+ *
+ * Süperset kuralı (rutin düzenleyicideki `moveExercise` ile aynı, bkz. superset.ts): egzersiz TEK
+ * BAŞINA taşınır, "öncekiyle bağlı" bayrakları ise KONUMA bağlı kalır (egzersizle gitmez). Sonuçlar:
+ * - Grubun içinde sıra değişir, grup bozulmaz ([A,B,C] içinde B'yi yukarı almak A ile yer değiştirir).
+ * - Grubun başını (A) aşağı almak başı B yapar, grup aynı üyelerle kalır.
+ * - Grubun kuyruğunu grubun dışına doğru taşımak onu gruptan çıkarır, dıştaki komşu gruba girer;
+ *   dışarıdan gelen egzersiz de bir gruba girerken bir üyeyi dışarıda bırakır.
+ * Tüm grubu taşımak yerine bunu seçtik çünkü rutin düzenleyiciyle aynı davranır ve tek adımda
+ * her konuma ulaşılabilir; bayraklar da hep tutarlı kalır (bağsız ilk egzersiz bağlanmış olamaz).
+ *
+ * Setler, tamamlanma durumu, not ve diğer alanlar egzersizle birlikte taşınır; yalnız `linked` konumda kalır.
+ */
+export function moveEntryAt(workout: Workout, ei: number, dir: -1 | 1): Workout {
+  const ej = ei + dir
+  const { entries } = workout
+  if (!entries[ei] || !entries[ej]) return workout
+  const withLink = (e: WorkoutEntry, linked: boolean | undefined): WorkoutEntry => {
+    const { linked: _l, ...rest } = e
+    return linked === undefined ? rest : { ...rest, linked }
+  }
+  const out = [...entries]
+  out[ei] = withLink(entries[ej], entries[ei].linked)
+  out[ej] = withLink(entries[ei], entries[ej].linked)
+  return { ...workout, entries: out }
 }
 
 export function setEntryNoteIn(workout: Workout, ei: number, text: string): Workout {

@@ -4,6 +4,7 @@ import {
   addSetTo,
   editSet,
   finalizeEdit,
+  moveEntryAt,
   removeEntryAt,
   removeSetAt,
   setEntryBwKgIn,
@@ -181,5 +182,103 @@ describe('kaydedilmiş antrenmanda vücut ağırlığı', () => {
 
   it('bw olmayan egzersize dokunmaz', () => {
     expect(setEntryBwKgIn(base, 1, 80).entries[1]).toBe(base.entries[1])
+  })
+})
+
+describe('egzersiz taşıma (moveEntryAt)', () => {
+  const e = (exId: string, linked?: boolean, over: Partial<Workout['entries'][number]> = {}): Workout['entries'][number] => ({
+    exId,
+    sets: [set(10, 5)],
+    ...(linked === undefined ? {} : { linked }),
+    ...over,
+  })
+  const ids = (w: Workout) => w.entries.map((x) => x.exId).join('')
+  const links = (w: Workout) => w.entries.map((x) => !!x.linked)
+
+  it('süpersetsizde iki egzersizin yerini değiştirir, girdiyi değiştirmez', () => {
+    const w = wk([e('a'), e('b'), e('c')])
+    const out = moveEntryAt(w, 1, -1)
+    expect(ids(out)).toBe('bac')
+    expect(ids(w)).toBe('abc')
+    expect(ids(moveEntryAt(w, 1, 1))).toBe('acb')
+  })
+
+  it('uçta ve geçersiz sırada aynı antrenmanı döner', () => {
+    const w = wk([e('a'), e('b')])
+    expect(moveEntryAt(w, 0, -1)).toBe(w)
+    expect(moveEntryAt(w, 1, 1)).toBe(w)
+    expect(moveEntryAt(w, 5, -1)).toBe(w)
+    expect(moveEntryAt(wk([]), 0, 1).entries).toEqual([])
+  })
+
+  it('setleri, tamamlanma durumunu ve notu egzersizle birlikte taşır', () => {
+    const done = { w: 50, r: 8, done: true }
+    const w = wk([e('a', undefined, { sets: [done, { w: 50, r: 8, done: false }], note: 'omuz', unilateral: false, restSec: 90 }), e('b')])
+    const out = moveEntryAt(w, 0, 1)
+    expect(out.entries[1]).toEqual(w.entries[0])
+    expect(out.entries[1].sets[0].done).toBe(true)
+    expect(out.entries[1].note).toBe('omuz')
+  })
+
+  it('bağ bayrakları konumda kalır; ilk egzersizde bayrak oluşmaz', () => {
+    const w = wk([e('a'), e('b', true), e('c')])
+    const out = moveEntryAt(w, 0, 1)
+    expect(ids(out)).toBe('bac')
+    expect(links(out)).toEqual([false, true, false])
+    expect('linked' in out.entries[0]).toBe(false)
+  })
+
+  describe('süperset grubu [A, B(bağlı), C(bağlı)] + D', () => {
+    const w = () => wk([e('a'), e('b', true), e('c', true), e('d')])
+
+    it('grubun başı aşağı: aynı üyeler, grup bozulmaz', () => {
+      const out = moveEntryAt(w(), 0, 1)
+      expect(ids(out)).toBe('bacd')
+      expect(links(out)).toEqual([false, true, true, false])
+    })
+
+    it('ortadaki yukarı/aşağı: grup içinde sıra değişir', () => {
+      expect(ids(moveEntryAt(w(), 1, -1))).toBe('bacd')
+      expect(links(moveEntryAt(w(), 1, -1))).toEqual([false, true, true, false])
+      expect(ids(moveEntryAt(w(), 1, 1))).toBe('acbd')
+      expect(links(moveEntryAt(w(), 1, 1))).toEqual([false, true, true, false])
+    })
+
+    it('grubun kuyruğu aşağı: gruptan çıkar, D gruba girer', () => {
+      const out = moveEntryAt(w(), 2, 1)
+      expect(ids(out)).toBe('abdc')
+      expect(links(out)).toEqual([false, true, true, false])
+      // C artık yalnız: D grubun son üyesi.
+      expect(out.entries[3].exId).toBe('c')
+    })
+
+    it('grubun dışındaki egzersiz yukarı: gruba kuyruk olarak girer, eski kuyruk dışarıda kalır', () => {
+      const out = moveEntryAt(w(), 3, -1)
+      expect(ids(out)).toBe('abdc')
+      expect(links(out)).toEqual([false, true, true, false])
+    })
+
+    it('grubun başı yukarı (öncesinde başka egzersiz): komşu grubun başına geçer', () => {
+      const w2 = wk([e('x'), e('a'), e('b', true)])
+      const out = moveEntryAt(w2, 1, -1)
+      expect(ids(out)).toBe('axb')
+      expect(links(out)).toEqual([false, false, true])
+    })
+
+    it('iki egzersizlik grubun kuyruğu yukarı: sıra döner, grup korunur', () => {
+      const out = moveEntryAt(wk([e('a'), e('b', true)]), 1, -1)
+      expect(ids(out)).toBe('ba')
+      expect(links(out)).toEqual([false, true])
+    })
+  })
+
+  it('taşıma sonrası supersetInfo her zaman tutarlı gruplar üretir (ilk bağsız)', () => {
+    let w = wk([e('a'), e('b', true), e('c'), e('d', true), e('e', true)])
+    for (const [i, dir] of [[0, 1], [3, -1], [4, -1], [2, 1], [1, 1], [0, 1]] as const) {
+      w = moveEntryAt(w, i, dir)
+      expect(w.entries[0].linked).toBeFalsy()
+      expect(w.entries).toHaveLength(5)
+      expect(new Set(w.entries.map((x) => x.exId)).size).toBe(5)
+    }
   })
 })

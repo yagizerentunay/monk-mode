@@ -108,6 +108,7 @@ export function Workout() {
     removeSet,
     addExerciseToActive,
     swapExercise,
+    moveEntry,
     finishWorkout,
     updateWorkout,
   } = useStore.getState()
@@ -208,6 +209,21 @@ export function Workout() {
 
   const { done, total } = doneSetCount(active)
   const groups = supersetInfo(active.entries.map((e) => e.linked))
+
+  /** Egzersizi taşır; indekse bağlı yerel durum (açık not alanları) da yer değiştirir. */
+  const moveCard = (ei: number, dir: -1 | 1) => {
+    const ej = ei + dir
+    if (ej < 0 || ej >= active.entries.length) return
+    moveEntry(ei, dir)
+    setNoteOpen((s) => {
+      if (s.has(ei) === s.has(ej)) return s
+      const next = new Set(s)
+      const [from, to] = s.has(ei) ? [ei, ej] : [ej, ei]
+      next.delete(from)
+      next.add(to)
+      return next
+    })
+  }
 
   const finish = () => {
     const unfinished = total - done
@@ -346,6 +362,22 @@ export function Workout() {
               {ex && !hasCompletedWork(entry) && (
                 <button className="btn small" onClick={() => setSwapEntryIdx(ei)}>Değiştir</button>
               )}
+              <button
+                className="btn small"
+                aria-label={`${ex?.name ?? entry.exId} yukarı taşı`}
+                disabled={ei === 0}
+                onClick={() => moveCard(ei, -1)}
+              >
+                <span aria-hidden="true">↑ </span>Yukarı taşı
+              </button>
+              <button
+                className="btn small"
+                aria-label={`${ex?.name ?? entry.exId} aşağı taşı`}
+                disabled={ei === active.entries.length - 1}
+                onClick={() => moveCard(ei, 1)}
+              >
+                <span aria-hidden="true">↓ </span>Aşağı taşı
+              </button>
               {ei > 0 && (
                 <button
                   className={`chip${entry.linked ? ' on' : ''}`}

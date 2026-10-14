@@ -8,6 +8,7 @@ import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
+import { moveEntryAt } from '../lib/editWorkout.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
 import { swapEntry } from '../lib/swap.ts'
 import { buildFreeWorkout, buildWorkout, dayString, finalizeSet, lastSetup, newId } from '../lib/workout.ts'
@@ -78,6 +79,8 @@ export interface Actions {
    * vücut ağırlığı egzersizi mi (arayüz ekipmandan belirler, bkz. isBodyOnly); verilmezse mutlak yük.
    */
   swapExercise(entry: number, exId: string, side?: boolean, bw?: boolean): void
+  /** Aktif antrenmandaki egzersizi bir adım yukarı/aşağı taşır (bkz. moveEntryAt); rutin değişmez. */
+  moveEntry(entry: number, dir: -1 | 1): void
   finishWorkout(): Workout | null
   discardWorkout(): void
   /** Atılan aktif antrenmanı geri koyar; o arada başka bir antrenman başladıysa dokunmaz. */
@@ -307,6 +310,8 @@ export const useStore = create<Store>((set, get) => ({
       if (!swapped) return {}
       return { active: { ...s.active, entries: s.active.entries.map((x, i) => (i === entry ? swapped : x)) } }
     }),
+
+  moveEntry: (entry, dir) => withActive(set, (w) => moveEntryAt(w, entry, dir)),
 
   finishWorkout: () => {
     const { active } = get()
