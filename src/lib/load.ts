@@ -26,10 +26,25 @@ export function bodyweightOn(log: readonly BodyweightEntry[], day: string): numb
 /**
  * İlerleme önerisi ve ön doldurma için kullanılabilecek son kayıt. Yalnız aynı ağırlık anlamındaki
  * kayıt geçerlidir: ek yükle girilmiş (`bw`) ile mutlak yükle girilmiş kayıt karıştırılmaz. Aksi hâlde
- * eski "67 kg" barfiks kaydı, vücut ağırlığı moduna geçince 67 kg ek yük olarak ön dolardı.
+ * eski "67 kg" barfiks kaydı, vücut ağırlığı moduna geçince 67 kg ek yük olarak ön dolardı. Aynı şekilde
+ * süreli kayıtta `r` saniyedir; tekrarla girilmiş geçmiş süreli hedefi (ya da tersini) beslemez.
  */
-export function comparableLast(last: WorkoutEntry | undefined, bw: boolean): WorkoutEntry | undefined {
-  return last && !!last.bw === bw ? last : undefined
+export function comparableLast(
+  last: WorkoutEntry | undefined,
+  bw: boolean,
+  timed = false,
+): WorkoutEntry | undefined {
+  return last && !!last.bw === bw && !!last.timed === timed ? last : undefined
+}
+
+/**
+ * Süreli setin ek yükünün gösterimi (birim dahil): vücut ağırlığı egzersizinde "+10 kg" / "−20 kg",
+ * aksi hâlde "10 kg"; yük yoksa (0) boş metin döner. `formatSet` süreyi bunun ardına yazar.
+ */
+export function formatTimedLoad(bw: boolean | undefined, w: number, unit: Unit): string {
+  const text = formatWeight(Math.abs(w), unit)
+  if (Number(text) === 0) return ''
+  return bw ? `${w > 0 ? '+' : '−'}${text} ${unit}` : `${text} ${unit}`
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { SetEntry, Workout } from '../store/schema.ts'
 import { cleanNote, NOTE_MAX } from './notes.ts'
 import { deriveSet } from './sets.ts'
+import { clampSec } from './timed.ts'
 
 /**
  * Kaydedilmiş bir antrenmanı düzenlemek için saf yardımcılar. Hepsi yeni bir Workout döner, girdiyi
@@ -19,7 +20,7 @@ export interface SetPatch {
 }
 
 const nonNegative = (v: number): number => (Number.isFinite(v) && v > 0 ? v : 0)
-const reps = (v: number): number => Math.round(nonNegative(v))
+const reps = (v: number, timed: boolean): number => (timed ? clampSec(v) : Math.round(nonNegative(v)))
 
 function mapSet(w: Workout, ei: number, si: number, fn: (s: SetEntry) => SetEntry): Workout {
   return {
@@ -32,17 +33,18 @@ function mapSet(w: Workout, ei: number, si: number, fn: (s: SetEntry) => SetEntr
 
 /**
  * Bir setin ağırlığını ya da tekrarını düzeltir; tek taraflıda sol/sağ ayrı düzeltilir. Vücut ağırlığı
- * egzersizinde ağırlık ek yüktür ve negatif (asist) olabilir.
+ * egzersizinde ağırlık ek yüktür ve negatif (asist) olabilir. Süreli egzersizde "tekrar" saniyedir ve 0-3600'e çekilir.
  */
 export function editSet(workout: Workout, ei: number, si: number, patch: SetPatch): Workout {
   const signed = !!workout.entries[ei]?.bw
+  const timed = !!workout.entries[ei]?.timed
   return mapSet(workout, ei, si, (s) => {
     let next: SetEntry = { ...s }
     if (patch.w !== undefined) next.w = signed ? (Number.isFinite(patch.w) ? patch.w : 0) : nonNegative(patch.w)
     if (next.sides) {
       const sides = { L: { ...next.sides.L }, R: { ...next.sides.R } }
-      if (patch.L !== undefined) sides.L.r = reps(patch.L)
-      if (patch.R !== undefined) sides.R.r = reps(patch.R)
+      if (patch.L !== undefined) sides.L.r = reps(patch.L, timed)
+      if (patch.R !== undefined) sides.R.r = reps(patch.R, timed)
       next = deriveSet({ ...next, sides })
       // Yarım setin eksik tarafı girildi: artık tam bir set (iki taraf da yapılmış sayılır).
       if (next.partial && sides.L.r > 0 && sides.R.r > 0) {
@@ -50,7 +52,7 @@ export function editSet(workout: Workout, ei: number, si: number, patch: SetPatc
         next = deriveSet({ ...rest, sides: { L: { ...sides.L, done: true }, R: { ...sides.R, done: true } } })
       }
     } else if (patch.r !== undefined) {
-      next.r = reps(patch.r)
+      next.r = reps(patch.r, timed)
     }
     return next
   })

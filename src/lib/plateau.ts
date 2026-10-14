@@ -15,13 +15,14 @@ export interface Plateau {
 }
 
 /**
- * Egzersizde ilerleme durdu mu? `workouts` eski→yeni sıralıdır. Ölçü `isPR` ile aynıdır: seansın en iyi
+ * Egzersizde ilerleme durdu mu? Süreli seanslar (1RM'siz) sayılmaz; egzersiz yalnız süreliyse undefined.
+ * `workouts` eski→yeni sıralıdır. Ölçü `isPR` ile aynıdır: seansın en iyi
  * tahmini 1RM'i, önceki tüm seansları geçerse rekor sayılır (ilk seans da bir rekordur).
  * Son rekordan bu yana en az PLATEAU_SESSIONS seans geçtiyse ve son seans hâlâ en iyinin %95'i ve
  * üstündeyse plato döner; belirgin düşüş bilinçli deload olabileceğinden uyarı verilmez. Veri yetmiyorsa undefined.
  */
 export function detectPlateau(workouts: Workout[], exId: string): Plateau | undefined {
-  const points = exerciseHistory(workouts, exId)
+  const points = exerciseHistory(workouts, exId).filter((p) => !p.timed)
   if (points.length <= PLATEAU_SESSIONS) return undefined
 
   let best = 0
