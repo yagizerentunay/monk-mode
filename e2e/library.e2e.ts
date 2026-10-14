@@ -28,7 +28,7 @@ test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi harek
 
   await page.goto('./#/stats')
   await page.locator('.exrow', { hasText: 'E2E Eski' }).click()
-  const names = page.locator('.exname')
+  const names = page.getByRole('dialog').locator('.exname')
   await expect(names.filter({ hasText: 'Barbell Deadlift' })).toBeVisible()
   await expect(names.filter({ hasText: 'Barbell Curl' })).toBeVisible()
   await expect(names.filter({ hasText: 'Unknown_Move' })).toBeVisible()
