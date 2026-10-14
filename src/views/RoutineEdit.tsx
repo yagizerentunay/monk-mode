@@ -5,11 +5,13 @@ import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { MAX_DROPS, MAX_ROUTINE_SETS, MAX_WARMUPS } from '../lib/intensity.ts'
 import { defaultExCfg } from '../lib/routineAdd.ts'
+import { duplicateRoutine } from '../lib/routineCopy.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
 import type { ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
+import { snapshotNow } from '../store/autoSnapshot.ts'
 import { deleteRoutineWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
 
@@ -53,8 +55,13 @@ function blankRoutine(): Routine {
   return { id: newId(), name: '', ex: [] }
 }
 
+/** Rota değişince (ör. "Kopyala" yeni rutinin düzenleyicisine geçer) taslak o rutinden yeniden kurulur. */
 export function RoutineEdit() {
   const { id } = useParams()
+  return <RoutineEditForm key={id} id={id} />
+}
+
+function RoutineEditForm({ id }: { id: string | undefined }) {
   const navigate = useNavigate()
   const routines = useStore((s) => s.routines)
   const unit = useStore((s) => s.settings.unit)
@@ -258,6 +265,21 @@ export function RoutineEdit() {
       ))}
 
       <button className="btn primary block" onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
+
+      {existing && (
+        <button
+          className="btn block"
+          onClick={() => {
+            // Kaydedilmiş rutin kopyalanır; hafta gününe atanmaz. Önce otomatik kopya (rutin ekleme gibi).
+            const copy = duplicateRoutine(existing, routines, newId())
+            void snapshotNow('Rutin kopyalamadan önce').catch(() => {})
+            saveRoutine(copy)
+            navigate(`/plan/r/${copy.id}`)
+          }}
+        >
+          Rutini kopyala
+        </button>
+      )}
 
       {existing && (
         <button
