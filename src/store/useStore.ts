@@ -3,6 +3,7 @@ import { insertWorkout } from '../lib/backdate.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
+import { MAX_SETS } from './sanitize.ts'
 import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
@@ -223,7 +224,8 @@ export const useStore = create<Store>((set, get) => ({
     withActive(set, (w) => ({
       ...w,
       entries: w.entries.map((e, i) => {
-        if (i !== entry) return e
+        // Yükleyici bir egzersizde MAX_SETS'ten fazla seti atar; arayüz o sınırı aşırmaz.
+        if (i !== entry || e.sets.length >= MAX_SETS) return e
         // Yeni set, son asıl çalışma setini örnek alır (ısınma ve dropsetlerin hafif ağırlığını değil).
         const last = [...e.sets].reverse().find((s) => !s.warmup && !s.drop)
         const base: SetEntry = { w: last?.w ?? 0, r: last?.r ?? 0, done: false }

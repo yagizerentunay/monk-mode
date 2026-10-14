@@ -4,6 +4,8 @@ import { deriveSet } from './sets.ts'
 /** Isınma rampası: çalışma ağırlığının yüzdesi ve tekrarı; 4'ten sonrası sonuncuyu tekrarlar. */
 const WARMUP_PCT = [0.4, 0.6, 0.8, 0.85]
 const WARMUP_REPS = [8, 5, 3, 2]
+/** Rutin düzenleyicide bir egzersiz için girilebilecek en çok çalışma seti. */
+export const MAX_ROUTINE_SETS = 20
 export const MAX_WARMUPS = 4
 export const MAX_DROPS = 3
 export const DROP_FACTOR = 0.8

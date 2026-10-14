@@ -64,3 +64,17 @@ test('egzersize özel dinlenme: rutinde ayarlanır ve sayaç o süreyle başlar'
   // Genel ayar 90 sn (1:30); egzersizin kendi süresi 150 sn (2:30).
   await expect(page.getByRole('timer')).toContainText(/2:(29|30)/)
 })
+
+test('rutin düzenleyici set sayısını yükleyicinin kabul ettiği sınırla (20) kısıtlar', async ({ page }) => {
+  await seed(page, JSON.stringify(stateWithRoutine()))
+  await page.goto('./#/plan/r/r-push')
+  const sets = page.getByRole('textbox', { name: 'Set', exact: true })
+  await sets.fill('300')
+  await sets.blur()
+  await expect(sets).toHaveValue('20')
+  await page.getByRole('button', { name: 'Kaydet' }).click()
+
+  await page.reload()
+  const state = await readState(page)
+  expect(state.routines[0].ex[0].sets).toBe(20)
+})

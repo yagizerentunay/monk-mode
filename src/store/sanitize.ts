@@ -132,7 +132,8 @@ function fill(out: Record<string, unknown>, key: string, value: unknown): boolea
 
 // --- antrenman ---------------------------------------------------------------------------------
 
-const MAX_SETS = 100
+/** Bir egzersizde saklanabilecek en çok set (ısınma ve dropset dahil); arayüz de bunu aşmaz. */
+export const MAX_SETS = 100
 
 function sanitizeSide(raw: unknown): SideSet | undefined {
   if (!isRecord(raw)) return undefined

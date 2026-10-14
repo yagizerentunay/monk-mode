@@ -280,6 +280,15 @@ describe('sonradan eklenen egzersizin başlangıç değeri', () => {
   })
 })
 
+describe('set sınırı', () => {
+  it('bir egzersize yükleyicinin kabul ettiğinden fazla set eklenmez', () => {
+    useStore.getState().startFreeWorkout()
+    useStore.getState().addExerciseToActive('squat', { sets: 98 })
+    for (let i = 0; i < 10; i++) useStore.getState().addSet(0)
+    expect(useStore.getState().active?.entries[0].sets).toHaveLength(100)
+  })
+})
+
 describe('süperset', () => {
   const two = {
     ...routine,

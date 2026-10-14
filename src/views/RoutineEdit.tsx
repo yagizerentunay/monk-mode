@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
-import { MAX_DROPS, MAX_WARMUPS } from '../lib/intensity.ts'
+import { MAX_DROPS, MAX_ROUTINE_SETS, MAX_WARMUPS } from '../lib/intensity.ts'
 import { defaultExCfg } from '../lib/routineAdd.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -124,7 +124,11 @@ export function RoutineEdit() {
           <div className="grid3">
             <label className="field">
               <span className="sub">Set</span>
-              <NumberField value={cfg.sets} min={1} onChange={(v) => patchEx(i, { sets: Math.max(1, Math.round(v)) })} />
+              <NumberField
+                value={cfg.sets}
+                min={1}
+                onChange={(v) => patchEx(i, { sets: Math.min(MAX_ROUTINE_SETS, Math.max(1, Math.round(v))) })}
+              />
             </label>
             <label className="field">
               <span className="sub">Tekrar</span>
