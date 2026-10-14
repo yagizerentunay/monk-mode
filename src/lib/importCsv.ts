@@ -1,5 +1,6 @@
 import type { Unit } from './units.ts'
 import type { ImportedEntry, ImportedSet, ImportedWorkout, ParsedImport } from './importTypes.ts'
+import { clampSec } from './timed.ts'
 
 const DELIMITERS = [',', ';', '\t'] as const
 
@@ -148,6 +149,19 @@ function toNumber(raw: string): number {
   return Number(s)
 }
 
+/**
+ * Satırın tekrar ve set süresinden set içeriği: tekrar varsa tekrarlı; tekrar yok, set süresi var ve mesafe
+ * yoksa süreli (reps = saniye, 3600'e çekilir); aksi hâlde null (satır atlanır).
+ */
+function repsOrHold(repsRaw: string, secRaw: string, distanceRaw: string): { reps: number; timed?: true } | null {
+  const reps = toNumber(repsRaw)
+  if (Number.isFinite(reps) && reps > 0) return { reps }
+  const sec = toNumber(secRaw)
+  const distance = toNumber(distanceRaw)
+  if (!(sec > 0) || distance > 0) return null
+  return { reps: Math.max(1, clampSec(sec)), timed: true }
+}
+
 function cleanWeight(raw: string): number {
   const n = toNumber(raw)
   return Number.isFinite(n) && n > 0 ? n : 0
@@ -158,7 +172,8 @@ class WorkoutBuilder {
   private readonly map = new Map<string, ImportedWorkout>()
   private readonly order: ImportedWorkout[] = []
 
-  add(key: string, make: () => ImportedWorkout, exName: string, supersetId: string, set: ImportedSet) {
+  /** Seti ekler; egzersizin önceki setleriyle türü (süreli/tekrarlı) çelişiyorsa eklemez ve false döner. */
+  add(key: string, make: () => ImportedWorkout, exName: string, supersetId: string, set: ImportedSet): boolean {
     let w = this.map.get(key)
     if (!w) {
       w = make()
@@ -170,8 +185,10 @@ class WorkoutBuilder {
       entry = { name: exName, sets: [] } as ImportedEntry
       w.entries.push(entry)
     }
+    if (entry.sets.length > 0 && !!entry.sets[0].timed !== !!set.timed) return false
     if (supersetId && entry.supersetId === undefined) entry.supersetId = supersetId
     entry.sets.push(set)
+    return true
   }
 
   result(): ImportedWorkout[] {
@@ -195,7 +212,7 @@ function finish(
   skippedRows: number,
 ): ParsedImport {
   const warnings: string[] = []
-  if (skippedRows > 0) warnings.push(`${skippedRows} satır atlandı (tekrarı olmayan süre/mesafe setleri)`)
+  if (skippedRows > 0) warnings.push(`${skippedRows} satır atlandı (tekrarı ve set süresi olmayan, mesafeli ya da süreli/tekrarlı karışık setler)`)
   return { format, unit, workouts: builder.result(), skippedRows, warnings }
 }
 
@@ -211,6 +228,8 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
   const cOrder = colIndex(header, (h) => h === 'set order')
   const cWeight = colIndex(header, (h) => h.startsWith('weight'))
   const cReps = colIndex(header, (h) => h === 'reps')
+  const cSec = colIndex(header, (h) => h === 'seconds')
+  const cDist = colIndex(header, (h) => h.startsWith('distance'))
 
   const wh = cWeight >= 0 ? header[cWeight] : ''
   const unit: Unit | null = /\(kg\)/.test(wh) ? 'kg' : /\(lbs?\)/.test(wh) ? 'lb' : null
@@ -224,10 +243,10 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
     const order = get(r, cOrder)
     if (order.toLowerCase() === 'rest timer') continue
     const exName = get(r, cEx)
-    const reps = toNumber(get(r, cReps))
+    const content = repsOrHold(get(r, cReps), get(r, cSec), get(r, cDist))
     const dateRaw = get(r, cDate)
     const when = parseIsoLocal(dateRaw)
-    if (exName === '' || !Number.isFinite(reps) || reps <= 0 || !when) {
+    if (exName === '' || !content || !when) {
       skipped++
       continue
     }
@@ -235,7 +254,7 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
     const type: ImportedSet['type'] = o === 'W' ? 'warmup' : o === 'D' ? 'drop' : 'normal'
     const wName = get(r, cName)
     const durRaw = get(r, cDur)
-    builder.add(
+    const added = builder.add(
       `${dateRaw}\u0000${wName}`,
       () => ({
         name: wName,
@@ -246,8 +265,9 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
       }),
       exName,
       '',
-      { type, weight: cleanWeight(get(r, cWeight)), reps },
+      { type, weight: cleanWeight(get(r, cWeight)), ...content },
     )
+    if (!added) skipped++
   }
   return finish('strong', unit, builder, skipped)
 }
@@ -262,6 +282,8 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
   const cKg = colIndex(header, (h) => h === 'weight_kg')
   const cLb = colIndex(header, (h) => h === 'weight_lbs' || h === 'weight_lb')
   const cReps = colIndex(header, (h) => h === 'reps')
+  const cSec = colIndex(header, (h) => h === 'duration_seconds')
+  const cDist = colIndex(header, (h) => h.startsWith('distance'))
   const cWeight = cKg >= 0 ? cKg : cLb
   const unit: Unit | null = cKg >= 0 ? 'kg' : cLb >= 0 ? 'lb' : null
   const get = (r: string[], c: number) => (c >= 0 ? (r[c] ?? '').trim() : '')
@@ -271,10 +293,10 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
   for (const r of rows) {
     if (isBlankRow(r)) continue
     const exName = get(r, cEx)
-    const reps = toNumber(get(r, cReps))
+    const content = repsOrHold(get(r, cReps), get(r, cSec), get(r, cDist))
     const startRaw = get(r, cStart)
     const when = parseHevyDate(startRaw)
-    if (exName === '' || !Number.isFinite(reps) || reps <= 0 || !when) {
+    if (exName === '' || !content || !when) {
       skipped++
       continue
     }
@@ -283,7 +305,7 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
     const title = get(r, cTitle)
     const end = cEnd >= 0 ? parseHevyDate(get(r, cEnd)) : null
     const durSec = end ? Math.round((end.ms - when.ms) / 1000) : 0
-    builder.add(
+    const added = builder.add(
       `${title}\u0000${startRaw}`,
       () => ({
         name: title,
@@ -294,8 +316,9 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
       }),
       exName,
       get(r, cSuper),
-      { type, weight: cleanWeight(get(r, cWeight)), reps },
+      { type, weight: cleanWeight(get(r, cWeight)), ...content },
     )
+    if (!added) skipped++
   }
   return finish('hevy', unit, builder, skipped)
 }

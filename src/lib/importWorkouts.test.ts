@@ -29,6 +29,26 @@ const library: Record<string, { id: string; name: string }> = {
 }
 const match: NameMatcher = (n) => library[n.trim().toLowerCase()] ?? null
 
+describe('süreli içe aktarma', () => {
+  it('süreli setleri timed girdi olarak saniyeyle alır; ağırlık ek yük kalır', () => {
+    const hold = (weight: number, reps: number) => ({ type: 'normal' as const, weight, reps, timed: true as const })
+    const plan = buildImport(
+      parsed([iw(1, [entry('Plank', [hold(0, 60), hold(10, 45)]), entry('Bench Press (Barbell)', [normal(60, 8)])])]),
+      'kg',
+      match,
+      [],
+      [],
+    )
+    const [plank, bench] = plan.workouts[0].entries
+    expect(plank.timed).toBe(true)
+    expect(plank.sets).toEqual([
+      { w: 0, r: 60, done: true },
+      { w: 10, r: 45, done: true },
+    ])
+    expect(bench.timed).toBeUndefined()
+  })
+})
+
 describe('içe aktarma planı', () => {
   it('kütüphane eşleşmesini kullanır, eşleşmeyeni özel egzersiz yapar', () => {
     const plan = buildImport(

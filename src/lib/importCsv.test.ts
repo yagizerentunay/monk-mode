@@ -356,7 +356,7 @@ describe('atlanan satırlar ve hatalar', () => {
     ].join('\n')
     const r = parseImport(c)
     expect(r.skippedRows).toBe(3)
-    expect(r.warnings).toEqual(['3 satır atlandı (tekrarı olmayan süre/mesafe setleri)'])
+    expect(r.warnings).toEqual(['3 satır atlandı (tekrarı ve set süresi olmayan, mesafeli ya da süreli/tekrarlı karışık setler)'])
   })
 
   it('seti kalmayan egzersizi ve antrenmanı çıktıdan düşürür', () => {
@@ -392,5 +392,58 @@ describe('atlanan satırlar ve hatalar', () => {
     expect(parseImport(c).workouts).toHaveLength(1)
     const semi = 'Date;Workout Name;Exercise Name;Set Order;Weight;Reps\n2025-04-29 12:00:00;P;Squat;1;62,5;5'
     expect(parseImport(semi).workouts[0].entries[0].sets[0]).toEqual({ type: 'normal', weight: 62.5, reps: 5 })
+  })
+})
+
+describe('süreli setlerin içe aktarılması', () => {
+  const d = '2025-04-29 12:00:00'
+  /** Eski Strong satırı, ayrıntılı: weight, reps, distance, seconds. */
+  const so2 = (ex: string, order: string, w: string, reps: string, dist: string, sec: string) =>
+    `${d},P,1h,${ex},${order},"${w}",${reps},${dist},${sec},,,`
+  /** Hevy satırı, ayrıntılı: weight, reps, distance_km, duration_seconds. */
+  const hv2 = (ex: string, type: string, w: string, reps: string, dist: string, sec: string) =>
+    `Core,"26 Mar 2024, 10:00","26 Mar 2024, 11:00",,${ex},,,0,${type},${w},${reps},${dist},${sec},`
+
+  it('Strong: tekrarı olmayıp Seconds dolu satırı süreli set yapar', () => {
+    const c = [STRONG_OLD, so2('Plank', '1', '0', '0', '0', '60'), so2('Plank', '2', '10', '', '0', '45.4')].join('\n')
+    const r = parseImport(c)
+    expect(r.skippedRows).toBe(0)
+    expect(r.workouts[0].entries[0].sets).toEqual([
+      { type: 'normal', weight: 0, reps: 60, timed: true },
+      { type: 'normal', weight: 10, reps: 45, timed: true },
+    ])
+  })
+
+  it('Strong yeni düzen: Seconds sütununu okur', () => {
+    const c = [STRONG_NEW, '1,2025-04-29 12:00:00,P,3600,Plank,1,0,0,,0,90,,'].join('\n')
+    expect(parseImport(c).workouts[0].entries[0].sets).toEqual([{ type: 'normal', weight: 0, reps: 90, timed: true }])
+  })
+
+  it('Hevy: duration_seconds dolu, tekrarsız satır süreli set olur', () => {
+    const r = parseImport([HEVY, hv2('Side Plank', 'normal', '0', '', '', '40')].join('\n'))
+    expect(r.workouts[0].entries[0].sets).toEqual([{ type: 'normal', weight: 0, reps: 40, timed: true }])
+  })
+
+  it('tekrarı olan satırda süre yok sayılır, tekrar kazanır', () => {
+    const r = parseImport([STRONG_OLD, so2('Bench', '1', '60', '8', '0', '30')].join('\n'))
+    expect(r.workouts[0].entries[0].sets).toEqual([{ type: 'normal', weight: 60, reps: 8 }])
+  })
+
+  it('mesafeli kardiyo satırı süreli sayılmaz, atlanır', () => {
+    const r = parseImport([STRONG_OLD, so2('Run', '1', '0', '', '5000', '1800'), so2('Plank', '1', '0', '0', '0', '30')].join('\n'))
+    expect(r.skippedRows).toBe(1)
+    expect(r.workouts[0].entries.map((e) => e.name)).toEqual(['Plank'])
+  })
+
+  it('süreyi 3600e çeker; süresi de tekrarı da olmayan satırı atlar', () => {
+    const r = parseImport([STRONG_OLD, so2('Hang', '1', '0', '', '0', '9000'), so2('Hang', '2', '0', '', '0', '0')].join('\n'))
+    expect(r.workouts[0].entries[0].sets).toEqual([{ type: 'normal', weight: 0, reps: 3600, timed: true }])
+    expect(r.skippedRows).toBe(1)
+  })
+
+  it('aynı egzersizde süreli ve tekrarlı set karışırsa sonradan gelen atlanır', () => {
+    const r = parseImport([STRONG_OLD, so2('Plank', '1', '0', '', '0', '30'), so2('Plank', '2', '0', '10', '0', '')].join('\n'))
+    expect(r.workouts[0].entries[0].sets).toHaveLength(1)
+    expect(r.skippedRows).toBe(1)
   })
 })

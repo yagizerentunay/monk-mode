@@ -7,7 +7,13 @@ export interface ImportedSet {
   type: 'normal' | 'warmup' | 'drop'
   /** Dosyadaki ağırlık, dosyanın kendi biriminde (kg'a çevrilmemiş). */
   weight: number
+  /** Tekrar; `timed` sette tutulan süre (sn, 1-3600). */
   reps: number
+  /**
+   * Süreli set: dosyada tekrar yok, set süresi var (Strong "Seconds", Hevy "duration_seconds"). Mesafeli
+   * (kardiyo) satırlar süreli sayılmaz. Bir egzersizin setleri ya hep süreli ya hep tekrarlıdır.
+   */
+  timed?: true
 }
 
 export interface ImportedEntry {
@@ -34,7 +40,7 @@ export interface ParsedImport {
   unit: Unit | null
   /** Başlangıç zamanına göre eskiden yeniye sıralı. */
   workouts: ImportedWorkout[]
-  /** Atlanan satır sayısı (süre/mesafe tabanlı, tekrarı olmayan, dinlenme sayacı vb.). */
+  /** Atlanan satır sayısı (tekrarı ve set süresi olmayan, mesafeli, süreli/tekrarlı karışık egzersiz, dinlenme sayacı vb.). */
   skippedRows: number
   /** Kullanıcıya gösterilecek Türkçe uyarılar. */
   warnings: string[]
