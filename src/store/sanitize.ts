@@ -9,6 +9,7 @@ import type {
   Workout,
   WorkoutEntry,
 } from './schema.ts'
+import { clampSec, MAX_TIMED_SEC } from '../lib/timed.ts'
 
 /**
  * Kayıt düzeyinde doğrulama ve onarım. Ham veri (localStorage ya da yedek dosyası) uygulamaya girmeden
@@ -177,9 +178,29 @@ const ENTRY_CHECKS: Record<string, Check> = {
   unilateral: bool,
   linked: bool,
   bw: bool,
+  timed: bool,
   bwKg: positiveNum,
   note: str,
   restSec: positiveNum,
+}
+
+/** Süreli girdide saniyeyi 0-3600'e çeker (tek taraflıda iki taraf da); sınırı aşan set varsa true. */
+function clampTimedSets(sets: SetEntry[]): boolean {
+  let changed = false
+  for (const s of sets) {
+    if (s.r > MAX_TIMED_SEC || !Number.isInteger(s.r)) {
+      s.r = clampSec(s.r)
+      changed = true
+    }
+    if (!s.sides) continue
+    for (const side of [s.sides.L, s.sides.R]) {
+      if (side.r > MAX_TIMED_SEC || !Number.isInteger(side.r)) {
+        side.r = clampSec(side.r)
+        changed = true
+      }
+    }
+  }
+  return changed
 }
 
 function sanitizeEntry(raw: unknown, rep: SanitizeReport): WorkoutEntry | null {
@@ -197,6 +218,7 @@ function sanitizeEntry(raw: unknown, rep: SanitizeReport): WorkoutEntry | null {
     else rep.dropped.set++
   }
   rep.dropped.set += Math.max(0, rawSets.length - MAX_SETS)
+  if (out.timed === true && clampTimedSets(sets)) fixed = true
   if (Object.hasOwn(out, 'sets')) out.sets = sets
   else {
     out.sets = []
@@ -259,6 +281,7 @@ const EXCFG_CHECKS: Record<string, Check> = {
   drops: intIn(0, 3),
   superset: bool,
   bw: bool,
+  timed: bool,
   inc: nonNeg,
   repsMax: nonNeg,
   restSec: positiveNum,
@@ -274,6 +297,16 @@ function sanitizeExCfg(raw: unknown, rep: SanitizeReport): ExCfg | null {
   fixed = fill(out, 'prog', 'off') || fixed
   fixed = fill(out, 'inc', 0) || fixed
   fixed = fill(out, 'repsMax', out.reps) || fixed
+  // Süreli egzersizde hedef saniyedir (0-3600).
+  if (out.timed === true) {
+    for (const key of ['reps', 'repsMax'] as const) {
+      const sec = out[key] as number
+      if (sec > MAX_TIMED_SEC || !Number.isInteger(sec)) {
+        out[key] = clampSec(sec)
+        fixed = true
+      }
+    }
+  }
   if (fixed) rep.repaired.routineEx++
   return out as unknown as ExCfg
 }

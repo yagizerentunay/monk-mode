@@ -102,3 +102,17 @@ describe('rutin ekleme', () => {
     expect(mine).toHaveLength(1)
   })
 })
+
+describe('süreli egzersiz', () => {
+  it('timed bayrağını korur, hedef saniyeyi 3600e kırpar', () => {
+    const r = sanitizeRoutine({ id: 'r', name: 'x', ex: [ex('plank', { timed: true, reps: 45, repsMax: 9000 })] })
+    expect(r?.ex[0]).toMatchObject({ timed: true, reps: 45, repsMax: 3600 })
+  })
+
+  it('süreli egzersizde eksik hedef 30 sn olur; süreli olmayanda timed yazılmaz', () => {
+    const t = sanitizeRoutine({ id: 'r', name: 'x', ex: [{ exId: 'plank', timed: true }] })
+    expect(t?.ex[0]).toMatchObject({ timed: true, reps: 30, repsMax: 30 })
+    const n = sanitizeRoutine({ id: 'r', name: 'x', ex: [ex('bench', { timed: 'evet' })] })
+    expect(n?.ex[0].timed).toBeUndefined()
+  })
+})

@@ -26,6 +26,12 @@ export interface ExCfg {
   superset?: boolean
   /** Vücut ağırlığı egzersizi: setlerdeki ağırlık ek yüktür (negatif = asist), toplam yük vücut ağırlığını içerir. */
   bw?: boolean
+  /**
+   * Süreli egzersiz (plank, izometrik, asılı kalma…). Tasarım: ayrı süre alanları yerine mevcut `reps` ve
+   * `repsMax` saniye olarak okunur (bkz. lib/timed.ts); böylece set sayısı, hedef aralığı ve ilerleme
+   * mantığı aynen çalışır. Hedef süre 1-3600 sn; açıldığında varsayılan 30 sn.
+   */
+  timed?: boolean
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -48,7 +54,11 @@ export interface SideSet {
 
 export interface SetEntry {
   w: number
-  /** Tekrar. Tek taraflı sette taraf başına tekrardır: iki tarafın düşüğü (zayıf taraf belirler). */
+  /**
+   * Tekrar. Tek taraflı sette taraf başına tekrardır: iki tarafın düşüğü (zayıf taraf belirler).
+   * Süreli girdide (`WorkoutEntry.timed`) tekrar değil tutulan saniyedir; tek taraflıda da aynı kural
+   * geçerlidir (sol/sağ saniye, `r` düşüğü). Hacim ve 1RM süreli girdiyi hiç görmez (bkz. lib/timed.ts).
+   */
   r: number
   rir?: number
   /** Tek taraflı sette iki taraf da tamamlanmışsa true. */
@@ -80,6 +90,8 @@ export interface WorkoutEntry {
   bw?: boolean
   /** Seans kurulurken geçerli vücut ağırlığı (kg); sonradan değişse de geçmiş hesapları kaymaz. Kayıt yoksa tanımsız. */
   bwKg?: number
+  /** Süreli egzersiz: `SetEntry.r` ve `SideSet.r` saniyedir; hacim, 1RM ve plato/deload hesabına girmez (bkz. lib/timed.ts). */
+  timed?: boolean
   /** Kısa not (ağrı, takılma, enerji…); aynı egzersizin sonraki seansında hatırlatılır (lib/notes.ts). */
   note?: string
   /** Bu egzersize özel dinlenme süresi (sn); rutindeki `ExCfg.restSec`'ten gelir, yoksa ayardaki süre geçerlidir. */
