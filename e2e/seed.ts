@@ -1,8 +1,12 @@
+import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
 import { defaultState, type State } from '../src/store/schema.ts'
 
 export const STORAGE_KEY = 'monk_state_v1'
 export const BENCH = 'Barbell_Bench_Press_-_Medium_Grip'
+
+/** Kütüphanedeki egzersiz sayısı (public/data/exercises.json); Atlas eşitlemesi sayıyı değiştirince testler kırılmasın diye dosyadan okunur. */
+export const CATALOG_SIZE: number = (JSON.parse(readFileSync(new URL('../public/data/exercises.json', import.meta.url), 'utf8')) as unknown[]).length
 
 /** Tek egzersizli (2 set bench press) bir rutini olan örnek state. */
 export function stateWithRoutine(): State {
