@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
+import { StarterTemplates } from '../components/StarterTemplates.tsx'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
 import { weekStartOf } from '../lib/streak.ts'
 import { dayString, newId } from '../lib/workout.ts'
@@ -15,6 +16,7 @@ export function Plan() {
   const assignDay = useStore((s) => s.assignDay)
   const [tab, setTab] = useState<'week' | 'routines'>('week')
   const [dayPicker, setDayPicker] = useState<number | null>(null)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
   const [today] = useState(() => new Date())
 
   const todayKey = dayString(today)
@@ -84,9 +86,19 @@ export function Plan() {
               <span className="sub">Düzenle ›</span>
             </Link>
           ))}
-          <button className="btn primary block" onClick={() => navigate(`/plan/r/${newId()}`)}>+ Yeni rutin</button>
+          <button
+            className={`btn block${routines.length === 0 ? ' primary' : ''}`}
+            onClick={() => setTemplatesOpen(true)}
+          >
+            Başlangıç şablonları
+          </button>
+          <button className={`btn block${routines.length === 0 ? "" : " primary"}`} onClick={() => navigate(`/plan/r/${newId()}`)}>+ Yeni rutin</button>
         </div>
       )}
+
+      <BottomSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} title="Başlangıç şablonları">
+        <StarterTemplates onAdded={() => setTemplatesOpen(false)} />
+      </BottomSheet>
 
       <BottomSheet
         open={dayPicker !== null}

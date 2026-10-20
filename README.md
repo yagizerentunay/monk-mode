@@ -33,7 +33,7 @@ Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri ol
 
 | Planla | Antrenman yap | İlerlemeni gör |
 |---|---|---|
-| Rutin oluşturucu, haftalık program ve egzersiz kütüphanesi | Önceki setlerden otomatik doldurma, dinlenme sayacı, ısınma, dropset ve süperset | Tahmini 1RM, kişisel rekorlar, antrenman geçmişi ve takvim |
+| Rutin oluşturucu, başlangıç şablonları (Full Body, Upper/Lower, PPL), haftalık program ve egzersiz kütüphanesi | Önceki setlerden otomatik doldurma, dinlenme sayacı, ısınma, dropset ve süperset | Tahmini 1RM, kişisel rekorlar, antrenman geçmişi ve takvim |
 | Kas ve ekipman filtreleri; egzersizleri özelleştirme | RIR, tek taraflı egzersizler ve plaka hesaplayıcı | Kas haritası, haftalık hedefler ve vücut ağırlığı trendi |
 | Strong ve Hevy CSV içe aktarma | Antrenman ve egzersiz notları | Otomatik kopyalar ve tek dokunuşla yedek |
 
