@@ -5,6 +5,11 @@ const DAY_MS = 24 * 60 * 60 * 1000
 export const REMIND_CHOICES = [0, 7, 14, 30] as const
 /** "Sonra hatırlat" kaç gün susturur. */
 export const SNOOZE_DAYS = 3
+/**
+ * Hiç yedek almamış kullanıcıya hatırlatma en geç bu kadar gün sonra çıkar (Ayarlar'daki süre daha
+ * kısaysa o geçerli): tek kopyası tarayıcıda duran veri için ilk yedek, sonrakilerden daha kritiktir.
+ */
+export const FIRST_BACKUP_DAYS = 3
 
 /** Yedeğe giren veri alanları; ayarlar ve devam eden antrenman (`active`) yedeğin parçası sayılmaz. */
 type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'> & {
@@ -55,7 +60,8 @@ function firstRecordAt(data: Backed): number | null {
 /**
  * Yedek hatırlatması gerekli mi: hatırlatma açık, saklanacak antrenman/kilo kaydı var, son yedekten
  * beri veri değişmiş, aradan en az `backupRemindDays` gün geçmiş ve ertelenmemiş. Hiç yedek yoksa
- * süre en eski kayıttan sayılır. Yalnız rutin kurulmuşsa (antrenman/kilo yok) hatırlatmaz.
+ * süre en eski kayıttan sayılır ve en çok `FIRST_BACKUP_DAYS` gündür. Yalnız rutin kurulmuşsa
+ * (antrenman/kilo yok) hatırlatmaz.
  */
 export function backupStatus(data: Backed & { settings: Settings }, now: number): BackupStatus {
   const { settings } = data
@@ -67,6 +73,7 @@ export function backupStatus(data: Backed & { settings: Settings }, now: number)
   const dirty = fingerprint(data) !== settings.lastBackupHash
   const days = Math.max(0, Math.floor((now - reference) / DAY_MS))
   const snoozed = settings.backupSnoozedUntil !== undefined && now < settings.backupSnoozedUntil
-  const due = settings.backupRemindDays > 0 && dirty && days >= settings.backupRemindDays && !snoozed
+  const threshold = never ? Math.min(settings.backupRemindDays, FIRST_BACKUP_DAYS) : settings.backupRemindDays
+  const due = settings.backupRemindDays > 0 && dirty && days >= threshold && !snoozed
   return { due, dirty, never, days }
 }

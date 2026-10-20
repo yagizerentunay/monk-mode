@@ -36,10 +36,25 @@ describe('yedek hatırlatma', () => {
   })
 
   it('hiç yedek yoksa süreyi en eski kayıttan sayar', () => {
-    const young = state({ workouts: [wk('a', NOW - 5 * DAY)] })
-    expect(backupStatus(young, NOW)).toMatchObject({ due: false, never: true, days: 5 })
+    const young = state({ workouts: [wk('a', NOW - 2 * DAY)] })
+    expect(backupStatus(young, NOW)).toMatchObject({ due: false, never: true, days: 2 })
     const old = state({ workouts: [wk('a', NOW - 20 * DAY), wk('b', NOW - DAY)] })
     expect(backupStatus(old, NOW)).toMatchObject({ due: true, never: true, days: 20 })
+  })
+
+  it('hiç yedek yoksa ilk hatırlatma 3. günde çıkar, hatırlatma süresi daha kısaysa o geçerlidir', () => {
+    const first = (days: number, remind = 14) =>
+      state({ workouts: [wk('a', NOW - days * DAY)] }, { backupRemindDays: remind })
+    expect(backupStatus(first(2), NOW).due).toBe(false)
+    expect(backupStatus(first(3), NOW).due).toBe(true)
+    // Yedek bir kez alınınca genel süre (14 gün) geçerli olur; 3. gün hatırlatmaz.
+    const backedUp = state(
+      { workouts: [wk('a', 1)] },
+      { lastBackupAt: NOW - 5 * DAY, lastBackupHash: 'eski' },
+    )
+    expect(backupStatus(backedUp, NOW).due).toBe(false)
+    // Hatırlatma kapalıysa ilk yedek için de çıkmaz.
+    expect(backupStatus(first(10, 0), NOW).due).toBe(false)
   })
 
   it('yedeğin üzerinden süre geçmiş ve veri değişmişse hatırlatır', () => {
