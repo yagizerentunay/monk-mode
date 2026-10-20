@@ -1,6 +1,7 @@
 import { STORAGE_KEY } from '../store/persist.ts'
 import { listSnapshots } from '../store/snapshots.ts'
 import { audioState } from './alert.ts'
+import { isStandalone } from './homeScreenHint.ts'
 import { getPersistStatus } from './persistStorage.ts'
 import { currentEntry } from './updateCheck.ts'
 
@@ -39,11 +40,6 @@ async function safe<T>(fn: () => T | Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-function standalone(): boolean {
-  const nav = navigator as Navigator & { standalone?: boolean }
-  return nav.standalone === true || (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches)
-}
-
 const AUDIO_TEXT: Record<string, [string, DiagStatus]> = {
   running: ['hazır', 'ok'],
   none: ['henüz açılmadı (ekrana bir kez dokun)', 'info'],
@@ -58,7 +54,7 @@ export async function collectDiagnostics(version: string, lastBackupAt?: number)
   const add = (label: string, value: string, status: DiagStatus = 'info') => rows.push({ label, value, status })
 
   add('Sürüm', `v${version} · ${currentEntry()?.split('/').pop() ?? 'geliştirme'}`)
-  add('Açılış', standalone() ? 'ana ekrandan (uygulama)' : 'tarayıcı sekmesi', standalone() ? 'ok' : 'info')
+  add('Açılış', isStandalone() ? 'ana ekrandan (uygulama)' : 'tarayıcı sekmesi', isStandalone() ? 'ok' : 'info')
   add('Bağlantı', navigator.onLine ? 'çevrimiçi' : 'çevrimdışı')
 
   const sw = await safe<readonly [string, DiagStatus]>(async () => {

@@ -6,6 +6,7 @@ import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { CalendarSheet } from '../components/CalendarSheet.tsx'
 import { DeloadHint } from '../components/DeloadHint.tsx'
+import { HomeScreenHint } from '../components/HomeScreenHint.tsx'
 import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
@@ -103,6 +104,7 @@ export function Home() {
       </div>
 
       <BackupReminder />
+      <HomeScreenHint />
       <DeloadHint />
 
       <div className="weekstrip">
