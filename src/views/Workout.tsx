@@ -20,6 +20,7 @@ import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
 import { requestPersistOnce } from '../lib/persistStorage.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
+import { autoFolderBackup } from '../store/folderBackup.ts'
 import { discardActiveWithUndo } from '../store/undoDelete.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { nextPrescription, prescriptionHint } from '../lib/progression.ts'
@@ -240,6 +241,8 @@ export function Workout() {
     if (finished) void requestPersistOnce()
     // Otomatik iç kopya: tarayıcı içinde, sessizce (bkz. store/snapshots.ts).
     if (finished) void snapshotNow('Antrenman bitti')
+    // Ayarlar'da klasöre yedek açıksa antrenman verisi hemen klasöre de yazılır (izin yoksa sessizce atlanır).
+    if (finished) autoFolderBackup()
     setRestEnds(null)
     setRirSkipped(false)
     if (finished) setSummary({ workout: finished, prs })

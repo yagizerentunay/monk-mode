@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChipRow } from '../components/ChipRow.tsx'
 import { CsvExportCard } from '../components/CsvExportCard.tsx'
 import { DiagnosticsCard } from '../components/DiagnosticsCard.tsx'
+import { FolderBackupCard } from '../components/FolderBackupCard.tsx'
 import { ImportCard } from '../components/ImportCard.tsx'
 import { MergeImportCard } from '../components/MergeImportCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
@@ -256,6 +257,8 @@ export function Settings() {
         <input ref={routineFileRef} type="file" accept="application/json,.json" hidden onChange={(e) => void onRoutineFile(e.target.files?.[0])} />
         {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
       </div>
+
+      <FolderBackupCard />
 
       <CsvExportCard />
 

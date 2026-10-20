@@ -48,19 +48,27 @@ async function shareFile(file: File, title: string): Promise<'shared' | 'cancell
 }
 
 /**
+ * Şu anki verinin yedek metni; içindeki ayarlar bu yedeğin zamanını ve veri parmak izini taşır, böylece
+ * yedek geri yüklenince hatırlatma bozuk görünmez. Store'u değiştirmez: "yedeklendi" işareti başarıdan sonra yazılır.
+ */
+export function markedBackupText(now: Date): string {
+  const state = snapshot(useStore.getState())
+  const marked = {
+    ...state,
+    settings: { ...state.settings, lastBackupAt: now.getTime(), lastBackupHash: fingerprint(state), backupSnoozedUntil: undefined },
+  }
+  return exportBackup(marked, now)
+}
+
+/**
  * Yedeği cihaz dışına alır: telefonda paylaşım menüsü (Dosyalar, iCloud/Drive, kendine mesaj),
  * yoksa indirme. Paylaşım iptal edilirse "yedeklendi" işaretlenmez. Dosyadaki ayarlar, indirmede
  * olduğu gibi kendi yedek zamanını ve parmak izini taşır; işaret yalnız başarıdan sonra store'a yazılır.
  * Kullanıcı dokunuşuyla çağrılmalı (paylaşım menüsü jest ister).
  */
 export async function shareBackup(now: Date = new Date()): Promise<SaveResult> {
-  const state = snapshot(useStore.getState())
-  const marked = {
-    ...state,
-    settings: { ...state.settings, lastBackupAt: now.getTime(), lastBackupHash: fingerprint(state), backupSnoozedUntil: undefined },
-  }
   const name = `monk-mode-yedek-${dayString(now)}.json`
-  const file = new File([exportBackup(marked, now)], name, { type: 'application/json' })
+  const file = new File([markedBackupText(now)], name, { type: 'application/json' })
   if (!canShareFile(file)) {
     downloadBackup(now)
     return 'downloaded'

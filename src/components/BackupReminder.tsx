@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { backupStatus, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { shareBackup } from '../store/downloadBackup.ts'
+import { backupToFolder, folderStatus } from '../store/folderBackup.ts'
 import { useStore } from '../store/useStore.ts'
 
 /**
@@ -17,6 +18,12 @@ export function BackupReminder() {
   const snoozeBackup = useStore((s) => s.snoozeBackup)
   const [now] = useState(() => Date.now())
   const [done, setDone] = useState(false)
+  const [hasFolder, setHasFolder] = useState(false)
+
+  // Klasöre yedek açıksa (izni düşmüş olabilir) birincil eylem klasöre yedekle olur.
+  useEffect(() => {
+    void folderStatus().then((s) => setHasFolder(s !== null)).catch(() => undefined)
+  }, [])
 
   const status = useMemo(
     () => backupStatus({ workouts, routines, week, bodyweight, customEx, settings }, now),
@@ -39,8 +46,16 @@ export function BackupReminder() {
         </div>
       </div>
       <div className="row">
+        {hasFolder && (
+          <button
+            className="btn primary small grow"
+            onClick={() => void backupToFolder({ ask: true }).then((r) => setDone(r === 'saved'))}
+          >
+            Klasöre yedekle
+          </button>
+        )}
         <button
-          className="btn primary small grow"
+          className={`btn small grow${hasFolder ? '' : ' primary'}`}
           onClick={() => void shareBackup().then((r) => setDone(r !== 'cancelled'))}
         >
           Yedeği kaydet

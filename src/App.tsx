@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { RouteErrorBoundary } from './components/ErrorBoundary.tsx'
 import { StorageWarnings } from './components/StorageWarnings.tsx'
@@ -6,6 +6,7 @@ import { TabBar } from './components/TabBar.tsx'
 import { Toast } from './components/Toast.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
 import { useOnline } from './lib/useOnline.ts'
+import { autoFolderBackup } from './store/folderBackup.ts'
 import { Home } from './views/Home.tsx'
 import { Workout } from './views/Workout.tsx'
 
@@ -20,6 +21,15 @@ const Settings = lazy(() => import('./views/Settings.tsx').then((m) => ({ defaul
 
 export default function App() {
   const online = useOnline()
+  // Klasöre otomatik yedek (Ayarlar'da açıksa): açılışta ve sekme arka plana geçerken, veri değiştiyse.
+  useEffect(() => {
+    autoFolderBackup()
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') autoFolderBackup()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    return () => document.removeEventListener('visibilitychange', onHide)
+  }, [])
   return (
     <HashRouter>
       {!online && (

@@ -59,6 +59,7 @@ Egzersiz kütüphanesi (adlar, kaslar, ekipman, yönergeler ve görseller) elle 
 ## Verin ve çevrimdışı kullanım
 
 - Veriler yalnızca kullandığın tarayıcının `localStorage` alanında saklanır. Hesap, bulut eşitlemesi veya sunucu yoktur.
+- Masaüstü Chrome/Edge'de Ayarlar'dan bir klasör seçersen yedek her değişiklikte o klasöre yazılır; klasör OneDrive/Drive gibi eşitleniyorsa yedeğin buluta da gider. iPhone'da ise ana ekrana ekle ve yedek al: ana ekran uygulamasının verisi tarayıcı temizliğinden korunur.
 - Tarayıcı verilerini silmek kayıtlarını da silebilir. Yedeklerini düzenli indir ve güvenli bir yerde sakla.
 - Uygulama çevrimdışı açılır; egzersiz görsellerinden yalnızca daha önce görüntülediklerin önbelleğe alınır.
 - Her cihaz ve tarayıcı kendi verisini tutar. Cihazlar arasında taşımak için bir cihazda yedek alıp diğerinde içe aktar.
