@@ -64,16 +64,10 @@ describe('şablon içeriği', () => {
     expect(template('ppl').days.map((d) => d.name)).toEqual(['Push', 'Pull', 'Legs'])
   })
 
-  it('geçici ikameler bildirilir (Leg Press, Incline Dumbbell Press…) ve tekrar etmez', () => {
+  it('yalnız katalogda eksik hareketler geçici ikame olarak bildirilir', () => {
     const subs = substitutesOf(template('upper-lower'))
-    expect(subs.map((s) => s.for).sort()).toEqual([
-      'Dumbbell Split Squat',
-      'Incline Dumbbell Press',
-      'Leg Press',
-      'Machine Pec Fly',
-      'Neutral-Grip Lat Pulldown',
-    ])
-    expect(substitutesOf(template('full-body')).map((s) => s.for).sort()).toEqual(['Incline Dumbbell Press', 'Leg Press'])
+    expect(subs.map((s) => s.for).sort()).toEqual(['Neutral-Grip Lat Pulldown'])
+    expect(substitutesOf(template('full-body'))).toEqual([])
   })
 })
 
@@ -95,7 +89,7 @@ describe('rutinlere dönüştürme', () => {
     const plank = buildTemplateRoutines(template('full-body'), byId, [], ids).routines[0].ex.at(-1)!
     expect(plank).toMatchObject({ exId: 'Plank', timed: true, reps: 20, repsMax: 60, inc: 0, sets: 3 })
     const lowerB = buildTemplateRoutines(template('upper-lower'), byId, [], ids).routines[3]
-    const split = lowerB.ex.find((e) => e.exId === 'monk-glutes-bulgarian-split-squat')!
+    const split = lowerB.ex.find((e) => e.exId === 'atlas:dumbbell-split-squat')!
     expect(split.side).toBe(true)
     const calf = buildTemplateRoutines(template('upper-lower'), byId, [], ids).routines[1].ex.find((e) => e.exId === 'Standing_Calf_Raises')!
     expect(calf.bw).toBe(true)

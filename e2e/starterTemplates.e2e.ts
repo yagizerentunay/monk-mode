@@ -22,14 +22,14 @@ test('üç şablon listelenir: Full Body önerilen, PPL 6 gün önerilir notuyla
   await expect(sheet.locator('[data-template]').first()).toHaveAttribute('data-template', 'full-body')
 })
 
-test('içerik eklemeden önce görülür; geçici ikame açıkça yazılır', async ({ page }) => {
+test('içerik eklemeden önce görülür; Atlas hareketleri doğrudan kullanılır', async ({ page }) => {
   await openTemplates(page)
   const fullBody = page.getByRole('dialog').locator('[data-template="full-body"]')
   await fullBody.getByText('İçeriği gör').click()
   await expect(fullBody.getByText('Barbell Back Squat · 3 × 6–10')).toBeVisible()
   await expect(fullBody.getByText('Forearm Plank · 3 × 20–60 sn').first()).toBeVisible()
-  await expect(fullBody.getByText(/Hack Squat \(Leg Press yerine\)/)).toBeVisible()
-  await expect(fullBody.getByText(/Machine Chest Press \(Incline Dumbbell Press yerine\)/)).toBeVisible()
+  await expect(fullBody.getByText('Leg Press · 3 × 8–12')).toBeVisible()
+  await expect(fullBody.getByText('Incline Dumbbell Press · 3 × 8–12')).toBeVisible()
 })
 
 test('Full Body eklenir: iki rutin, doğru ayarlar; geri al kaldırır; ikinci ekleme (2) adı alır', async ({ page }) => {

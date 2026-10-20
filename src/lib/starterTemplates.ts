@@ -9,8 +9,8 @@ import { newId } from './workout.ts'
  * bildirisinin taranmasından çıkarılan bir sentezdir (vault: monk-mode başlangıç şablonları araştırması);
  * set, tekrar ve dinlenme değerleri tek bir kaynağın reçetesi değildir. Hepsi çift ilerleme kullanır.
  *
- * Egzersizler kataloğun kimlikleriyle verilir. Katalogda henüz olmayan hareketler (Leg Press, Incline
- * Dumbbell Press, pec deck, Dumbbell Split Squat, Neutral-Grip Pulldown) için geçici ikame konur ve
+ * Egzersizler kataloğun kimlikleriyle verilir. Katalogda henüz olmayan Neutral-Grip
+ * Pulldown için geçici ikame konur ve
  * `subFor` ile işaretlenir; hareket Atlas'a eklenince şablondaki kimlik değiştirilir. Kullanıcının
  * zaten eklediği rutinler şablondan etkilenmez.
  */
@@ -65,10 +65,10 @@ const CABLE_ROW = 'atlas:seated-cable-row'
 const DB_RDL = 'monk-hamstrings-dumbbell-romanian-deadlift'
 const LATERAL = 'monk-shoulders-dumbbell-lateral-raise'
 const PLANK = 'Plank'
-const HACK_SQUAT = 'monk-quadriceps-hack-squat'
+const LEG_PRESS = 'atlas:leg-press'
 const DB_PRESS = 'Dumbbell_Shoulder_Press'
 const PULLDOWN = 'atlas:lat-pulldown'
-const CHEST_MACHINE = 'monk-chest-machine-chest-press'
+const INCLINE_PRESS = 'atlas:incline-dumbbell-press'
 const LEG_CURL = 'monk-hamstrings-seated-leg-curl'
 const SEATED_CALF = 'Seated_Calf_Raise'
 const PUSHDOWN = 'Triceps_Pushdown'
@@ -77,20 +77,17 @@ const LEG_EXT = 'Leg_Extensions'
 const STANDING_CALF = 'Standing_Calf_Raises'
 const SUPPORTED_ROW = 'monk-middle-back-chest-supported-row'
 const CLOSE_PULLDOWN = 'Close-Grip_Front_Lat_Pulldown'
-const CABLE_CROSSOVER = 'monk-chest-cable-crossover'
+const PEC_DECK = 'atlas:pec-deck-fly'
 const CABLE_LATERAL = 'monk-shoulders-cable-lateral-raise'
 const OVERHEAD_TRICEPS = 'monk-triceps-overhead-cable-extension'
 const INCLINE_CURL = 'Incline_Dumbbell_Curl'
 const HIP_THRUST = 'Barbell_Hip_Thrust'
-const SPLIT_SQUAT = 'monk-glutes-bulgarian-split-squat'
+const SPLIT_SQUAT = 'atlas:dumbbell-split-squat'
 const LYING_CURL = 'Lying_Leg_Curls'
 const KNEE_RAISE = 'monk-abdominals-hanging-knee-raise'
 const FACE_PULL = 'Face_Pull'
 const HAMMER = 'monk-biceps-hammer-curl'
 const CABLE_CRUNCH = 'Cable_Crunch'
-
-const LEG_PRESS = 'Leg Press'
-const INCLINE_PRESS = 'Incline Dumbbell Press'
 
 export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
@@ -114,10 +111,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       {
         name: 'Full Body B',
         ex: [
-          ex(HACK_SQUAT, 3, 8, 12, 5, 120, LEG_PRESS),
+          ex(LEG_PRESS, 3, 8, 12, 5, 120),
           ex(DB_PRESS, 3, 6, 10, 2, 120),
           ex(PULLDOWN, 3, 8, 12, 2.5, 90),
-          ex(CHEST_MACHINE, 3, 8, 12, 2.5, 90, INCLINE_PRESS),
+          ex(INCLINE_PRESS, 3, 8, 12, 2.5, 90),
           ex(LEG_CURL, 3, 10, 15, 2.5, 60),
           ex(SEATED_CALF, 3, 10, 15, 2.5, 60),
           ex(PLANK, 3, 20, 60, 0, 60),
@@ -157,10 +154,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       {
         name: 'Üst Vücut B',
         ex: [
-          ex(CHEST_MACHINE, 3, 8, 12, 2.5, 90, INCLINE_PRESS),
+          ex(INCLINE_PRESS, 3, 8, 12, 2.5, 90),
           ex(SUPPORTED_ROW, 3, 8, 12, 2, 90),
           ex(CLOSE_PULLDOWN, 2, 8, 12, 2.5, 90, 'Neutral-Grip Lat Pulldown'),
-          ex(CABLE_CROSSOVER, 2, 12, 15, 2.5, 60, 'Machine Pec Fly'),
+          ex(PEC_DECK, 2, 12, 15, 2.5, 60),
           ex(CABLE_LATERAL, 2, 12, 15, 1, 60),
           ex(OVERHEAD_TRICEPS, 2, 10, 15, 2.5, 60),
           ex(INCLINE_CURL, 2, 10, 15, 1, 60),
@@ -169,9 +166,9 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       {
         name: 'Alt Vücut B',
         ex: [
-          ex(HACK_SQUAT, 3, 8, 12, 5, 120, LEG_PRESS),
+          ex(LEG_PRESS, 3, 8, 12, 5, 120),
           ex(HIP_THRUST, 3, 8, 12, 5, 120),
-          ex(SPLIT_SQUAT, 2, 8, 12, 2, 90, 'Dumbbell Split Squat'),
+          ex(SPLIT_SQUAT, 2, 8, 12, 2, 90),
           ex(LYING_CURL, 2, 10, 15, 2.5, 60),
           ex(SEATED_CALF, 3, 12, 15, 2.5, 60),
           ex(KNEE_RAISE, 2, 10, 15, 0, 60),
@@ -192,7 +189,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ex: [
           ex(DB_BENCH, 3, 6, 10, 2, 120),
           ex(DB_PRESS, 3, 8, 12, 2, 120),
-          ex(CHEST_MACHINE, 3, 8, 12, 2.5, 90, INCLINE_PRESS),
+          ex(INCLINE_PRESS, 3, 8, 12, 2.5, 90),
           ex(LATERAL, 3, 12, 20, 1, 60),
           ex(PUSHDOWN, 3, 8, 12, 2.5, 60),
           ex(OVERHEAD_TRICEPS, 2, 10, 15, 2.5, 60),
@@ -214,7 +211,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ex: [
           ex(SQUAT, 3, 5, 8, 5, 150),
           ex(DB_RDL, 3, 8, 12, 2, 120),
-          ex(HACK_SQUAT, 3, 8, 12, 5, 120, LEG_PRESS),
+          ex(LEG_PRESS, 3, 8, 12, 5, 120),
           ex(LEG_CURL, 3, 8, 12, 2.5, 60),
           ex(STANDING_CALF, 3, 10, 15, 2.5, 60),
           ex(CABLE_CRUNCH, 2, 10, 15, 2.5, 60),
