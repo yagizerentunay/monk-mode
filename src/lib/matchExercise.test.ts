@@ -139,12 +139,12 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Bench Press (Dumbbell)', 'Dumbbell_Bench_Press'],
     // Kütüphanenin kendi hareketi, aynı hareketin eski kaydından önce gelir.
     ['Incline Bench Press (Barbell)', 'monk-chest-incline-barbell-bench-press'],
-    ['Incline Bench Press (Dumbbell)', 'Incline_Dumbbell_Press'],
+    ['Incline Bench Press (Dumbbell)', 'atlas:incline-dumbbell-press'],
     ['Squat (Barbell)', 'Barbell_Squat'],
     ['Front Squat (Barbell)', 'monk-quadriceps-front-squat'],
     ['Deadlift (Barbell)', 'Barbell_Deadlift'],
     ['Romanian Deadlift (Barbell)', 'Romanian_Deadlift'],
-    ['Sumo Deadlift (Barbell)', 'Sumo_Deadlift'],
+    ['Sumo Deadlift (Barbell)', 'atlas:sumo-deadlift'],
     ['Overhead Press (Barbell)', 'Barbell_Shoulder_Press'],
     ['Shoulder Press (Dumbbell)', 'Dumbbell_Shoulder_Press'],
     // Adın birebir karşılığı olan genel Atlas kaydı, daha özel varyanttan önce gelir.
@@ -154,7 +154,7 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Pull Up', 'Pullups'],
     ['Chin Up', 'monk-lats-chin-up'],
     ['Pull Up (Assisted)', 'monk-lats-assisted-pull-up'],
-    ['Leg Press', 'Leg_Press'],
+    ['Leg Press', 'atlas:leg-press'],
     ['Leg Extension (Machine)', 'Leg_Extensions'],
     ['Seated Leg Curl (Machine)', 'monk-hamstrings-seated-leg-curl'],
     ['Seated Cable Row - V Grip (Cable)', 'Seated_Cable_Rows'],
@@ -165,11 +165,11 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Hip Thrust (Barbell)', 'Barbell_Hip_Thrust'],
     ['Plank', 'Plank'],
     ['Push Up', 'Pushups'],
-    ['Squat (Smith Machine)', 'Smith_Machine_Squat'],
+    ['Squat (Smith Machine)', 'atlas:smith-machine-squat'],
     // Gerçek bir karşılığı olmayan / belirsiz adlar: özel egzersiz oluşmalı.
     ['Squat', null],
     ['Leg Curl (Machine)', null],
-    ['Bulgarian Split Squat (Dumbbell)', null],
+    ['Bulgarian Split Squat (Dumbbell)', 'atlas:dumbbell-bulgarian-split-squat'],
     ['Skullcrusher (Barbell)', null],
     ['Pec Deck (Machine)', null],
     ['Zumba', null],
@@ -193,6 +193,8 @@ describe('gerçek egzersiz kütüphanesi', () => {
       'Bodyweight Walking Lunge',
       'Front Barbell Squat',
       'Upright Barbell Row',
+      'Close-Grip Barbell Bench Press',
+      'Stiff-Legged Barbell Deadlift',
       // Atlas'ın genel kaydı ile Monk Mode'un geçmişi olan varyantı aynı adı paylaşır; geçmişi olan kazanır.
       'Dumbbell Shoulder Press',
       'Seated Cable Row',
@@ -208,7 +210,7 @@ describe('gerçek egzersiz kütüphanesi', () => {
   it('Türkçe uygulama dilindeki Hevy adlarını eşler (gerçek bir Hevy antrenmanından)', () => {
     // Kaynak: Yağız'ın Türkçe Hevy hesabındaki "A Day" antrenmanı (1 Eki 2026).
     const cases: [string, string | null][] = [
-      ['Incline Bench Press (Dambıl)', 'Incline_Dumbbell_Press'],
+      ['Incline Bench Press (Dambıl)', 'atlas:incline-dumbbell-press'],
       ['Barfiks', 'Pullups'],
       ['Oturarak Cable Row - V Tutuş', 'Seated_Cable_Rows'],
       ['Lateral Raise (Dambıl)', 'monk-shoulders-dumbbell-lateral-raise'],

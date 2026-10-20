@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
 import { defaultState, type State } from '../src/store/schema.ts'
-import { BENCH, readState, seed } from './seed.ts'
+import { BENCH, CATALOG_SIZE, readState, seed } from './seed.ts'
 
 const STRONG_CSV = [
   'Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE',
@@ -149,11 +149,11 @@ test('tercihler: birim lb olunca ana sayfa ve plaka kiti lb gösterir; hafta ba�
 test('kütüphane: filtreler daraltır, özel egzersiz eklenir ve aranabilir, kas düzeltmesi kalıcıdır', async ({ page }) => {
   await seed(page, JSON.stringify(defaultState()))
   await page.goto('./#/library')
-  await expect(page.getByText('186 egzersiz')).toBeVisible()
+  await expect(page.getByText(`${CATALOG_SIZE} egzersiz`)).toBeVisible()
 
   await page.getByRole('button', { name: 'Göğüs', exact: true }).click()
   const chestCount = await page.locator('.resultcount').innerText()
-  expect(chestCount).not.toBe('186 egzersiz')
+  expect(chestCount).not.toBe(`${CATALOG_SIZE} egzersiz`)
   await page.getByRole('button', { name: 'Tüm kaslar' }).click()
 
   // Özel egzersiz.

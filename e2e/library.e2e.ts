@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { defaultState } from '../src/store/schema.ts'
-import { seed } from './seed.ts'
+import { CATALOG_SIZE, seed } from './seed.ts'
 
 test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi hareketlerini listeler', async ({ page }) => {
   const requests: string[] = []
@@ -35,7 +35,7 @@ test('eski kimlikli geçmiş adıyla görünür, kütüphane yalnız kendi harek
   await page.keyboard.press('Escape')
 
   await page.goto('./#/library')
-  await expect(page.getByText('186 egzersiz')).toBeVisible()
+  await expect(page.getByText(`${CATALOG_SIZE} egzersiz`)).toBeVisible()
   await page.getByPlaceholder('Egzersiz ara…').fill('barbell deadlift')
   await expect(page.getByText('0 egzersiz')).toBeVisible()
 
@@ -67,7 +67,7 @@ test('önbellekteki eski egzersiz listesi, ağdaki güncel liste varken kullanı
 
   await page.goto('./#/library')
   await page.reload()
-  await expect(page.getByText('186 egzersiz')).toBeVisible()
+  await expect(page.getByText(`${CATALOG_SIZE} egzersiz`)).toBeVisible()
   await expect(page.getByText('Eski Önbellek Kaydı')).toHaveCount(0)
 })
 
