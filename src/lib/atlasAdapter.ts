@@ -10,7 +10,8 @@
  * - Seviye `difficulty`den (`advanced` -> `expert`), kategori Atlas kategorisinden (`mobility` -> `stretching`).
  * - Ekipman: Atlas kodu -> Monk değeri; bench/mat/pull-up-bar tesis kodudur, listedeki ilk tesis dışı
  *   kod seçilir, yoksa (ya da liste boşsa) `null`.
- * - Kas: `upper-back` -> `middle back`, `lower-back` -> `lower back`, `hip-flexors` -> `hip flexors`.
+ * - Kas: `upper-back` -> `middle back`, `lower-back` -> `lower back`, `hip-flexors` -> `hip flexors`,
+ *   `tibialis-anterior` -> `calves` (Monk'un ayrı ön kaval kodu yok).
  * - Görsel: `reference` > `finish` > `start` rolündeki ilk dosya, `exercises/<dosya adı>` olarak.
  */
 import type { LegacyRecord, LibraryRecord } from './exerciseData.ts'
@@ -64,6 +65,7 @@ const MUSCLE_FROM_ATLAS: ReadonlyMap<string, string> = new Map(Object.entries({
   quadriceps: 'quadriceps',
   hamstrings: 'hamstrings',
   calves: 'calves',
+  'tibialis-anterior': 'calves',
   adductors: 'adductors',
   abductors: 'abductors',
   traps: 'traps',

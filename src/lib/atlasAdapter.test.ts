@@ -71,20 +71,20 @@ describe('atlasToCatalog: kayıt alanları', () => {
     ])
   })
 
-  it('kas ters eşlemesi: upper-back, lower-back, hip-flexors dışında aynı ad', () => {
+  it('kas eşlemesi: Atlas ön kaval kodu Monk calves grubuna düşer', () => {
     const { library } = atlasToCatalog(
       [
         atlas({
           id: 'a',
           name: { en: 'A' },
           primaryMuscles: ['upper-back', 'lower-back', 'neck'],
-          secondaryMuscles: ['hip-flexors', 'obliques', 'quadriceps', 'abductors'],
+          secondaryMuscles: ['hip-flexors', 'obliques', 'quadriceps', 'abductors', 'tibialis-anterior'],
         }),
       ],
       [],
     )
     expect(library[0].primaryMuscles).toEqual(['middle back', 'lower back', 'neck'])
-    expect(library[0].secondaryMuscles).toEqual(['hip flexors', 'obliques', 'quadriceps', 'abductors'])
+    expect(library[0].secondaryMuscles).toEqual(['hip flexors', 'obliques', 'quadriceps', 'abductors', 'calves'])
   })
 
   it('ekipman ters eşlemesi: tek kod, boş liste null', () => {
