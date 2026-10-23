@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { BackupReminder } from '../components/BackupReminder.tsx'
+import { BlockStrip } from '../components/BlockStrip.tsx'
 import { BodyweightTrend } from '../components/BodyweightTrend.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { CalendarSheet } from '../components/CalendarSheet.tsx'
@@ -105,6 +106,7 @@ export function Home() {
 
       <BackupReminder />
       <HomeScreenHint />
+      <BlockStrip />
       <DeloadHint />
 
       <div className="weekstrip">

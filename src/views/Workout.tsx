@@ -11,10 +11,12 @@ import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
 import { SwapSheet } from '../components/SwapSheet.tsx'
 import { WorkoutClock } from '../components/WorkoutClock.tsx'
+import { inDeloadWeek } from '../lib/block.ts'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
 import { isBodyOnly, isTimedName, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
 import { ExerciseThumb } from '../components/ExerciseThumb.tsx'
+import { deloadRirText, deloadSetCount } from '../lib/deload.ts'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
 import { lastNoteFor, NOTE_MAX } from '../lib/notes.ts'
@@ -92,10 +94,26 @@ function Starter() {
   )
 }
 
+/**
+ * Planlı deload haftasında egzersiz başına ipucu: önerilen çalışma seti sayısı (bkz. lib/deload.ts
+ * deloadSetCount). Yalnız ipucudur; setler ve ağırlık otomatik değişmez, böylece ilerleme kuralı bozulmaz.
+ */
+function DeloadSetHint({ sets }: { sets: number }) {
+  if (sets === 0) return null
+  const keep = deloadSetCount(sets)
+  return (
+    <div className="warntext exhint">
+      Deload haftası: {keep < sets ? `${keep} çalışma seti yeter (${sets} yerine), ` : ''}ağırlık aynı, RIR {deloadRirText()}
+    </div>
+  )
+}
+
 export function Workout() {
   const active = useStore((s) => s.active)
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
+  const block = useStore((s) => s.block)
+  const weekStart = useStore((s) => s.settings.weekStart)
   const restSec = useStore((s) => s.settings.restSec)
   const {
     updateSet,
@@ -162,6 +180,8 @@ export function Workout() {
       return prescriptionHint(nextPrescription(cfg, last, { prev, rule }).reason, rule)
     })
   }, [routines, routineId, exIds, workouts, rule])
+  /** Seansın günü planlı deload haftasında mı (bkz. lib/block.ts). */
+  const deloadWeek = !!active && !!block && inDeloadWeek(block, active.d, weekStart)
 
   if (summary) {
     const { workout, prs } = summary
@@ -312,6 +332,7 @@ export function Workout() {
                   </div>
                 )}
                 {hints[ei] && <div className="sub exhint">{hints[ei]}</div>}
+                {deloadWeek && <DeloadSetHint sets={entry.sets.filter((s) => !s.warmup && !s.drop).length} />}
                 <PlateauNote exId={entry.exId} />
                 {entry.bw && entry.bwKg === undefined && (
                   <div className="warntext">Vücut ağırlığı kaydı yok: hacim ve 1RM yalnız ek yükle hesaplanır</div>

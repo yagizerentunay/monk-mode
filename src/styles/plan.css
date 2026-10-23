@@ -82,3 +82,7 @@
 .btn.danger.block { background: transparent; }
 .workouteditor .btn.small { min-width: var(--tap); }
 .workouteditor .editentry .exname { font-size: 17px; }
+
+/* antrenman bloğu (components/BlockCard.tsx) */
+.blockhistory ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.blockhistory .ok { color: var(--ok); }

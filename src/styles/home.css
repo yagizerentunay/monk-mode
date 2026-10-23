@@ -66,3 +66,13 @@ button.wday { color: var(--text); font: inherit; font-size: 13px; }
 .diag-ok .diagmark { color: var(--ok); }
 .diag-warn .diagmark { color: var(--warn); }
 .diag-info .diagmark { color: var(--muted); }
+
+/* antrenman bloğu şeridi (components/BlockStrip.tsx) */
+.blockstrip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: inherit; text-decoration: none; }
+.blockstrip.deload { border-color: var(--warn); }
+.blockbar { display: flex; flex: 1; gap: 4px; min-width: 96px; }
+.blockbar span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.blockbar span.on { background: var(--accent); }
+.blockbar span.now { background: var(--text); }
+.blockbar span.dl { box-shadow: 0 0 0 1px var(--warn); }
+.blockbar span.dl.now { background: var(--warn); }
