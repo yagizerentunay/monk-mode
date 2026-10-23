@@ -1,5 +1,6 @@
 import type { CustomExercise, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
-import type { ParsedImport } from './importTypes.ts'
+import { clampDistanceSec, clampMeters } from './distance.ts'
+import type { DistanceUnit, ParsedImport } from './importTypes.ts'
 import { unitToKg, type Unit } from './units.ts'
 import { newId } from './workout.ts'
 
@@ -30,9 +31,13 @@ export interface ImportPlan {
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
+/** Bir mesafe biriminin metre karşılığı (uluslararası mil). */
+const METERS_PER: Record<DistanceUnit, number> = { m: 1, km: 1000, mi: 1609.344 }
+
 /**
  * Ayrıştırılmış dosyayı uygulamanın antrenman modeline çevirir. Hiçbir şeyi kaydetmez; sonuç
- * önizlenip onaylanınca store'a verilir. Ağırlıklar `unit` biriminden kg'a çevrilir.
+ * önizlenip onaylanınca store'a verilir. Ağırlıklar `unit` biriminden kg'a çevrilir; mesafeler dosyanın mesafe
+ * biriminden (bilinmiyorsa `unit` lb ise mil, değilse km) metreye çevrilir.
  *
  * - Egzersiz adı kütüphanede eşleşmezse özel egzersiz olur (daha önce aynı adla özel egzersiz
  *   varsa o kullanılır), böylece geçmiş kaybolmaz ama yanlış egzersize de yazılmaz.
@@ -75,6 +80,7 @@ export function buildImport(
     return mapping
   }
 
+  const metersPer = METERS_PER[parsed.distanceUnit ?? (unit === 'lb' ? 'mi' : 'km')]
   const workouts: Workout[] = []
   let duplicates = 0
   let sets = 0
@@ -88,6 +94,8 @@ export function buildImport(
     let prevSuperset: string | undefined
     for (const ie of iw.entries) {
       const done: SetEntry[] = ie.sets.map((s) => {
+        // Mesafe setinde ağırlık, ısınma ve drop yoktur; `reps` setin süresidir (bkz. lib/distance.ts).
+        if (s.distance !== undefined) return { w: 0, r: clampDistanceSec(s.reps), m: clampMeters(s.distance * metersPer), done: true }
         // roundTo(…, 0.01) 52.160000000000004 gibi kayan nokta artığı bırakır; yüzle çarpıp bölmek bırakmaz.
         // Süreli sette `reps` saniyedir (bkz. lib/timed.ts); ağırlık varsa ek yüktür.
         const set: SetEntry = { w: Math.max(0, Math.round(unitToKg(s.weight, unit) * 100) / 100), r: s.reps, done: true }
@@ -105,6 +113,7 @@ export function buildImport(
       const entry: WorkoutEntry = { exId: mapping.exId, sets: done }
       // Ayrıştırıcı bir egzersizin setlerini ya hep süreli ya hep tekrarlı tutar.
       if (ie.sets.every((s) => s.timed)) entry.timed = true
+      if (ie.sets.every((s) => s.distance !== undefined)) entry.distance = true
       if (ie.supersetId && ie.supersetId === prevSuperset) entry.linked = true
       prevSuperset = ie.supersetId
       entries.push(entry)

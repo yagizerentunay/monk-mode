@@ -1,5 +1,6 @@
 import type { Unit } from './units.ts'
-import type { ImportedEntry, ImportedSet, ImportedWorkout, ParsedImport } from './importTypes.ts'
+import type { DistanceUnit, ImportedEntry, ImportedSet, ImportedWorkout, ParsedImport } from './importTypes.ts'
+import { clampDistanceSec } from './distance.ts'
 import { clampSec } from './timed.ts'
 
 const DELIMITERS = [',', ';', '\t'] as const
@@ -150,17 +151,34 @@ function toNumber(raw: string): number {
 }
 
 /**
- * Satırın tekrar ve set süresinden set içeriği: tekrar varsa tekrarlı; tekrar yok, set süresi var ve mesafe
- * yoksa süreli (reps = saniye, 3600'e çekilir); aksi hâlde null (satır atlanır).
+ * Satırın tekrar, set süresi ve mesafesinden set içeriği: tekrar varsa tekrarlı (mesafe de olsa, örn. kızak
+ * itme); tekrar yok, mesafe varsa mesafe seti (reps = setin süresi, sn; mesafe dosya biriminde); tekrar ve
+ * mesafe yok, set süresi varsa süreli (reps = saniye, 3600'e çekilir); aksi hâlde null (satır atlanır).
  */
-function repsOrHold(repsRaw: string, secRaw: string, distanceRaw: string): { reps: number; timed?: true } | null {
+function rowContent(
+  repsRaw: string,
+  secRaw: string,
+  distanceRaw: string,
+): { reps: number; timed?: true; distance?: number } | null {
   const reps = toNumber(repsRaw)
   if (Number.isFinite(reps) && reps > 0) return { reps }
   const sec = toNumber(secRaw)
   const distance = toNumber(distanceRaw)
-  if (!(sec > 0) || distance > 0) return null
+  if (distance > 0 && Number.isFinite(distance)) return { reps: sec > 0 ? clampDistanceSec(sec) : 0, distance }
+  if (!(sec > 0)) return null
   return { reps: Math.max(1, clampSec(sec)), timed: true }
 }
+
+/** Mesafe sütunu başlığındaki birim: "distance (meters)", "distance (km)", "distance_km", "distance_miles"… */
+function distanceUnitOf(header: string): DistanceUnit | undefined {
+  if (/\bkm\b|_km$|kilomet/.test(header)) return 'km'
+  if (/\bmi\b|_mi$|mile/.test(header)) return 'mi'
+  if (/\bm\b|_m$|meter|metre/.test(header)) return 'm'
+  return undefined
+}
+
+/** Setin türü; bir egzersizin setleri aynı türden olmalıdır (tekrar, süre ya da mesafe). */
+const setKind = (s: ImportedSet): string => (s.distance !== undefined ? 'distance' : s.timed ? 'timed' : 'reps')
 
 function cleanWeight(raw: string): number {
   const n = toNumber(raw)
@@ -172,7 +190,7 @@ class WorkoutBuilder {
   private readonly map = new Map<string, ImportedWorkout>()
   private readonly order: ImportedWorkout[] = []
 
-  /** Seti ekler; egzersizin önceki setleriyle türü (süreli/tekrarlı) çelişiyorsa eklemez ve false döner. */
+  /** Seti ekler; egzersizin önceki setleriyle türü (tekrarlı/süreli/mesafe) çelişiyorsa eklemez ve false döner. */
   add(key: string, make: () => ImportedWorkout, exName: string, supersetId: string, set: ImportedSet): boolean {
     let w = this.map.get(key)
     if (!w) {
@@ -185,7 +203,7 @@ class WorkoutBuilder {
       entry = { name: exName, sets: [] } as ImportedEntry
       w.entries.push(entry)
     }
-    if (entry.sets.length > 0 && !!entry.sets[0].timed !== !!set.timed) return false
+    if (entry.sets.length > 0 && setKind(entry.sets[0]) !== setKind(set)) return false
     if (supersetId && entry.supersetId === undefined) entry.supersetId = supersetId
     entry.sets.push(set)
     return true
@@ -208,12 +226,13 @@ function colIndex(header: string[], pred: (h: string) => boolean): number {
 function finish(
   format: 'strong' | 'hevy',
   unit: Unit | null,
+  distanceUnit: DistanceUnit | undefined,
   builder: WorkoutBuilder,
   skippedRows: number,
 ): ParsedImport {
   const warnings: string[] = []
-  if (skippedRows > 0) warnings.push(`${skippedRows} satır atlandı (tekrarı ve set süresi olmayan, mesafeli ya da süreli/tekrarlı karışık setler)`)
-  return { format, unit, workouts: builder.result(), skippedRows, warnings }
+  if (skippedRows > 0) warnings.push(`${skippedRows} satır atlandı (tekrarı, set süresi ve mesafesi olmayan ya da türü karışık setler)`)
+  return { format, unit, ...(distanceUnit ? { distanceUnit } : {}), workouts: builder.result(), skippedRows, warnings }
 }
 
 function isBlankRow(r: string[]): boolean {
@@ -243,7 +262,7 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
     const order = get(r, cOrder)
     if (order.toLowerCase() === 'rest timer') continue
     const exName = get(r, cEx)
-    const content = repsOrHold(get(r, cReps), get(r, cSec), get(r, cDist))
+    const content = rowContent(get(r, cReps), get(r, cSec), get(r, cDist))
     const dateRaw = get(r, cDate)
     const when = parseIsoLocal(dateRaw)
     if (exName === '' || !content || !when) {
@@ -269,7 +288,7 @@ function parseStrong(header: string[], rows: string[][]): ParsedImport {
     )
     if (!added) skipped++
   }
-  return finish('strong', unit, builder, skipped)
+  return finish('strong', unit, cDist >= 0 ? distanceUnitOf(header[cDist]) : undefined, builder, skipped)
 }
 
 function parseHevy(header: string[], rows: string[][]): ParsedImport {
@@ -293,7 +312,7 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
   for (const r of rows) {
     if (isBlankRow(r)) continue
     const exName = get(r, cEx)
-    const content = repsOrHold(get(r, cReps), get(r, cSec), get(r, cDist))
+    const content = rowContent(get(r, cReps), get(r, cSec), get(r, cDist))
     const startRaw = get(r, cStart)
     const when = parseHevyDate(startRaw)
     if (exName === '' || !content || !when) {
@@ -320,7 +339,7 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
     )
     if (!added) skipped++
   }
-  return finish('hevy', unit, builder, skipped)
+  return finish('hevy', unit, cDist >= 0 ? distanceUnitOf(header[cDist]) : undefined, builder, skipped)
 }
 
 /** Strong ya da Hevy CSV dışa aktarımını biçimini otomatik tanıyarak ayrıştırır. */
