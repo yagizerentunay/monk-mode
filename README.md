@@ -1,108 +1,140 @@
 <div align="center">
-  <img src="public/icon-512.png" alt="monk-mode simgesi" width="112" />
+  <img src="public/icon-512.png" alt="monk-mode icon" width="112" />
   <h1>monk-mode</h1>
   <p><strong>Pain is inevitable. Suffering is a choice.</strong></p>
-  <p>Hesapsız, sunucusuz ve çevrimdışı çalışabilen antrenman günlüğün.</p>
+  <p>An offline-first workout tracker with no account and no server.<br />Your training log lives in your browser.</p>
   <p>
-    <a href="https://yagizerentunay.github.io/monk-mode/"><strong>Canlı demoyu aç →</strong></a>
-    · <a href="#özellikler">Özellikleri keşfet</a>
-    · <a href="#kurulum">Geliştirmeye başla</a>
+    <a href="https://yagizerentunay.github.io/monk-mode/"><strong>Open the live app →</strong></a>
+    · <a href="#features">Features</a>
+    · <a href="#development">Development</a>
+    · <a href="README.tr.md">Türkçe</a>
   </p>
   <p>
-    <a href="https://github.com/yagizerentunay/monk-mode/actions/workflows/pages.yml"><img src="https://github.com/yagizerentunay/monk-mode/actions/workflows/pages.yml/badge.svg" alt="Pages build durumu" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/lisans-MIT-orange.svg" alt="MIT lisansı" /></a>
-    <img src="https://img.shields.io/badge/offline-ready-222?logo=pwa" alt="Çevrimdışı çalışır" />
+    <a href="https://github.com/yagizerentunay/monk-mode/actions/workflows/pages.yml"><img src="https://github.com/yagizerentunay/monk-mode/actions/workflows/pages.yml/badge.svg" alt="Pages build status" /></a>
+    <a href="https://github.com/yagizerentunay/monk-mode/releases"><img src="https://img.shields.io/github/v/release/yagizerentunay/monk-mode?color=EB9462" alt="Latest release" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-EB9462.svg" alt="MIT license" /></a>
+    <img src="https://img.shields.io/badge/PWA-offline%20ready-222" alt="Works offline" />
   </p>
 </div>
 
----
-
-## Antrenmanını takip et. Verin sende kalsın.
-
-Rutinlerini planla, setlerini kaydet ve ilerlemeni gör. Monk Mode hesabı, bulut eşitlemesi veya sunucu kullanmaz: verilerin bu tarayıcıda saklanır. Verini düzenli olarak **Ayarlar → Yedeği indir** ile dışa aktarabilirsin.
-
 <p align="center">
-  <img src="public/screenshots/demo.gif" alt="Kısa demo: devam eden antrenmanda set tamamlama, dinlenme sayacı ve RIR girişi, ardından analiz ekranı" width="280" />
-  <br />
-  <sub>Antrenmanda set tamamla, RIR gir, ilerlemeni gör. Örnek verilerle kaydedilmiştir.</sub>
+  <img src="public/screenshots/demo.gif" alt="Demo: starting a routine, logging warm-ups and a working set with RIR, the rest timer, the workout summary and the analysis screen" width="280" />
 </p>
 
-Uygulama [openGym](https://github.com/DuarteSantos8/openGym)'den ürün fikri olarak esinlenir; kodu sıfırdan yazılmıştır ve openGym kodu içermez.
+> [!NOTE]
+> The app interface is in Turkish. Screenshots use generated sample data (`npm run screenshots`).
 
-## Özellikler
+## Why monk-mode
 
-| Planla | Antrenman yap | İlerlemeni gör |
-|---|---|---|
-| Rutin oluşturucu, başlangıç şablonları (Full Body, Upper/Lower, PPL), haftalık program ve egzersiz kütüphanesi | Önceki setlerden otomatik doldurma, dinlenme sayacı, ısınma, dropset ve süperset | Tahmini 1RM, kişisel rekorlar, antrenman geçmişi ve takvim |
-| Kas ve ekipman filtreleri; egzersizleri özelleştirme | RIR, tek taraflı egzersizler ve plaka hesaplayıcı | Kas haritası, haftalık hedefler ve vücut ağırlığı trendi |
-| Strong ve Hevy CSV içe aktarma | Antrenman ve egzersiz notları | Otomatik kopyalar ve tek dokunuşla yedek |
+- **No account, no server.** Nothing to sign up for; the app is a static site and your data never leaves the device.
+- **Works offline.** Install it to your home screen and log sets in a basement gym with no signal.
+- **Built for progressive overload.** Every set pre-fills from last time, and the app tells you when to add weight and why.
+- **Open exercise data.** The illustrated library is generated from [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas), not scraped.
 
-[Tüm özelliklerin ayrıntıları →](docs/features.md)
+## Screenshots
 
-## Ekran görüntüleri
+<table>
+  <tr>
+    <td align="center"><img src="public/screenshots/home.png" alt="Home: weekly strip, today's routine, streak and bodyweight trend" width="240" /><br /><sub><b>Home</b> · today's routine and streak</sub></td>
+    <td align="center"><img src="public/screenshots/workout.png" alt="Workout: warm-up sets, target weight, RIR and rest timer" width="240" /><br /><sub><b>Workout</b> · warm-ups, RIR, rest timer</sub></td>
+    <td align="center"><img src="public/screenshots/records.png" alt="Personal records list with estimated 1RM" width="240" /><br /><sub><b>Records</b> · best e1RM and longest holds</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/screenshots/heatmap.png" alt="16-week training frequency heatmap and bodyweight trend" width="240" /><br /><sub><b>Consistency</b> · 16-week heatmap</sub></td>
+    <td align="center"><img src="public/screenshots/muscles.png" alt="Muscle map with weekly sets per muscle" width="240" /><br /><sub><b>Muscle map</b> · sets per muscle</sub></td>
+    <td align="center"><img src="public/screenshots/exercise-library.png" alt="Illustrated exercise library with muscle and equipment filters" width="240" /><br /><sub><b>Library</b> · illustrated, filterable</sub></td>
+  </tr>
+</table>
 
-<p align="center">
-  <img src="public/screenshots/home.png" alt="Ana ekran: haftalık plan, seri ve vücut ağırlığı trendi" width="40%" />
-  <img src="public/screenshots/workout.png" alt="Antrenman ekranı: ısınma, hedef ağırlık ve RIR girişi" width="40%" />
-</p>
-<p align="center">
-  <img src="public/screenshots/stats.png" alt="Analiz ekranı: tahmini 1RM ilerlemesi ve kilo trendi" width="40%" />
-  <img src="public/screenshots/exercise-library.png" alt="Egzersiz kütüphanesi: kas ve ekipman filtreleri" width="40%" />
-</p>
+<details>
+<summary>More screenshots</summary>
+<br />
+<table>
+  <tr>
+    <td align="center"><img src="public/screenshots/stats.png" alt="Analysis: estimated 1RM progress chart" width="240" /><br /><sub><b>Analysis</b> · e1RM over time</sub></td>
+    <td align="center"><img src="public/screenshots/templates.png" alt="Beginner routine templates: Full Body, Upper/Lower, Push/Pull/Legs" width="240" /><br /><sub><b>Templates</b> · beginner programs</sub></td>
+  </tr>
+</table>
+</details>
 
-Üstte ana ekran ve antrenman, altta analiz ve egzersiz kütüphanesi. Görüntüler örnek verilerle alınmıştır.
+## Features
 
-## Egzersiz verisi
+| | |
+|---|---|
+| **[Plan](docs/features.md#planla)** | Routine builder and weekly schedule · beginner templates (Full Body, Upper/Lower, PPL) · copy routines · illustrated exercise library with muscle and equipment filters · custom exercises and muscle corrections |
+| **[Train](docs/features.md#antrenman)** | Sets pre-filled from last session · quick RIR entry · warm-up ramps, drop sets and supersets · unilateral (L/R) and timed sets · per-exercise rest timer · plate calculator · free workouts · notes · screen stays awake |
+| **[Progress](docs/features.md#ilerleme)** | Linear and double progression with a cautious RIR-based rule · estimated 1RM chart · personal records · weekly volume · frequency heatmap · muscle map with weekly targets · bodyweight trend with a goal rate · deload hint · calendar with backdated logging and history editing |
+| **[Data safety](docs/features.md#veri-guvenligi)** | JSON backup and restore · backup reminders · automatic snapshots in IndexedDB · daily backups to a folder (desktop Chrome/Edge) · merge a backup from another device · undo delete · recovery screen for corrupted data |
+| **[Import & export](docs/features.md#ice-disa-aktarma)** | Strong and Hevy CSV import (including Turkish Hevy exports) · CSV export for Excel |
+| **[App](docs/features.md#uygulama)** | Installable PWA · works offline · new-version banner · diagnostics card |
 
-Egzersiz kütüphanesi (adlar, kaslar, ekipman, yönergeler ve görseller) elle yazılmaz; [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas) deposundan, sabitlenmiş bir commit'ten üretilir. Egzersiz eklemek ya da düzeltmek için Atlas'ı değiştir, `npm run data:atlas:update` çalıştır ve çıktıyı commit'le. Ayrıntılar: [docs/atlas-data.md](docs/atlas-data.md).
+The full, detailed guide is in [docs/features.md](docs/features.md) (Turkish).
 
-## Verin ve çevrimdışı kullanım
+## How it works
 
-- Veriler yalnızca kullandığın tarayıcının `localStorage` alanında saklanır. Hesap, bulut eşitlemesi veya sunucu yoktur.
-- Masaüstü Chrome/Edge'de Ayarlar'dan bir klasör seçersen yedek her değişiklikte o klasöre yazılır; klasör OneDrive/Drive gibi eşitleniyorsa yedeğin buluta da gider. iPhone'da ise ana ekrana ekle ve yedek al: ana ekran uygulamasının verisi tarayıcı temizliğinden korunur.
-- Tarayıcı verilerini silmek kayıtlarını da silebilir. Yedeklerini düzenli indir ve güvenli bir yerde sakla.
-- Uygulama çevrimdışı açılır; egzersiz görsellerinden yalnızca daha önce görüntülediklerin önbelleğe alınır.
-- Her cihaz ve tarayıcı kendi verisini tutar. Cihazlar arasında taşımak için bir cihazda yedek alıp diğerinde içe aktar.
+```mermaid
+flowchart LR
+  atlas["Open Exercise Atlas<br/>(pinned commit)"] -- "npm run data:atlas" --> data["public/data/exercises.json<br/>+ exercise images"]
+  data --> app["React + Vite PWA<br/>service worker caches the app"]
+  app <--> ls[("localStorage<br/>monk_state_v1")]
+  app --> snap[("IndexedDB<br/>automatic snapshots")]
+  app --> files["JSON backup<br/>folder backup · CSV"]
+  csv["Strong / Hevy CSV"] --> app
+```
 
-## Kurulum
+- **No backend.** The app is a static bundle on GitHub Pages. State is a single object in `localStorage`; every load validates it record by record.
+- **Exercise data is generated, not hand-edited.** `data/atlas.lock.json` pins an Atlas commit and file hashes; `npm run data:atlas` rebuilds the catalog. See [docs/atlas-data.md](docs/atlas-data.md).
+- **Offline by design.** A hand-written service worker (`public/sw.js`) precaches the app shell and catalog; exercise images are cached as you view them.
 
-Node.js 22 veya üstü gerekir.
+## Your data
+
+- Data is stored only in this browser. There is no account, sync or server.
+- Clearing browser data can delete your log. Download a backup from **Settings** and keep it somewhere safe.
+- On desktop Chrome/Edge you can pick a folder for daily automatic backups; if that folder syncs to OneDrive or Drive, your backups reach the cloud too.
+- On iPhone, add the app to the home screen: home-screen apps are protected from Safari's storage cleanup. Take a backup first, because the home-screen app has separate storage.
+- Each device and browser keeps its own data. Move it with a backup file, or merge two devices' backups in **Settings**.
+
+## Development
+
+Requires Node.js 22 or newer.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Geliştirme sunucusu `http://localhost:5173` adresinde açılır.
+The dev server opens at `http://localhost:5173`.
 
-### Kontroller
-
-| Komut | Açıklama |
+| Command | What it does |
 |---|---|
-| `npm run dev` | Geliştirme sunucusunu başlatır |
-| `npm test` | Birim testlerini çalıştırır |
-| `npm run test:e2e` | Uçtan uca testleri (Playwright, mobil Chrome) çalıştırır; ilk seferde `npx playwright install chromium` gerekir |
-| `npm run lint` | Kod denetimini çalıştırır |
-| `npm run build` | Tür kontrolü ve üretim derlemesi yapar |
-| `npm run data:atlas` | Egzersiz kataloğunu [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas)'tan yeniden üretir (`:update` pini yeniler, `:check` çıktıların güncel olduğunu doğrular; bkz. [docs/atlas-data.md](docs/atlas-data.md)) |
+| `npm run dev` | Start the dev server |
+| `npm test` | Run unit tests (Vitest) |
+| `npm run test:e2e` | Run end-to-end tests (Playwright, mobile Chrome); the first run needs `npx playwright install chromium` |
+| `npm run lint` | Lint with oxlint |
+| `npm run build` | Type-check and build for production |
+| `npm run screenshots` | Regenerate the README screenshots and demo GIF from sample data (the GIF needs `ffmpeg`) |
+| `npm run data:atlas` | Rebuild the exercise catalog from Open Exercise Atlas (`:update` re-pins, `:check` verifies the outputs are current) |
 
-### Çevrimdışı derlemeyi dene
+### Try the offline build
 
-Service worker geliştirme sunucusunda çalışmaz. Üretim derlemesini yerelde denemek için:
+The service worker does not run on the dev server. To test the production build locally:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-`http://localhost:4173` adresini bir kez açtıktan sonra uygulama sunucu kapalıyken de yüklenir. Önbellek şemasını değiştirirsen `public/sw.js` içindeki `VERSION` değerini artır.
+Open `http://localhost:4173` once; after that the app loads even with the server stopped. If you change the cache layout, bump `VERSION` in `public/sw.js`.
 
 ### GitHub Pages
 
-`main` dalına push edildiğinde [Pages iş akışı](.github/workflows/pages.yml) testleri, lint'i ve üretim derlemesini çalıştırıp uygulamayı yayımlar. GitHub Pages ayarında **Source: GitHub Actions** seçili olmalıdır.
+Every push to `main` runs the [Pages workflow](.github/workflows/pages.yml): unit tests, lint, end-to-end tests and a production build, then deploys. Pages must be set to **Source: GitHub Actions**.
 
-Canlı uygulama: **[yagizerentunay.github.io/monk-mode](https://yagizerentunay.github.io/monk-mode/)**
+## Credits
 
-## Lisans
+- Product ideas inspired by [openGym](https://github.com/DuarteSantos8/openGym). monk-mode is written from scratch and contains no openGym code.
+- Exercise names, muscles, instructions and illustrations come from [Open Exercise Atlas](https://github.com/yagizerentunay/open-exercise-atlas).
+
+## License
 
 [MIT](LICENSE)
