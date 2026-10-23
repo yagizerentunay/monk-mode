@@ -4,6 +4,12 @@ import { defineConfig, devices } from '@playwright/test'
 // Testler `*.e2e.ts` adını taşır; vitest bunları almaz.
 const PORT = 4173
 
+// Testler "bugün"ü Node'da hesaplar, uygulama tarayıcıda; ikisi aynı saat diliminde olmazsa gece yarısına
+// yakın koşularda farklı günü görürler. İkisini de sabitle: yaz saati olmayan İstanbul, gerçek kullanımla aynı.
+// Node TZ'yi çalışırken okur; işçi süreçleri bu ortamı devralır.
+const TIMEZONE = 'Europe/Istanbul'
+process.env.TZ = TIMEZONE
+
 export default defineConfig({
   testDir: 'e2e',
   testMatch: '*.e2e.ts',
@@ -15,6 +21,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}/`,
     trace: 'retain-on-failure',
+    timezoneId: TIMEZONE,
   },
   projects: [{ name: 'mobile-chrome', use: { ...devices['Pixel 7'] } }],
   webServer: {
