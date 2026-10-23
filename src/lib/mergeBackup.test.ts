@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { defaultState, type CustomExercise, type Routine, type State, type Workout } from '../store/schema.ts'
+import { defaultState, type CustomExercise, type PastBlock, type Routine, type State, type TrainingBlock, type Workout } from '../store/schema.ts'
+import { MAX_PAST_BLOCKS } from './block.ts'
 import { describeMerge, mergeState, totalAdded } from './mergeBackup.ts'
 
 const wk = (id: string, d: string, start: number, over: Partial<Workout> = {}): Workout => ({
@@ -224,5 +225,57 @@ describe('describeMerge', () => {
 
   it('hiçbir şey eklenmediyse bunu söyler', () => {
     expect(describeMerge(mergeState(st(), st()).report)).toBe('yeni kayıt yok.')
+  })
+})
+
+describe('mergeState: antrenman blokları', () => {
+  const block = (id: string, start = '2026-10-05'): TrainingBlock => ({ id, start, weeks: 5, deload: 5 })
+  const past = (id: string, end: string, outcome: PastBlock['outcome'] = 'done'): PastBlock => ({ ...block(id), end, outcome })
+
+  it('geçmiş bloklar kimliğe göre birleşir, bitişe göre sıralanır', () => {
+    const local = st({ pastBlocks: [past('a', '2026-03-01'), past('c', '2026-09-01')] })
+    const incoming = st({ pastBlocks: [past('b', '2026-06-01'), past('a', '2026-03-01'), past('c', '2026-09-02', 'cancelled')] })
+    const { state, report } = mergeState(local, incoming)
+    expect(state.pastBlocks.map((b) => b.id)).toEqual(['a', 'b', 'c'])
+    expect(state.pastBlocks[2]).toEqual(past('c', '2026-09-01'))
+    expect(report.blocks).toEqual({ added: 1, identical: 1, conflicting: 1 })
+  })
+
+  it('yerelde süren blok varsa yerel kalır', () => {
+    const mine = block('x')
+    const { state, report } = mergeState(st({ block: mine }), st({ block: block('y', '2026-10-12') }))
+    expect(state.block).toBe(mine)
+    expect(report.blocks).toEqual({ added: 0, identical: 0, conflicting: 1 })
+    expect(mergeState(st({ block: mine }), st({ block: block('x') })).report.blocks.identical).toBe(1)
+  })
+
+  it('yerelde süren blok yoksa gelen blok süren blok olur', () => {
+    const { state, report } = mergeState(st(), st({ block: block('y') }))
+    expect(state.block).toEqual(block('y'))
+    expect(report.blocks.added).toBe(1)
+    expect(describeMerge(report)).toBe('1 antrenman bloğu eklendi.')
+  })
+
+  it('yerelde bitirilmiş blok, öbür cihazda sürüyor diye geri gelmez', () => {
+    const { state, report } = mergeState(st({ pastBlocks: [past('x', '2026-10-20', 'cancelled')] }), st({ block: block('x') }))
+    expect(state.block).toBeNull()
+    expect(report.blocks).toEqual({ added: 0, identical: 0, conflicting: 1 })
+  })
+
+  it('öbür cihazda bitirilmiş ama yerelde süren blok: yerel kalır, geçmişe kopya eklenmez', () => {
+    const { state, report } = mergeState(st({ block: block('x') }), st({ pastBlocks: [past('x', '2026-10-20')] }))
+    expect(state.block).toEqual(block('x'))
+    expect(state.pastBlocks).toEqual([])
+    expect(report.blocks.conflicting).toBe(1)
+  })
+
+  it('geçmiş sınırı aşılırsa en eskiler düşer ve eklenmiş sayılmaz', () => {
+    const many = Array.from({ length: MAX_PAST_BLOCKS }, (_, i) => past(`l${i}`, `2026-05-${String(i + 10).padStart(2, '0')}`))
+    const { state, report } = mergeState(st({ pastBlocks: many }), st({ pastBlocks: [past('old', '2025-01-01'), past('new', '2026-08-01')] }))
+    expect(state.pastBlocks).toHaveLength(MAX_PAST_BLOCKS)
+    expect(state.pastBlocks.at(-1)?.id).toBe('new')
+    expect(state.pastBlocks.some((b) => b.id === 'old')).toBe(false)
+    expect(report.blocks.added).toBe(1)
+    expect(totalAdded(report)).toBe(1)
   })
 })

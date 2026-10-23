@@ -14,17 +14,21 @@ export const FIRST_BACKUP_DAYS = 3
 /** Yedeğe giren veri alanları; ayarlar ve devam eden antrenman (`active`) yedeğin parçası sayılmaz. */
 type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'> & {
   muscleFix?: State['muscleFix']
+  block?: State['block']
+  pastBlocks?: State['pastBlocks']
 }
 
 /**
  * Verinin kısa parmak izi (cyrb53, 53 bit; kriptografik değil). "Yedekten sonra bir şey değişti mi"
  * sorusu için yeter: aynı veri aynı izi verir, bir antrenman eklemek/silmek izi değiştirir.
  * Kas düzeltmeleri yalnız varsa ize girer: hiç düzeltmesi olmayanın izi sürüm güncellemesiyle değişmez
- * (aksi halde herkese bir kez yanlış "yedekten beri değişti" hatırlatması çıkardı).
+ * (aksi halde herkese bir kez yanlış "yedekten beri değişti" hatırlatması çıkardı). Antrenman blokları da
+ * aynı nedenle yalnız varsa girer.
  */
 export function fingerprint(data: Backed): string {
   const parts: unknown[] = [data.workouts, data.routines, data.week, data.bodyweight, data.customEx]
   if (data.muscleFix && Object.keys(data.muscleFix).length > 0) parts.push(data.muscleFix)
+  if (data.block || (data.pastBlocks && data.pastBlocks.length > 0)) parts.push(data.block ?? null, data.pastBlocks ?? [])
   const text = JSON.stringify(parts)
   let h1 = 0xdeadbeef
   let h2 = 0x41c6ce57

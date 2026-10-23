@@ -88,7 +88,8 @@ export function migrateWithReport(raw: unknown): MigrateResult {
   }
 
   const settings = isRecord(raw.settings) ? raw.settings : {}
-  const records = sanitizeRecords(raw, report)
+  // Blok alanları State'te kas düzeltmelerinden sonra gelir (defaultState ile aynı anahtar sırası).
+  const { block, pastBlocks, ...records } = sanitizeRecords(raw, report)
 
   const state: State = {
     version: SCHEMA_VERSION,
@@ -131,6 +132,8 @@ export function migrateWithReport(raw: unknown): MigrateResult {
     },
     ...records,
     muscleFix: migrateMuscleFix(raw.muscleFix, report),
+    block,
+    pastBlocks,
   }
   return { state, report }
 }

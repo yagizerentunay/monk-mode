@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MAX_PAST_BLOCKS } from '../lib/block.ts'
 import { mergeState, totalAdded } from '../lib/mergeBackup.ts'
 import { exportBackup, importBackupWithReport } from './backup.ts'
 import { migrate, migrateWithReport } from './migrate.ts'
@@ -68,6 +69,11 @@ function realistic(): State {
     { d: '2026-10-01', w: 80 },
   ]
   s.customEx = [{ id: 'custom-1', name: 'Özel', primaryMuscles: ['chest'], equipment: 'cable' }]
+  s.block = { id: 'b2', start: '2026-09-28', weeks: 5, deload: 4 }
+  s.pastBlocks = [
+    { id: 'b0', start: '2026-07-06', weeks: 4, deload: 4, end: '2026-08-02', outcome: 'done' },
+    { id: 'b1', start: '2026-08-10', weeks: 6, deload: 6, end: '2026-08-20', outcome: 'cancelled' },
+  ]
   return s
 }
 
@@ -451,5 +457,72 @@ describe('süreli setler', () => {
     const { state, report } = migrateWithReport(s)
     expect(state.workouts[0].entries[0].timed).toBeUndefined()
     expect(report.repaired.entry).toBe(1)
+  })
+})
+
+describe('antrenman bloğu', () => {
+  it('kimliği ya da başlangıç günü kullanılamayan bloğu atar ve sayar', () => {
+    for (const block of [{ start: '2026-10-05', weeks: 5, deload: 5 }, { id: 'b', start: '2026-02-30', weeks: 5, deload: 5 }, 'x', []]) {
+      const { state, report } = migrateWithReport({ block })
+      expect(state.block).toBeNull()
+      expect(report.dropped.block).toBe(1)
+    }
+    expect(migrateWithReport({ block: null }).report.dropped.block).toBe(0)
+    expect(migrateWithReport({}).state.block).toBeNull()
+  })
+
+  it('hafta sayısını 4-6 aralığına, deload haftasını blok içine çeker ve onarım sayar', () => {
+    const { state, report } = migrateWithReport({ block: { id: 'b', start: '2026-10-05', weeks: 9, deload: 8, end: 'x' } })
+    expect(state.block).toEqual({ id: 'b', start: '2026-10-05', weeks: 6, deload: 6 })
+    expect(report.repaired.block).toBe(1)
+    expect(migrate({ block: { id: 'b', start: '2026-10-05', weeks: 4, deload: 6 } }).block?.deload).toBe(4)
+    expect(migrate({ block: { id: 'b', start: '2026-10-05' } }).block).toEqual({ id: 'b', start: '2026-10-05', weeks: 5, deload: 5 })
+    expect(migrate({ block: { id: 'b', start: '2026-10-05', weeks: 3, deload: 'x' } }).block).toEqual({
+      id: 'b',
+      start: '2026-10-05',
+      weeks: 4,
+      deload: 4,
+    })
+  })
+
+  it('geçmişte bitiş günü zorunlu; bilinmeyen sonuç "bitti" olur', () => {
+    const { state, report } = migrateWithReport({
+      pastBlocks: [
+        { id: 'a', start: '2026-01-05', weeks: 4, deload: 4 },
+        { id: 'b', start: '2026-02-02', weeks: 4, deload: 4, end: '2026-03-01', outcome: '?' },
+        7,
+      ],
+    })
+    expect(state.pastBlocks).toEqual([{ id: 'b', start: '2026-02-02', weeks: 4, deload: 4, end: '2026-03-01', outcome: 'done' }])
+    expect(report.dropped.block).toBe(2)
+    expect(report.repaired.block).toBe(1)
+    expect(migrateWithReport({ pastBlocks: 'x' }).report.dropped.block).toBe(1)
+  })
+
+  it('geçmiş MAX_PAST_BLOCKS ile sınırlı; fazlası en eskiden atılır', () => {
+    const past = Array.from({ length: MAX_PAST_BLOCKS + 3 }, (_, i) => ({
+      id: `p${i}`,
+      start: '2026-01-05',
+      weeks: 4,
+      deload: 4,
+      end: `2026-02-${String(i + 1).padStart(2, '0')}`,
+      outcome: 'done',
+    }))
+    const { state, report } = migrateWithReport({ pastBlocks: past })
+    expect(state.pastBlocks).toHaveLength(MAX_PAST_BLOCKS)
+    expect(state.pastBlocks[0].id).toBe('p3')
+    expect(report.dropped.block).toBe(3)
+  })
+
+  it('yedekle dışa/içe aktarılan ve birleştirilen bloklar korunur', () => {
+    const s = realistic()
+    const restored = importBackupWithReport(exportBackup(s)).state
+    expect(restored.block).toEqual(s.block)
+    expect(restored.pastBlocks).toEqual(s.pastBlocks)
+    const { state, report } = mergeState(defaultState(), restored)
+    expect(state.block).toEqual(s.block)
+    expect(state.pastBlocks).toEqual(s.pastBlocks)
+    expect(report.blocks.added).toBe(3)
+    expect(totalAdded(mergeState(state, restored).report)).toBe(0)
   })
 })

@@ -26,6 +26,16 @@ describe('veri parmak izi', () => {
     const b = state({ workouts: [wk('a', 1)], active: wk('x', 5) }, { unit: 'lb', backupRemindDays: 7 })
     expect(fingerprint(a)).toBe(fingerprint(b))
   })
+  it('antrenman bloğu yalnız varsa ize girer', () => {
+    const a = state({ workouts: [wk('a', 1)] })
+    const { block, pastBlocks, ...old } = a
+    expect(block).toBeNull()
+    expect(pastBlocks).toEqual([])
+    expect(fingerprint(a)).toBe(fingerprint(old))
+    const b = state({ workouts: [wk('a', 1)], block: { id: 'b', start: '2026-10-05', weeks: 5, deload: 5 } })
+    expect(fingerprint(a)).not.toBe(fingerprint(b))
+    expect(fingerprint(b)).not.toBe(fingerprint({ ...b, block: { ...b.block!, deload: 4 } }))
+  })
 })
 
 describe('yedek hatırlatma', () => {
