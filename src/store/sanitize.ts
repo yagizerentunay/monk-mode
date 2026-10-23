@@ -9,6 +9,7 @@ import type {
   Workout,
   WorkoutEntry,
 } from './schema.ts'
+import { clampDistanceSec, clampMeters, MAX_DISTANCE_M, MAX_DISTANCE_SEC } from '../lib/distance.ts'
 import { clampSec, MAX_TIMED_SEC } from '../lib/timed.ts'
 
 /**
@@ -152,6 +153,7 @@ const sides: Check = (v) => {
 const SET_CHECKS: Record<string, Check> = {
   w: finite,
   r: nonNeg,
+  m: nonNeg,
   // RIR 0-4 seçilir (4 = "4 ve üstü"); makul üst sınır 10.
   rir: (v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 10 ? v : BAD),
   done: bool,
@@ -179,6 +181,7 @@ const ENTRY_CHECKS: Record<string, Check> = {
   linked: bool,
   bw: bool,
   timed: bool,
+  distance: bool,
   bwKg: positiveNum,
   note: str,
   restSec: positiveNum,
@@ -203,6 +206,32 @@ function clampTimedSets(sets: SetEntry[]): boolean {
   return changed
 }
 
+/**
+ * Mesafe girdisinde mesafeyi 0-1.000.000 m, süreyi 0-86.400 sn tam sayıya çeker; değişen set varsa true.
+ * Mesafe girdisi olmayan setteki `m` anlamsızdır ve atılır (o da onarım sayılır).
+ */
+function fixDistanceSets(sets: SetEntry[], distance: boolean): boolean {
+  let changed = false
+  for (const s of sets) {
+    if (!distance) {
+      if (Object.hasOwn(s, 'm')) {
+        delete s.m
+        changed = true
+      }
+      continue
+    }
+    if (s.m !== undefined && (s.m > MAX_DISTANCE_M || !Number.isInteger(s.m))) {
+      s.m = clampMeters(s.m)
+      changed = true
+    }
+    if (s.r > MAX_DISTANCE_SEC || !Number.isInteger(s.r)) {
+      s.r = clampDistanceSec(s.r)
+      changed = true
+    }
+  }
+  return changed
+}
+
 function sanitizeEntry(raw: unknown, rep: SanitizeReport): WorkoutEntry | null {
   if (!isRecord(raw) || typeof raw.exId !== 'string' || raw.exId.length === 0) return null
   const { out, bad } = pick(raw, {
@@ -218,7 +247,13 @@ function sanitizeEntry(raw: unknown, rep: SanitizeReport): WorkoutEntry | null {
     else rep.dropped.set++
   }
   rep.dropped.set += Math.max(0, rawSets.length - MAX_SETS)
+  // Mesafe ve süreli birlikte olamaz (`r` ya setin süresi ya tutuştur); daha çok veri taşıyan mesafe kalır.
+  if (out.distance === true && Object.hasOwn(out, 'timed')) {
+    delete out.timed
+    fixed = true
+  }
   if (out.timed === true && clampTimedSets(sets)) fixed = true
+  if (fixDistanceSets(sets, out.distance === true)) fixed = true
   if (Object.hasOwn(out, 'sets')) out.sets = sets
   else {
     out.sets = []
@@ -282,6 +317,8 @@ const EXCFG_CHECKS: Record<string, Check> = {
   superset: bool,
   bw: bool,
   timed: bool,
+  distance: bool,
+  meters: nonNeg,
   inc: nonNeg,
   repsMax: nonNeg,
   restSec: positiveNum,
@@ -297,8 +334,8 @@ function sanitizeExCfg(raw: unknown, rep: SanitizeReport): ExCfg | null {
   fixed = fill(out, 'prog', 'off') || fixed
   fixed = fill(out, 'inc', 0) || fixed
   fixed = fill(out, 'repsMax', out.reps) || fixed
-  // Süreli egzersizde hedef saniyedir (0-3600).
-  if (out.timed === true) {
+  // Süreli egzersizde hedef saniyedir (0-3600). Mesafe bayrağı da varsa süreli aşağıda atılır.
+  if (out.timed === true && out.distance !== true) {
     for (const key of ['reps', 'repsMax'] as const) {
       const sec = out[key] as number
       if (sec > MAX_TIMED_SEC || !Number.isInteger(sec)) {
@@ -306,6 +343,27 @@ function sanitizeExCfg(raw: unknown, rep: SanitizeReport): ExCfg | null {
         fixed = true
       }
     }
+  }
+  // Mesafe egzersizinde hedef süre saniyedir (0-86.400), hedef mesafe metredir; başka egzersizde mesafe yok.
+  if (out.distance === true) {
+    if (Object.hasOwn(out, 'timed')) {
+      delete out.timed
+      fixed = true
+    }
+    for (const key of ['reps', 'repsMax'] as const) {
+      const sec = out[key] as number
+      if (sec > MAX_DISTANCE_SEC || !Number.isInteger(sec)) {
+        out[key] = clampDistanceSec(sec)
+        fixed = true
+      }
+    }
+    if (typeof out.meters === 'number' && (out.meters > MAX_DISTANCE_M || !Number.isInteger(out.meters))) {
+      out.meters = clampMeters(out.meters)
+      fixed = true
+    }
+  } else if (Object.hasOwn(out, 'meters')) {
+    delete out.meters
+    fixed = true
   }
   if (fixed) rep.repaired.routineEx++
   return out as unknown as ExCfg

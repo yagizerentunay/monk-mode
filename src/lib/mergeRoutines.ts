@@ -1,5 +1,6 @@
 import type { CustomExercise, ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
 import { MAX_DROPS, MAX_WARMUPS } from './intensity.ts'
+import { clampDistanceSec, clampMeters, DEFAULT_DISTANCE_M, DEFAULT_DISTANCE_SEC } from './distance.ts'
 import { clampSec, DEFAULT_TIMED_SEC } from './timed.ts'
 
 const PROGRESSIONS: readonly ProgressionMode[] = ['off', 'linear', 'double']
@@ -12,6 +13,7 @@ const num = (v: unknown, fallback: number, min: number): number =>
 
 function sanitizeEx(raw: unknown): ExCfg | null {
   if (!isRecord(raw) || typeof raw.exId !== 'string' || raw.exId === '') return null
+  if (raw.distance === true) return sanitizeDistanceEx(raw, raw.exId)
   const timed = raw.timed === true
   // Süreli egzersizde hedef saniyedir (1-3600, bkz. lib/timed.ts).
   const limit = (n: number): number => (timed ? Math.max(1, clampSec(n)) : n)
@@ -33,6 +35,28 @@ function sanitizeEx(raw: unknown): ExCfg | null {
   if (timed) cfg.timed = true
   if (typeof raw.warmups === 'number') cfg.warmups = Math.min(MAX_WARMUPS, Math.max(0, Math.round(raw.warmups)))
   if (typeof raw.drops === 'number') cfg.drops = Math.min(MAX_DROPS, Math.max(0, Math.round(raw.drops)))
+  if (typeof raw.restSec === 'number' && raw.restSec > 0) cfg.restSec = raw.restSec
+  return cfg
+}
+
+/**
+ * Mesafe egzersizi (bkz. lib/distance.ts): hedef süre 0-86.400 sn (0 = hedef yok), hedef mesafe metre;
+ * ağırlık, ısınma, drop ve ilerleme taşınmaz, süreli bayrağı atılır.
+ */
+function sanitizeDistanceEx(raw: Record<string, unknown>, exId: string): ExCfg {
+  const reps = clampDistanceSec(num(raw.reps, DEFAULT_DISTANCE_SEC, 0))
+  const cfg: ExCfg = {
+    exId,
+    sets: Math.round(num(raw.sets, 1, 1)),
+    reps,
+    weight: 0,
+    prog: 'off',
+    inc: 0,
+    repsMax: reps,
+    distance: true,
+    meters: clampMeters(num(raw.meters, DEFAULT_DISTANCE_M, 0)),
+  }
+  if (raw.superset === true) cfg.superset = true
   if (typeof raw.restSec === 'number' && raw.restSec > 0) cfg.restSec = raw.restSec
   return cfg
 }
