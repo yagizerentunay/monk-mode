@@ -111,11 +111,13 @@ const MASKS: ReadonlyArray<(x: number, y: number) => boolean> = [
 ]
 
 class Matrix {
+  readonly ver: number
   readonly size: number
   readonly dark: boolean[][]
   readonly fixed: boolean[][]
 
-  constructor(readonly ver: number) {
+  constructor(ver: number) {
+    this.ver = ver
     this.size = ver * 4 + 17
     this.dark = Array.from({ length: this.size }, () => new Array<boolean>(this.size).fill(false))
     this.fixed = Array.from({ length: this.size }, () => new Array<boolean>(this.size).fill(false))

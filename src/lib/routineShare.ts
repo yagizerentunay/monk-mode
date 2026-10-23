@@ -104,7 +104,7 @@ function toBase64Url(bytes: Uint8Array): string {
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-function fromBase64Url(text: string): Uint8Array {
+function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
   if (!/^[A-Za-z0-9_-]+$/.test(text)) throw new ShareError('Link bozuk: geçersiz karakter var.')
   const b64 = text.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (text.length % 4)) % 4)
   let bin: string
@@ -117,7 +117,7 @@ function fromBase64Url(text: string): Uint8Array {
 }
 
 /** Akışı sonuna kadar okur; `limit` bayt aşılırsa okumayı keser ve hata verir. */
-async function readAll(stream: ReadableStream<Uint8Array>, limit: number): Promise<Uint8Array> {
+async function readAll(stream: ReadableStream<Uint8Array>, limit: number): Promise<Uint8Array<ArrayBuffer>> {
   const reader = stream.getReader()
   const chunks: Uint8Array[] = []
   let total = 0
@@ -140,7 +140,7 @@ async function readAll(stream: ReadableStream<Uint8Array>, limit: number): Promi
   return out
 }
 
-function streamOf(bytes: Uint8Array): ReadableStream<Uint8Array> {
+function streamOf(bytes: Uint8Array<ArrayBuffer>): ReadableStream<BufferSource> {
   return new ReadableStream({
     start(controller) {
       controller.enqueue(bytes)
