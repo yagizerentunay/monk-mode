@@ -37,6 +37,16 @@ export function deleteRoutineWithUndo(id: string): void {
   useToast.getState().show('Rutin silindi', () => useStore.getState().restoreRoutine(routine, index, days))
 }
 
+/** Kuvvet hedefini siler; geri alınca eski sırasına döner. */
+export function deleteGoalWithUndo(id: string): void {
+  const index = useStore.getState().goals.findIndex((g) => g.id === id)
+  if (index < 0) return
+  const goal = useStore.getState().goals[index]
+  backup('Hedef silinmeden önce')
+  useStore.getState().deleteGoal(id)
+  useToast.getState().show('Hedef silindi', () => useStore.getState().restoreGoal(goal, index))
+}
+
 /**
  * Devam eden antrenmanı atar; geri alınca yeniden aktif olur. `restEnds`: atılırken çalışan dinlenme
  * sayacının bitişi (varsa ve dolmadıysa geri gelir).
