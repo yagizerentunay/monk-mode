@@ -18,6 +18,7 @@ const RoutineEdit = lazy(() => import('./views/RoutineEdit.tsx').then((m) => ({ 
 const Stats = lazy(() => import('./views/Stats.tsx').then((m) => ({ default: m.Stats })))
 const Library = lazy(() => import('./views/Library.tsx').then((m) => ({ default: m.Library })))
 const Settings = lazy(() => import('./views/Settings.tsx').then((m) => ({ default: m.Settings })))
+const ShareImport = lazy(() => import('./views/ShareImport.tsx').then((m) => ({ default: m.ShareImport })))
 
 export default function App() {
   const online = useOnline()
@@ -51,6 +52,7 @@ export default function App() {
               <Route path="/stats" element={<Stats />} />
               <Route path="/library" element={<Library />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/share/:payload" element={<ShareImport />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
