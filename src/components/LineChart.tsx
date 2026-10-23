@@ -1,3 +1,5 @@
+import { formatDecimal } from '../lib/units.ts'
+
 export interface ChartPoint {
   label: string
   value: number
@@ -44,7 +46,7 @@ export function LineChart({ points, unit = '', height = 140 }: Props) {
       <text x={PAD.l} y={height - 6} fontSize="10" fill="var(--muted)">{points[0].label}</text>
       <text x={W - PAD.r} y={height - 6} fontSize="10" fill="var(--muted)" textAnchor="end">{last.label}</text>
       <text x={W - PAD.r} y={10} fontSize="12" fontWeight="700" fill="var(--text)" textAnchor="end">
-        {last.value}{unit && ` ${unit}`}
+        {formatDecimal(last.value)}{unit && ` ${unit}`}
       </text>
     </svg>
   )
