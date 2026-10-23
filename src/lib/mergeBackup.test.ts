@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultState, type CustomExercise, type Routine, type State, type Workout } from '../store/schema.ts'
+import { defaultState, type CustomExercise, type Routine, type State, type StrengthGoal, type Workout } from '../store/schema.ts'
 import { describeMerge, mergeState, totalAdded } from './mergeBackup.ts'
 
 const wk = (id: string, d: string, start: number, over: Partial<Workout> = {}): Workout => ({
@@ -183,6 +183,36 @@ describe('mergeState: diğer veriler', () => {
     const { state } = mergeState(st(), incoming)
     expect(Object.getPrototypeOf(state.muscleFix)).toBe(Object.prototype)
     expect(({} as Record<string, unknown>).primary).toBeUndefined()
+  })
+
+  it('hedefler kimliğe göre; aynı egzersiz + hedef + gün ayrı kimlikle gelse de kopya sayılır', () => {
+    const g = (id: string, over: Partial<StrengthGoal> = {}): StrengthGoal => ({
+      id,
+      exId: 'bench',
+      target: 100,
+      by: '2027-03-01',
+      created: '2026-10-01',
+      ...over,
+    })
+    const local = st({ goals: [g('g1'), g('g2', { exId: 'squat', target: 140 })] })
+    const incoming = st({
+      goals: [
+        g('g1'),
+        g('g2', { exId: 'squat', target: 150 }),
+        g('other-device', { created: '2026-10-05' }),
+        g('g3', { exId: 'deadlift', target: 180, done: '2026-10-20' }),
+      ],
+    })
+    const { state, report } = mergeState(local, incoming)
+    expect(state.goals.map((x) => [x.id, x.target])).toEqual([
+      ['g1', 100],
+      ['g2', 140],
+      ['g3', 180],
+    ])
+    expect(state.goals[2].done).toBe('2026-10-20')
+    expect(report.goals).toEqual({ added: 1, identical: 2, conflicting: 1 })
+    expect(totalAdded(report)).toBe(1)
+    expect(describeMerge(report)).toBe('1 hedef eklendi; 2 kayıt zaten vardı; 1 kayıt farklı, yereldeki korundu.')
   })
 
   it('ayarlar, hafta ve aktif antrenman yerelde aynen kalır', () => {
