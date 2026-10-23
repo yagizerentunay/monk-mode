@@ -42,7 +42,7 @@ export function BlockCard() {
     `${short(blockWeekRange(b, 1, weekStart).first)} – ${short(blockWeekRange(b, b.weeks, weekStart).last)}`
 
   return (
-    <div className="card stack blockcard" aria-label="Antrenman bloğu">
+    <section className="card stack blockcard" aria-label="Antrenman bloğu">
       <div className="row between">
         <div className="eyebrow">Antrenman bloğu</div>
         {st && (
@@ -97,7 +97,7 @@ export function BlockCard() {
       <BottomSheet open={editing} onClose={() => setEditing(false)} title={block ? 'Bloğu düzenle' : 'Blok başlat'}>
         {editing && <BlockForm block={block} today={today} weekStart={weekStart} onDone={() => setEditing(false)} />}
       </BottomSheet>
-    </div>
+    </section>
   )
 }
 
