@@ -4,8 +4,10 @@ import { MAX_TIMED_SEC, TIMED_STEP_SEC } from './timed.ts'
 export interface Prescription {
   /** Önerilen çalışma ağırlığı (kg). */
   w: number
-  /** Önerilen hedef tekrar (süreli egzersizde hedef süre, sn). */
+  /** Önerilen hedef tekrar (süreli ve mesafe egzersizinde hedef süre, sn). */
   r: number
+  /** Mesafe egzersizinde hedef mesafe (m); diğerlerinde yok. */
+  m?: number
   /** Bu öneriyi doğuran gerekçe, arayüzde ipucu olarak gösterilir. */
   reason: 'plan' | 'increase' | 'repeat' | 'add-rep' | 'add-sec' | 'confirm' | 'need-rir' | 'assist-rep'
 }
@@ -82,6 +84,8 @@ function sameLoadAndSets(a: WorkoutEntry, b: WorkoutEntry): boolean {
  * hedef tekrar aralığın altına döner.
  */
 export function nextPrescription(cfg: ExCfg, last?: WorkoutEntry, opts: PrescribeOptions = {}): Prescription {
+  // Mesafe egzersizinde otomatik ilerleme yok: rutin hedefi (mesafe + süre) aynen önerilir.
+  if (cfg.distance) return { w: 0, r: cfg.reps, m: cfg.meters ?? 0, reason: 'plan' }
   if (cfg.timed) return prescribeTimed(cfg, last)
   const p = prescribe(cfg, last, opts)
   if (!last?.bw || p.reason === 'plan') return p

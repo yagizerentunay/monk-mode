@@ -14,14 +14,14 @@ export function needsExternalLoad(equipment: string | null | undefined): boolean
 /**
  * Tamamlanmış bir çalışma setinde ağırlık 0 (ya da altı) mı ve bu egzersiz için şüpheli mi?
  * Isınma, tamamlanmamış set, vücut ağırlığı girdisi (`bw`: ek yük 0 normal), süreli girdi (`timed`: tutuşta
- * yük şart değil) ve dış yük gerektirmeyen ekipman muaftır. Tek taraflı sette `w` taraf başı ağırlıktır; kural aynıdır.
+ * yük şart değil), mesafe girdisi (`distance`: ağırlık yok) ve dış yük gerektirmeyen ekipman muaftır. Tek taraflı sette `w` taraf başı ağırlıktır; kural aynıdır.
  */
 export function isZeroWeightSet(
-  entry: Pick<WorkoutEntry, 'bw' | 'timed'>,
+  entry: Pick<WorkoutEntry, 'bw' | 'timed' | 'distance'>,
   set: Pick<SetEntry, 'w' | 'done' | 'warmup'>,
   equipment: string | null | undefined,
 ): boolean {
-  return set.done && !set.warmup && set.w <= 0 && !entry.bw && !entry.timed && needsExternalLoad(equipment)
+  return set.done && !set.warmup && set.w <= 0 && !entry.bw && !entry.timed && !entry.distance && needsExternalLoad(equipment)
 }
 
 /** Girdinin her seti için `isZeroWeightSet` sonucu (set sırasıyla). */

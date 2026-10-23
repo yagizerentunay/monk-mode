@@ -2,6 +2,7 @@ import type { ProgressionRule, SetEntry, Workout, WorkoutEntry } from '../store/
 import type { Exercise } from './exercises.ts'
 import { dropSet, warmupSet } from './intensity.ts'
 import { toUnilateral } from './sets.ts'
+import { DEFAULT_DISTANCE_M, DEFAULT_DISTANCE_SEC, DEFAULT_DISTANCE_SETS } from './distance.ts'
 import { DEFAULT_TIMED_SEC } from './timed.ts'
 import { lastSetup, lastTwoEntriesFor } from './workout.ts'
 import { nextPrescription } from './progression.ts'
@@ -55,6 +56,35 @@ export function toggleTimedEntry(entry: WorkoutEntry, history: Workout[] = []): 
 }
 
 /**
+ * Mesafe egzersizinin yapılmamış setleri: `count` set, mesafe ve süre son mesafe seansından (`history`), yoksa
+ * 5 km / 30 dk. Ağırlık 0'dır; ısınma, drop ve tek taraf yoktur (bkz. lib/distance.ts).
+ */
+export function distanceSets(history: Workout[], exId: string, count?: number): SetEntry[] {
+  const prior = lastSetup(history, exId, false, false, true)
+  const m = prior?.m ?? DEFAULT_DISTANCE_M
+  const r = prior?.r ?? DEFAULT_DISTANCE_SEC
+  return Array.from({ length: Math.max(1, count ?? prior?.sets ?? DEFAULT_DISTANCE_SETS) }, () => ({ w: 0, r, m, done: false }))
+}
+
+/**
+ * Henüz çalışılmamış bir egzersizi mesafe ↔ tekrarlı çevirir; yapılmışsa girdi aynen döner. Mesafeye geçerken
+ * çalışma seti sayısı korunur (en az 1), ısınma/drop ve tek taraf düşer, süreli ve vücut ağırlığı bayrakları
+ * kalkar; hedefler son mesafe seansından (`history`) ya da 5 km / 30 dk'dan gelir. Geri dönüşte setler 0 kg ×
+ * son tekrar (yoksa 8) olur.
+ */
+export function toggleDistanceEntry(entry: WorkoutEntry, history: Workout[] = []): WorkoutEntry {
+  if (hasCompletedWork(entry)) return entry
+  const { distance: _d, timed: _t, unilateral: _u, bw: _bw, bwKg: _bwKg, ...rest } = entry
+  if (!entry.distance) {
+    const work = entry.sets.filter((s) => !s.warmup && !s.drop).length
+    return { ...rest, distance: true, sets: distanceSets(history, entry.exId, work) }
+  }
+  const prior = lastSetup(history, entry.exId, false)
+  const r = prior?.r ?? 8
+  return { ...rest, sets: entry.sets.map((): SetEntry => ({ w: prior?.w ?? 0, r, done: false })) }
+}
+
+/**
  * Henüz çalışılmamış bir egzersiz satırının yerine `exId` koyar; yapılmışsa null döner.
  *
  * - Çalışma seti sayısı korunur. Ağırlık/tekrar hedefi yeni egzersizin kendi geçmişinden (çift ilerleme,
@@ -69,15 +99,27 @@ export function toggleTimedEntry(entry: WorkoutEntry, history: Workout[] = []): 
  *   karışmasın); geçmiş kaydı da yalnız aynı anlamdaysa kullanılır.
  * - Süreli: `opts.timed` yeni egzersizin süreli olup olmadığını belirler (bkz. lib/timed.ts). Tür
  *   değişiyorsa tekrar hedefi saniyeye (30 sn) ya da tersine (8) döner, süreli egzersizde ısınma satırları düşer.
+ * - Mesafe: `opts.distance` ise satır mesafe egzersizi olur (bkz. distanceSets): çalışma seti sayısı korunur,
+ *   ısınma, drop, tek taraf ve ağırlık anlamı düşer. Mesafe satırından mesafe olmayan egzersize geçişte
+ *   hedef 8 tekrardan (ya da yeni egzersizin geçmişinden) başlar.
  */
 export function swapEntry(
   entry: WorkoutEntry,
   exId: string,
   side: boolean,
   history: Workout[],
-  opts: { bw?: boolean; bwKg?: number; rule?: ProgressionRule; timed?: boolean } = {},
+  opts: { bw?: boolean; bwKg?: number; rule?: ProgressionRule; timed?: boolean; distance?: boolean } = {},
 ): WorkoutEntry | null {
   if (hasCompletedWork(entry)) return null
+  if (opts.distance) {
+    const { note: _note, unilateral: _uni, bw: _bw, bwKg: _bwKg, timed: _timed, ...kept } = entry
+    const work = entry.sets.filter((s) => !s.warmup && !s.drop).length
+    return { ...kept, exId, distance: true, sets: distanceSets(history, exId, work) }
+  }
+  if (entry.distance) {
+    const { distance: _d, ...plain } = entry
+    return swapEntry({ ...plain, sets: entry.sets.map((): SetEntry => ({ w: 0, r: 8, done: false })) }, exId, side, history, opts)
+  }
   const bw = !!opts.bw
   const timed = !!opts.timed
   const work = entry.sets.filter((s) => !s.warmup && !s.drop)

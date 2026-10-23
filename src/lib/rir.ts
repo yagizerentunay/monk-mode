@@ -31,10 +31,12 @@ export interface MissingRir {
   count: number
 }
 
-/** RIR'i eksik set içeren egzersizler, antrenman sırasıyla. Eksiksiz egzersiz listeye girmez. */
+/** RIR'i eksik set içeren egzersizler, antrenman sırasıyla. Eksiksiz egzersiz ve mesafe egzersizi listeye girmez. */
 export function missingRirByExercise(workout: Workout): MissingRir[] {
   const out: MissingRir[] = []
   workout.entries.forEach((e, entryIdx) => {
+    // Mesafe setinde (koşu, kürek…) RIR tutulmaz.
+    if (e.distance) return
     const count = e.sets.filter((s) => isRirSet(s) && s.rir === undefined).length
     if (count > 0) out.push({ entryIdx, exId: e.exId, count })
   })
@@ -58,6 +60,7 @@ export function rirCoverage(workout: Workout): RirCoverage {
   let total = 0
   let withRir = 0
   for (const e of workout.entries) {
+    if (e.distance) continue
     for (const s of e.sets) {
       if (!isRirSet(s)) continue
       total++
@@ -73,7 +76,7 @@ export function rirCoverage(workout: Workout): RirCoverage {
  */
 export function applyRirToEntry(workout: Workout, entryIdx: number, rir: number): Workout {
   const entry = workout.entries[entryIdx]
-  if (!entry || !entry.sets.some((s) => isRirSet(s) && s.rir === undefined)) return workout
+  if (!entry || entry.distance || !entry.sets.some((s) => isRirSet(s) && s.rir === undefined)) return workout
   const sets = entry.sets.map((s) => (isRirSet(s) && s.rir === undefined ? { ...s, rir } : s))
   return { ...workout, entries: workout.entries.map((e, i) => (i === entryIdx ? { ...e, sets } : e)) }
 }
