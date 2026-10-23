@@ -153,3 +153,9 @@ export function describeForecast(f: GoalForecast, goal: StrengthGoal, unit: Unit
     }
   }
 }
+
+/** Egzersizin grafikte gösterilecek hedefi: en son eklenen açık hedef, yoksa en son ulaşılan. */
+export function goalFor(goals: StrengthGoal[], exId: string): StrengthGoal | undefined {
+  const mine = goals.filter((g) => g.exId === exId)
+  return mine.findLast((g) => !g.done) ?? mine[mine.length - 1]
+}

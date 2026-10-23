@@ -5,6 +5,7 @@ import {
   dayDiff,
   describeForecast,
   forecastGoal,
+  goalFor,
   goalHistory,
   newlyReached,
   reachedOn,
@@ -163,5 +164,16 @@ describe('describeForecast', () => {
     expect(describeForecast(f, g, 'lb', NOW)).toContain('haftada +2,2 lb')
     const early = goal({ by: '2027-06-01' })
     expect(describeForecast(forecastGoal(early, steady(), TODAY), early, 'kg', NOW)).toContain('hedef tarihten 19 hafta önce')
+  })
+})
+
+describe('goalFor', () => {
+  it('açık hedefi tercih eder, yoksa son hedefi döner', () => {
+    const a = goal({ id: 'a', done: '2026-09-01' })
+    const b = goal({ id: 'b' })
+    const c = goal({ id: 'c', done: '2026-10-01' })
+    expect(goalFor([a, b, c], 'bench')).toBe(b)
+    expect(goalFor([a, c], 'bench')).toBe(c)
+    expect(goalFor([a, b], 'squat')).toBeUndefined()
   })
 })

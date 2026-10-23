@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { exerciseSummary } from '../lib/exerciseStats.ts'
+import { goalFor } from '../lib/goals.ts'
 import { formatLoad, formatTimedLoad } from '../lib/load.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatDuration } from '../lib/timed.ts'
@@ -14,6 +15,7 @@ import { PlateauNote } from './PlateauNote.tsx'
 export function ExerciseHistory({ exId }: { exId: string }) {
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
+  const goal = useStore((s) => goalFor(s.goals, exId))
   const summary = useMemo(() => exerciseSummary(workouts, exId), [workouts, exId])
   // Grafik son seansın türünü izler: süreliyse en uzun tutuş (sn), değilse tahmini 1RM; karışık geçmişte
   // diğer türün noktaları (1RM'siz süreli seans ya da saniyesi tekrar sanılacak seans) çizilmez.
@@ -75,7 +77,14 @@ export function ExerciseHistory({ exId }: { exId: string }) {
         </div>
       </div>
       <PlateauNote exId={exId} />
-      {points.length >= 2 && <LineChart points={points} unit={timedKind ? 'sn' : unit} />}
+      {points.length >= 2 && (
+        <LineChart
+          points={points}
+          unit={timedKind ? 'sn' : unit}
+          // Hedef tahmini 1RM'dir; süreli grafikte (saniye) anlamı yok.
+          target={goal && !timedKind ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: `Hedef ${formatWeight(goal.target, unit)} ${unit}` } : undefined}
+        />
+      )}
     </div>
   )
 }
