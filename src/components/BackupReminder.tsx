@@ -13,6 +13,7 @@ export function BackupReminder() {
   const routines = useStore((s) => s.routines)
   const week = useStore((s) => s.week)
   const bodyweight = useStore((s) => s.bodyweight)
+  const measurements = useStore((s) => s.measurements)
   const customEx = useStore((s) => s.customEx)
   const settings = useStore((s) => s.settings)
   const snoozeBackup = useStore((s) => s.snoozeBackup)
@@ -26,8 +27,8 @@ export function BackupReminder() {
   }, [])
 
   const status = useMemo(
-    () => backupStatus({ workouts, routines, week, bodyweight, customEx, settings }, now),
-    [workouts, routines, week, bodyweight, customEx, settings, now],
+    () => backupStatus({ workouts, routines, week, bodyweight, measurements, customEx, settings }, now),
+    [workouts, routines, week, bodyweight, measurements, customEx, settings, now],
   )
 
   if (done) {
