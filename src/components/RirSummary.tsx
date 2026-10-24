@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { missingRirByExercise, missingRirCount, RIR_CHOICES, rirCoverage, rirLabel } from '../lib/rir.ts'
 import type { Workout } from '../store/schema.ts'
 
@@ -20,14 +21,14 @@ export function RirSummary({ workout, describeEx, skipped, onApply, onSkip }: Pr
   const { pct } = rirCoverage(workout)
   if (pct === null) return null // tamamlanmış çalışma seti yok: söylenecek bir şey de yok
 
-  const coverage = <div className="sub rir-coverage">RIR girilen set oranı: %{pct}</div>
+  const coverage = <div className="sub rir-coverage">{t('rir.coverage', { pct })}</div>
   const rows = missingRirByExercise(workout)
   if (skipped || rows.length === 0) return coverage
 
   return (
     <div className="card stack rir-card">
       <div>
-        <div className="eyebrow">RIR eksik: {missingRirCount(workout)} set</div>
+        <div className="eyebrow">{t('rir.missing', { sets: t('count.sets', { n: missingRirCount(workout) }) })}</div>
         {coverage}
       </div>
       {rows.map((m) => {
@@ -36,15 +37,15 @@ export function RirSummary({ workout, describeEx, skipped, onApply, onSkip }: Pr
           <div key={m.entryIdx} className="rir-exrow">
             <div className="row between">
               <span className="exname rir-exname" lang={ex.lang}>{ex.name}</span>
-              <span className="sub">{m.count} set</span>
+              <span className="sub">{t('count.sets', { n: m.count })}</span>
             </div>
             <div className="rir-chips">
-              <span className="sub rirlabel">Hepsi</span>
+              <span className="sub rirlabel">{t('rir.all')}</span>
               {RIR_CHOICES.map((r) => (
                 <button
                   key={r}
                   className="chip"
-                  aria-label={`${ex.name}: ${m.count} setin hepsine RIR ${rirLabel(r)} yaz`}
+                  aria-label={t('rir.applyAria', { name: ex.name, n: m.count, rir: rirLabel(r) })}
                   onClick={() => onApply(m.entryIdx, r)}
                 >
                   {rirLabel(r)}
@@ -54,7 +55,7 @@ export function RirSummary({ workout, describeEx, skipped, onApply, onSkip }: Pr
           </div>
         )
       })}
-      <button className="btn small rir-skip" aria-label="RIR girişini atla" onClick={onSkip}>Atla</button>
+      <button className="btn small rir-skip" aria-label={t('rir.skipAria')} onClick={onSkip}>{t('rir.skip')}</button>
     </div>
   )
 }

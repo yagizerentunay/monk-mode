@@ -1,3 +1,4 @@
+import { locale, t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { blockStatus, parseDay } from '../lib/block.ts'
@@ -16,19 +17,19 @@ export function BlockStrip() {
 
   const st = blockStatus(block, today, weekStart)
   if (st.phase === 'upcoming') {
-    const start = parseDay(block.start).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })
+    const start = parseDay(block.start).toLocaleDateString(locale(), { day: 'numeric', month: 'long' })
     return (
-      <Link to="/plan" className="card tap blockstrip" aria-label={`Blok ${start} tarihinde başlıyor, Plan'da aç`}>
-        <span className="eyebrow muted">Blok</span>
-        <span className="sub">{start} tarihinde başlıyor · {block.weeks} hafta</span>
+      <Link to="/plan" className="card tap blockstrip" aria-label={t('blockStrip.upcomingAria', { start })}>
+        <span className="eyebrow muted">{t('blockStrip.block')}</span>
+        <span className="sub">{t('blockStrip.starts', { start })} · {t('count.weeks', { n: block.weeks })}</span>
       </Link>
     )
   }
   if (st.phase === 'over') {
     return (
-      <Link to="/plan" className="card tap blockstrip" aria-label="Blok tamamlandı, Plan'da bitir">
-        <span className="eyebrow ok">✓ Blok tamamlandı</span>
-        <span className="sub">{block.weeks} hafta bitti · Plan'da kapat ve yenisini başlat</span>
+      <Link to="/plan" className="card tap blockstrip" aria-label={t('blockStrip.overAria')}>
+        <span className="eyebrow ok">✓ {t('blockStrip.over')}</span>
+        <span className="sub">{t('blockStrip.overHint', { weeks: t('count.weeks', { n: block.weeks }) })}</span>
       </Link>
     )
   }
@@ -36,22 +37,28 @@ export function BlockStrip() {
   const left = block.deload - st.week
   return (
     <div className="stack">
-      <Link to="/plan" className={`card tap blockstrip${st.deload ? ' deload' : ''}`} aria-label={`Blok: ${st.week}/${st.weeks}. hafta${st.deload ? ', deload haftası' : ''}, Plan'da aç`}>
-        <span className="eyebrow">Blok: {st.week}/{st.weeks}. hafta</span>
+      <Link
+        to="/plan"
+        className={`card tap blockstrip${st.deload ? ' deload' : ''}`}
+        aria-label={t('blockStrip.weekAria', {
+          week: t('blockStrip.week', { week: st.week, weeks: st.weeks }),
+          deload: st.deload ? t('blockStrip.deloadAria') : '',
+        })}
+      >
+        <span className="eyebrow">{t('blockStrip.week', { week: st.week, weeks: st.weeks })}</span>
         <span className="blockbar" aria-hidden="true">
           {Array.from({ length: st.weeks }, (_, i) => (
             <span key={i} className={`${i + 1 < st.week ? 'on' : ''}${i + 1 === st.week ? ' now' : ''}${i + 1 === block.deload ? ' dl' : ''}`} />
           ))}
         </span>
-        <span className="sub">{st.deload ? 'Deload haftası' : left > 0 ? `Deload ${left} hafta sonra` : 'Deload haftası geçti'}</span>
+        <span className="sub">
+          {st.deload ? t('blockStrip.deloadWeek') : left > 0 ? t('blockStrip.deloadIn', { weeks: t('count.weeks', { n: left }) }) : t('blockStrip.deloadPassed')}
+        </span>
       </Link>
       {st.deload && (
         <div className="card banner stack" role="status">
-          <b className="banner-title">Bu hafta planlı deload</b>
-          <div className="sub">
-            Çalışma setlerini {deloadCutText()} azalt, ağırlığı koru ve RIR {deloadRirText()} ile bitir. Antrenman ekranı egzersiz başına
-            önerilen set sayısını gösterir; hiçbir şey otomatik değişmez.
-          </div>
+          <b className="banner-title">{t('blockStrip.plannedDeload')}</b>
+          <div className="sub">{t('blockStrip.plannedDeloadHint', { cut: deloadCutText(), rir: deloadRirText() })}</div>
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { formatAxisDay } from '../lib/calendar.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
@@ -23,7 +24,7 @@ export function WeeklyTrendCard() {
 
   const value = (kg: number) => (metric === 'sets' ? kg : kgToUnit(kg, unit))
   const fmt = (v: number) => (metric === 'sets' ? String(Math.round(v)) : formatWeight(v, unit))
-  const suffix = metric === 'sets' ? 'set' : unit
+  const suffix = metric === 'sets' ? t('trend.sets') : unit
   const { current, average } = weekComparison(totals, metric)
   const max = Math.max(1, ...totals.map((w) => value(w[metric])))
   const slot = (W - PAD.l - PAD.r) / totals.length
@@ -33,23 +34,26 @@ export function WeeklyTrendCard() {
   return (
     <div className="card stack">
       <div>
-        <div className="eyebrow">Son {TREND_WEEKS} hafta</div>
-        <h2 style={{ margin: 0 }}>Haftalık toplam</h2>
+        <div className="eyebrow">{t('stats.lastWeeks', { weeks: t('count.weeks', { n: TREND_WEEKS }) })}</div>
+        <h2 style={{ margin: 0 }}>{t('trend.title')}</h2>
       </div>
       <div>
         <div className="row statbig">
           <span className="bignum">{fmt(current)}</span>
-          <span className="statunit">{suffix} · bu hafta</span>
+          <span className="statunit">{suffix} · {t('trend.thisWeek')}</span>
         </div>
         <div className="sub">
-          {average === null ? 'Karşılaştırma için önceki haftalarda antrenman gerekli.' : `Önceki 4 haftanın ortalaması: ${fmt(average)} ${suffix}`}
+          {average === null ? t('trend.needHistory') : t('trend.average', { value: `${fmt(average)} ${suffix}` })}
         </div>
       </div>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
         role="img"
-        aria-label={`Son ${TREND_WEEKS} haftanın ${metric === 'sets' ? 'set sayısı' : 'hacmi'}: ${totals.map((w) => fmt(w[metric])).join(', ')}`}
+        aria-label={t(metric === 'sets' ? 'trend.ariaSets' : 'trend.ariaVolume', {
+          n: TREND_WEEKS,
+          values: totals.map((w) => fmt(w[metric])).join(', '),
+        })}
         style={{ display: 'block' }}
       >
         <line x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} stroke="var(--line)" strokeWidth="1" />
@@ -70,11 +74,11 @@ export function WeeklyTrendCard() {
           )
         })}
         <text x={PAD.l} y={H - 6} fontSize="10" fill="var(--muted)">{formatAxisDay(totals[0].start, today)}</text>
-        <text x={W - PAD.r} y={H - 6} fontSize="10" fill="var(--muted)" textAnchor="end">Bu hafta</text>
+        <text x={W - PAD.r} y={H - 6} fontSize="10" fill="var(--muted)" textAnchor="end">{t('trend.thisWeekAxis')}</text>
       </svg>
-      <div className="chips statseg" role="group" aria-label="Haftalık ölçü">
-        <button className={`chip${metric === 'sets' ? ' on' : ''}`} aria-pressed={metric === 'sets'} onClick={() => setMetric('sets')}>Set</button>
-        <button className={`chip${metric === 'volume' ? ' on' : ''}`} aria-pressed={metric === 'volume'} onClick={() => setMetric('volume')}>Hacim</button>
+      <div className="chips statseg" role="group" aria-label={t('trend.metricAria')}>
+        <button className={`chip${metric === 'sets' ? ' on' : ''}`} aria-pressed={metric === 'sets'} onClick={() => setMetric('sets')}>{t('trend.setsChip')}</button>
+        <button className={`chip${metric === 'volume' ? ' on' : ''}`} aria-pressed={metric === 'volume'} onClick={() => setMetric('volume')}>{t('trend.volumeChip')}</button>
       </div>
     </div>
   )

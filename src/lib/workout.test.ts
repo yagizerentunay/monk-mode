@@ -9,7 +9,7 @@ import {
   finalizeSet,
   isPR,
   buildFreeWorkout,
-  FREE_WORKOUT_NAME,
+  freeWorkoutName,
   lastEntryFor,
   lastSetup,
   lastTwoEntriesFor,
@@ -306,7 +306,8 @@ describe('lastTwoEntriesFor', () => {
 describe('serbest antrenman', () => {
   it('rutinsiz ve egzersizsiz kurulur', () => {
     const w = buildFreeWorkout(Date.UTC(2026, 9, 14, 12))
-    expect(w.name).toBe(FREE_WORKOUT_NAME)
+    expect(w.name).toBe(freeWorkoutName())
+    expect(w.name).toBe('Serbest antrenman')
     expect(w.entries).toEqual([])
     expect(w).not.toHaveProperty('routineId')
     expect(w.start).toBe(Date.UTC(2026, 9, 14, 12))

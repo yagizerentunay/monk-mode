@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { StrengthGoal, Workout } from '../store/schema.ts'
 import { formatShortDay, parseDay } from './calendar.ts'
 import { formatWeight, type Unit } from './units.ts'
@@ -127,29 +128,29 @@ export function newlyReached(goals: StrengthGoal[], workouts: Workout[]): { id: 
 /** "3 hafta", "5 gün": hedef güne göre fark için kısa metin. */
 function span(days: number): string {
   const n = Math.abs(days)
-  return n >= 14 ? `${Math.round(n / 7)} hafta` : `${n} gün`
+  return n >= 14 ? t('count.weeks', { n: Math.round(n / 7) }) : t('count.days', { n })
 }
 
 /** Tahmini kartta gösterilecek tek satır. Tarih uydurulmaz: veri yoksa nedenini söyler. */
 export function describeForecast(f: GoalForecast, goal: StrengthGoal, unit: Unit, now: Date = new Date()): string {
   switch (f.kind) {
     case 'reached':
-      return `Hedefe ulaşıldı · ${formatShortDay(f.d, now)}`
+      return t('goals.reachedOn', { date: formatShortDay(f.d, now) })
     case 'noData':
       return f.sessions === 0
-        ? 'Son 8 haftada bu egzersizde seans yok; tahmin için en az 4 seans gerekli.'
-        : `Tahmin için veri yetersiz: son 8 haftada ${f.sessions} seans var, 2 haftaya yayılmış en az ${MIN_SESSIONS} seans gerekli.`
+        ? t('goals.noSessions')
+        : t('goals.notEnough', { sessions: t('count.sessions', { n: f.sessions }), min: MIN_SESSIONS })
     case 'flat':
-      return 'Son 8 haftada tahmini 1RM artmıyor; bu gidişle bir tarih verilemez.'
+      return t('goals.flat')
     case 'eta': {
       const late = dayDiff(goal.by, f.eta)
       const rel =
         f.status === 'onTime'
-          ? 'zamanında'
+          ? t('goals.onTime')
           : f.status === 'ahead'
-            ? `hedef tarihten ${span(late)} önce`
-            : `hedef tarihten ${span(late)} geride`
-      return `Tahmini varış ${formatShortDay(f.eta, now)} · ${rel} (haftada +${formatWeight(f.perWeek, unit)} ${unit})`
+            ? t('goals.ahead', { span: span(late) })
+            : t('goals.behind', { span: span(late) })
+      return t('goals.eta', { date: formatShortDay(f.eta, now), rel, rate: `+${formatWeight(f.perWeek, unit)} ${unit}` })
     }
   }
 }

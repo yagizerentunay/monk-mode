@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { describeMerge } from '../lib/mergeBackup.ts'
 import { importBackupWithReport } from '../store/backup.ts'
 import { describeDropped } from '../store/sanitize.ts'
@@ -16,12 +17,12 @@ export function MergeImportCard() {
     try {
       const { state: incoming, report: sanitized } = importBackupWithReport(await file.text())
       // Kopya, birleştirme state'i değiştirmeden önce (çağrı anında) alınır.
-      void snapshotNow('Birleştirmeden önce')
+      void snapshotNow(t('snapshot.beforeMerge'))
       const report = mergeFrom(incoming)
       const skipped = describeDropped(sanitized)
       // describeMerge nokta ile biter; bozuk kayıt notu aynı cümleye girsin.
       const merged = describeMerge(report).replace(/.$/, '')
-      setMessage(`Birleştirildi: ${merged}${skipped ? `; ${skipped}` : ''}.`)
+      setMessage(t('merge.done', { merged, skipped: skipped ? `; ${skipped}` : '' }))
     } catch (e) {
       setMessage((e as Error).message)
     } finally {
@@ -31,13 +32,12 @@ export function MergeImportCard() {
 
   return (
     <div className="card stack mergecard">
-      <div className="eyebrow">Cihazlar arası</div>
-      <h2>Yedekle birleştir</h2>
+      <div className="eyebrow">{t('merge.eyebrow')}</div>
+      <h2>{t('merge.title')}</h2>
       <p className="sub" style={{ margin: 0 }}>
-        Başka cihazdaki yedeği bu cihazdaki verilerle birleştirir; hiçbir şey silinmez. Aynı antrenman iki
-        tarafta farklıysa buradaki korunur.
+        {t('merge.hint')}
       </p>
-      <button className="btn block" onClick={() => fileRef.current?.click()}>Yedekle birleştir</button>
+      <button className="btn block" onClick={() => fileRef.current?.click()}>{t('merge.title')}</button>
       <input
         ref={fileRef}
         type="file"

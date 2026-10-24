@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { BodyweightCard } from '../components/BodyweightCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
@@ -12,16 +13,16 @@ import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { formatLongClock } from '../lib/distance.ts'
 import { goalFor } from '../lib/goals.ts'
-import { formatWeight, kgToUnit } from '../lib/units.ts'
+import { formatDecimal, formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, exerciseHistory, hasVolume, workoutVolume } from '../lib/workout.ts'
 import { useStore } from '../store/useStore.ts'
 
 type Metric = 'e1rm' | 'topW'
 
-/** 2,5 gibi: ondalık ayracı virgül. */
+/** 2,5 gibi: ondalık ayracı dile göre (Türkçede virgül). */
 function fmtNum(n: number): string {
-  return n.toString().replace('.', ',')
+  return formatDecimal(n)
 }
 
 export function Stats() {
@@ -62,8 +63,14 @@ export function Stats() {
   const open = workouts.find((w) => w.id === openId) ?? null
   const recent = [...workouts].reverse().slice(0, 30)
 
-  const metricLabel = distSel ? 'toplam mesafe' : timedSel ? 'en uzun tutuş' : metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
-  const valueUnit = distSel ? 'km' : timedSel ? 'sn' : unit
+  const metricLabel = distSel
+    ? t('stats.metric.distance')
+    : timedSel
+      ? t('stats.metric.longestHold')
+      : metric === 'e1rm'
+        ? t('stats.metric.e1rm')
+        : t('stats.metric.topSet')
+  const valueUnit = distSel ? 'km' : timedSel ? t('unit.sec') : unit
   const lastPt = points[points.length - 1]
   const prevPt = points.length >= 2 ? points[points.length - 2] : null
   // Değişim yalnız iki seans varsa hesaplanır; veri yoksa uydurulmaz.
@@ -72,20 +79,20 @@ export function Stats() {
   return (
     <div className="stack statsview">
       <header>
-        <div className="eyebrow">Performans analizi</div>
-        <h1 className="display">Her set<span className="hl">bir adım.</span></h1>
+        <div className="eyebrow">{t('stats.eyebrow')}</div>
+        <h1 className="display">{t('stats.titleA')}<span className="hl">{t('stats.titleB')}</span></h1>
       </header>
 
       <div className="card stack">
         <div>
-          <div className="eyebrow">Güç gelişimi</div>
-          <h2 style={{ margin: 0 }}>Egzersiz ilerlemesi</h2>
+          <div className="eyebrow">{t('stats.strength')}</div>
+          <h2 style={{ margin: 0 }}>{t('stats.progress')}</h2>
         </div>
         {exIds.length === 0 ? (
-          <p className="sub" style={{ margin: 0 }}>İlk antrenmanını bitirince güç gelişimin burada görünür. Her tamamlanan set grafiğe bir nokta ekler.</p>
+          <p className="sub" style={{ margin: 0 }}>{t('stats.empty')}</p>
         ) : (
           <>
-            <select className="input" value={selected} onChange={(e) => setChosen(e.target.value)} aria-label="Egzersiz">
+            <select className="input" value={selected} onChange={(e) => setChosen(e.target.value)} aria-label={t('stats.exerciseAria')}>
               {exIds.map((id) => (
                 <option key={id} value={id}>{byId.get(id)?.name ?? id}</option>
               ))}
@@ -97,13 +104,13 @@ export function Stats() {
                   <span className="statunit">{valueUnit} · {metricLabel}</span>
                 </div>
                 {distSel && lastHist?.pace !== undefined && (
-                  <div className="sub">Son seans en iyi tempo: {formatLongClock(lastHist.pace)} /km</div>
+                  <div className="sub">{t('stats.lastPace', { pace: `${formatLongClock(lastHist.pace)} /km` })}</div>
                 )}
                 {delta === null ? (
-                  <div className="sub">Karşılaştırma için bir seans daha gerekli.</div>
+                  <div className="sub">{t('stats.needAnother')}</div>
                 ) : (
                   <div className={`statdelta${delta > 0 ? ' up' : ''}`}>
-                    {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{fmtNum(delta)} {valueUnit} · önceki seansa göre
+                    {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{fmtNum(delta)} {valueUnit} · {t('stats.vsPrevious')}
                   </div>
                 )}
               </div>
@@ -111,12 +118,12 @@ export function Stats() {
             <LineChart
               points={points}
               unit={valueUnit}
-              target={goal ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: `Hedef ${formatWeight(goal.target, unit)} ${unit}` } : undefined}
+              target={goal ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: t('workout.target', { set: `${formatWeight(goal.target, unit)} ${unit}` }) } : undefined}
             />
             {!timedSel && !distSel && (
-              <div className="chips statseg" role="group" aria-label="Ölçü">
-                <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
-                <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>En ağır set</button>
+              <div className="chips statseg" role="group" aria-label={t('stats.metricAria')}>
+                <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>{t('stats.e1rmChip')}</button>
+                <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>{t('stats.topSetChip')}</button>
               </div>
             )}
           </>
@@ -139,15 +146,15 @@ export function Stats() {
 
       <div className="card stack">
         <div>
-          <div className="eyebrow">Geçmiş</div>
-          <h2 style={{ margin: 0 }}>Son antrenmanlar</h2>
+          <div className="eyebrow">{t('stats.history')}</div>
+          <h2 style={{ margin: 0 }}>{t('stats.recent')}</h2>
         </div>
-        {recent.length === 0 && <p className="sub" style={{ margin: 0 }}>Henüz antrenman yok. Bitirdiğin antrenmanlar burada listelenir.</p>}
+        {recent.length === 0 && <p className="sub" style={{ margin: 0 }}>{t('stats.noWorkouts')}</p>}
         {recent.map((w) => (
           <button key={w.id} className="exrow" onClick={() => setOpenId(w.id)}>
             <div className="grow">
               <div className="exname">{w.name}</div>
-              <div className="sub">{formatShortDay(w.d)} · {doneSetCount(w).done} set</div>
+              <div className="sub">{formatShortDay(w.d)} · {t('count.sets', { n: doneSetCount(w).done })}</div>
             </div>
             {hasVolume(w) && <span className="sub">{formatWeight(workoutVolume(w), unit)} {unit}</span>}
           </button>

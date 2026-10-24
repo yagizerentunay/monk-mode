@@ -22,6 +22,9 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}/`,
     trace: 'retain-on-failure',
     timezoneId: TIMEZONE,
+    // Arayüz dili varsayılan olarak cihaz dilini izler; testler Türkçe metinleri doğrular. İngilizce
+    // testler kendi bağlamlarında `locale: 'en-US'` verir ya da Ayarlar'dan dili seçer.
+    locale: 'tr-TR',
   },
   projects: [{ name: 'mobile-chrome', use: { ...devices['Pixel 7'] } }],
   webServer: {

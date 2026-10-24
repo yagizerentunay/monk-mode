@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { nameLang, type Exercise } from '../lib/exercises.ts'
 import { equipmentLabel } from '../lib/labels.ts'
 import { suggestExercises, type Suggestion } from '../lib/muscleSuggest.ts'
@@ -23,7 +24,7 @@ interface ListProps {
 
 /** Kullanıcının bu egzersizle geçmişi: kaç antrenmanda yapıldı ya da hiç yapılmadı. */
 function usage(s: Suggestion): string {
-  return s.timesDone > 0 ? `${s.timesDone} antrenmanda yaptın` : 'Henüz yapmadın'
+  return s.timesDone > 0 ? t('suggest.done', { n: s.timesDone }) : t('suggest.notYet')
 }
 
 /**
@@ -34,12 +35,12 @@ function usage(s: Suggestion): string {
 export function MuscleSuggestionList({ muscle, suggestions, routines, openId, notice, loading, onToggle, onAdd }: ListProps) {
   const label = MUSCLE_LABEL[muscle]
   return (
-    <section className="tgt-suggest" aria-label={`${label} için egzersiz önerileri`}>
-      <b>{label} için öneriler</b>
+    <section className="tgt-suggest" aria-label={t('suggest.aria', { muscle: label })}>
+      <b>{t('suggest.title', { muscle: label })}</b>
       {loading ? (
-        <div className="sub">Egzersizler yükleniyor…</div>
+        <div className="sub">{t('suggest.loading')}</div>
       ) : suggestions.length === 0 ? (
-        <div className="sub">Bu kas için önerilecek bir egzersiz bulunamadı.</div>
+        <div className="sub">{t('suggest.none')}</div>
       ) : (
         <ul className="tgt-sugg-list">
           {suggestions.map((s) => {
@@ -55,25 +56,25 @@ export function MuscleSuggestionList({ muscle, suggestions, routines, openId, no
                     <button
                       type="button"
                       className="btn small"
-                      aria-label={`${s.ex.name} egzersizini rutine ekle`}
+                      aria-label={t('suggest.addAria', { name: s.ex.name })}
                       aria-expanded={open}
                       onClick={() => onToggle(s.ex.id)}
                     >
-                      Rutine ekle
+                      {t('suggest.add')}
                     </button>
                   )}
                 </div>
                 {open && (
-                  <div className="tgt-picker" role="group" aria-label={`${s.ex.name} için rutin seç`}>
+                  <div className="tgt-picker" role="group" aria-label={t('suggest.pickAria', { name: s.ex.name })}>
                     {routines.map((r) =>
                       routineHas(r, s.ex.id) ? (
-                        <span key={r.id} className="tgt-had">{r.name} · Zaten ekli</span>
+                        <span key={r.id} className="tgt-had">{r.name} · {t('suggest.already')}</span>
                       ) : (
                         <button
                           key={r.id}
                           type="button"
                           className="chip"
-                          aria-label={`${s.ex.name} egzersizini ${r.name} rutinine ekle`}
+                          aria-label={t('suggest.addToAria', { name: s.ex.name, routine: r.name })}
                           onClick={() => onAdd(r.id, s.ex)}
                         >
                           {r.name}
@@ -88,7 +89,7 @@ export function MuscleSuggestionList({ muscle, suggestions, routines, openId, no
         </ul>
       )}
       {!loading && suggestions.length > 0 && routines.length === 0 && (
-        <div className="sub">Rutine eklemek için önce Plan sekmesinde bir rutin oluştur.</div>
+        <div className="sub">{t('suggest.needRoutine')}</div>
       )}
       {notice && <div className="sub tgt-notice" role="status">{notice}</div>}
     </section>
@@ -114,7 +115,7 @@ export function MuscleSuggestions({ muscle }: { muscle: MuscleId }) {
     if (!next) return
     saveRoutine(next)
     setOpenId(null)
-    setNotice(`${ex.name}, "${next.name}" rutinine eklendi.`)
+    setNotice(t('suggest.added', { name: ex.name, routine: next.name }))
   }
 
   return (

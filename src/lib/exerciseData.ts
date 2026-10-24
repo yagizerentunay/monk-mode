@@ -26,6 +26,11 @@ export interface LibraryRecord {
   illustration?: string
   /** Kurulum ve hareket yönergeleri (Türkçe varsa Türkçe, yoksa İngilizce); en az bir satır. */
   instructions: string[]
+  /**
+   * İngilizce yönergeler; yalnız `instructions` Türkçeyken ve Atlas'ta İngilizcesi de varken bulunur.
+   * İngilizce arayüz bunu, yoksa `instructions`ı gösterir (bkz. lib/exercises.ts instructionsFor).
+   */
+  instructionsEn?: string[]
 }
 
 export interface LegacyRecord {
@@ -56,6 +61,9 @@ export function libraryProblems(records: readonly LibraryRecord[]): string[] {
     }
     if (e.instructions.length === 0) problems.push(`${at}: yönerge yok`)
     else if (e.instructions.some((line) => !line.trim())) problems.push(`${at}: boş yönerge satırı`)
+    if (e.instructionsEn !== undefined && (e.instructionsEn.length === 0 || e.instructionsEn.some((line) => !line.trim()))) {
+      problems.push(`${at}: boş İngilizce yönerge`)
+    }
   }
   return problems
 }

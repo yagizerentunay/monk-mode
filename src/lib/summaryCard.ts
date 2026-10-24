@@ -1,3 +1,4 @@
+import { getLang, t } from '../i18n/index.ts'
 import type { Workout, WorkoutEntry } from '../store/schema.ts'
 import { formatDayTitle } from './calendar.ts'
 import { distanceTotals, formatDistanceSet } from './distance.ts'
@@ -52,9 +53,10 @@ export interface CardOptions {
 /** Seans süresi: bitiş özetindeki gibi en az 1 dk; bir saat ve üstü "1 sa 12 dk". */
 export function formatSessionLength(workout: Workout): string {
   const mins = Math.max(1, Math.round(((workout.end ?? workout.start) - workout.start) / 60000))
-  if (mins < 60) return `${mins} dk`
+  if (mins < 60) return t('unit.minValue', { n: mins })
   const m = mins % 60
-  return m === 0 ? `${Math.floor(mins / 60)} sa` : `${Math.floor(mins / 60)} sa ${m} dk`
+  const h = t('unit.hourValue', { n: Math.floor(mins / 60) })
+  return m === 0 ? h : `${h} ${t('unit.minValue', { n: m })}`
 }
 
 /**
@@ -64,8 +66,8 @@ export function formatSessionLength(workout: Workout): string {
  */
 export function entryDetail(entry: WorkoutEntry, unit: Unit): string {
   const sets = entry.sets.filter((s) => s.done && !s.warmup)
-  if (sets.length === 0) return 'Set yapılmadı'
-  const count = `${sets.length} set`
+  if (sets.length === 0) return t('card.noSets')
+  const count = t('count.sets', { n: sets.length })
   if (entry.distance) {
     const { m, sec } = distanceTotals(sets)
     const total = formatDistanceSet({ m, r: sec })
@@ -131,9 +133,9 @@ export function fitText(text: string, maxWidth: number, measure: (t: string) => 
   return lo === 0 ? '…' : chars.slice(0, lo).join('').trimEnd() + '…'
 }
 
-/** PNG dosya adı: monk-mode-antrenman-2026-10-06.png */
+/** PNG dosya adı: monk-mode-antrenman-2026-10-06.png (İngilizcede monk-mode-workout-…). */
 export function cardFileName(workout: Workout): string {
-  return `monk-mode-antrenman-${workout.d}.png`
+  return t('card.fileName', { date: workout.d })
 }
 
 interface Palette {
@@ -237,7 +239,7 @@ function eyebrow(ctx: CanvasRenderingContext2D, text: string, x: number, y: numb
   ctx.font = `700 ${size}px ${BODY}`
   ctx.fillStyle = color
   ctx.letterSpacing = `${size * 0.14}px`
-  ctx.fillText(text.toLocaleUpperCase('tr'), x, y)
+  ctx.fillText(text.toLocaleUpperCase(getLang()), x, y)
   ctx.letterSpacing = '0px'
 }
 
@@ -250,7 +252,7 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
   canvas.width = W
   canvas.height = H
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('canvas yok')
+  if (!ctx) throw new Error(t('shareCard.failed'))
   ctx.textBaseline = 'alphabetic'
   const measure = (t: string) => ctx.measureText(t).width
 
@@ -262,7 +264,7 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
 
   // Üst satır: tarih.
   ctx.textAlign = 'left'
-  eyebrow(ctx, 'Antrenman tamamlandı', PAD, 130, p.accent)
+  eyebrow(ctx, t('card.completed'), PAD, 130, p.accent)
   ctx.font = `500 32px ${BODY}`
   ctx.fillStyle = p.muted
   ctx.fillText(fitText(data.date, INNER, measure), PAD, 182)
@@ -270,15 +272,15 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
   // Başlık: rutin adı, büyük ve büyük harf.
   ctx.font = `800 120px ${DISPLAY}`
   ctx.fillStyle = p.text
-  ctx.fillText(fitText(data.title.toLocaleUpperCase('tr'), INNER, measure), PAD, 320)
+  ctx.fillText(fitText(data.title.toLocaleUpperCase(getLang()), INNER, measure), PAD, 320)
   ctx.font = `700 46px ${DISPLAY}`
   ctx.fillStyle = p.accent
-  ctx.fillText('BUGÜN GÜÇLENDİN.', PAD, 380)
+  ctx.fillText(t('card.slogan'), PAD, 380)
 
   // İstatistik kutuları.
-  const stats: [string, string][] = [['Süre', data.duration]]
-  if (data.volume) stats.push(['Toplam hacim', data.volume])
-  stats.push(['Set', String(data.sets)])
+  const stats: [string, string][] = [[t('workout.duration'), data.duration]]
+  if (data.volume) stats.push([t('workout.totalVolume'), data.volume])
+  stats.push([t('card.sets'), String(data.sets)])
   const gap = 24
   const tileW = (INNER - gap * (stats.length - 1)) / stats.length
   const tileY = TILE_Y
@@ -301,9 +303,9 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
 
   // Hareket listesi.
   let y = LIST_TOP
-  eyebrow(ctx, 'Hareketler', PAD, y - 24, p.accent)
+  eyebrow(ctx, t('card.exercises'), PAD, y - 24, p.accent)
   const rows = [...data.exercises]
-  if (rows.length === 0) rows.push({ name: 'Set yapılmadı', detail: '' })
+  if (rows.length === 0) rows.push({ name: t('card.noSets'), detail: '' })
   for (const row of rows) {
     y += ROW_H
     ctx.font = `500 30px ${BODY}`
@@ -322,12 +324,12 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
     y += ROW_H
     ctx.font = `500 30px ${BODY}`
     ctx.fillStyle = p.muted
-    ctx.fillText(`+${data.moreExercises} hareket daha`, PAD, y)
+    ctx.fillText(t('card.moreExercises', { n: data.moreExercises }), PAD, y)
   }
 
   // Yeni rekorlar.
-  const prRows = data.prs.map((pr) => pr.name.toLocaleUpperCase(pr.lang ?? 'tr'))
-  if (data.morePrs > 0) prRows.push(`+${data.morePrs} REKOR DAHA`)
+  const prRows = data.prs.map((pr) => pr.name.toLocaleUpperCase(pr.lang ?? getLang()))
+  if (data.morePrs > 0) prRows.push(t('card.morePrs', { n: data.morePrs }))
   if (prRows.length > 0) {
     const boxY = y + 70
     const boxH = 90 + prRows.length * PR_ROW_H
@@ -339,7 +341,7 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
     ctx.lineWidth = 2
     ctx.stroke()
     ctx.globalAlpha = 1
-    eyebrow(ctx, 'Yeni rekorlar', PAD + 36, boxY + 64, p.accent)
+    eyebrow(ctx, t('workout.newRecords'), PAD + 36, boxY + 64, p.accent)
     ctx.font = `700 44px ${DISPLAY}`
     ctx.fillStyle = p.text
     prRows.forEach((name, i) => {
@@ -364,7 +366,7 @@ export async function drawSummaryCard(data: CardData): Promise<HTMLCanvasElement
 /** Canvas'ı PNG dosyasına çevirir. */
 function toPng(canvas: HTMLCanvasElement, name: string): Promise<File> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(new File([blob], name, { type: 'image/png' })) : reject(new Error('PNG üretilemedi'))), 'image/png')
+    canvas.toBlob((blob) => (blob ? resolve(new File([blob], name, { type: 'image/png' })) : reject(new Error(t('shareCard.failed')))), 'image/png')
   })
 }
 

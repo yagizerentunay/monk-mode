@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { CustomExercise, PastBlock, State, StrengthGoal, Workout } from '../store/schema.ts'
 import { MAX_PAST_BLOCKS } from './block.ts'
 import { mergeRoutines } from './mergeRoutines.ts'
@@ -260,25 +261,25 @@ export function mergeState(local: State, incoming: State): { state: State; repor
   return { state, report }
 }
 
-/** Birleştirme sonucunu kısa bir Türkçe durum satırına çevirir. */
+/** Birleştirme sonucunu arayüz dilinde kısa bir durum satırına çevirir. */
 export function describeMerge(r: MergeReport): string {
   const added = [
-    r.workouts.added && `${r.workouts.added} antrenman`,
-    r.routines.added && `${r.routines.added} rutin`,
-    r.bodyweight.added && `${r.bodyweight.added} kilo kaydı`,
-    r.measurements.added && `${r.measurements.added} ölçü kaydı`,
-    r.customEx.added && `${r.customEx.added} özel egzersiz`,
-    r.muscleFix.added && `${r.muscleFix.added} kas düzeltmesi`,
-    r.goals.added && `${r.goals.added} hedef`,
-    r.blocks.added && `${r.blocks.added} antrenman bloğu`,
+    r.workouts.added && t('count.workouts', { n: r.workouts.added }),
+    r.routines.added && t('count.routines', { n: r.routines.added }),
+    r.bodyweight.added && t('merge.bodyweight', { n: r.bodyweight.added }),
+    r.measurements.added && t('count.measurements', { n: r.measurements.added }),
+    r.customEx.added && t('merge.customEx', { n: r.customEx.added }),
+    r.muscleFix.added && t('merge.muscleFix', { n: r.muscleFix.added }),
+    r.goals.added && t('merge.goals', { n: r.goals.added }),
+    r.blocks.added && t('merge.blocks', { n: r.blocks.added }),
   ].filter(Boolean)
   const kinds = [r.workouts, r.routines, r.bodyweight, r.measurements, r.customEx, r.muscleFix, r.goals, r.blocks]
   const identical = kinds.reduce((n, c) => n + c.identical, 0)
   const conflicting = kinds.reduce((n, c) => n + c.conflicting, 0)
   const parts = [
-    added.length ? `${added.join(', ')} eklendi` : 'yeni kayıt yok',
-    identical ? `${identical} kayıt zaten vardı` : '',
-    conflicting ? `${conflicting} kayıt farklı, yereldeki korundu` : '',
+    added.length ? t('merge.added', { list: added.join(', '), n: added.length }) : t('merge.nothingNew'),
+    identical ? t('merge.identical', { n: identical }) : '',
+    conflicting ? t('merge.conflicting', { n: conflicting }) : '',
   ].filter(Boolean)
   return `${parts.join('; ')}.`
 }

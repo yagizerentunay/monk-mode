@@ -1,4 +1,5 @@
 import type { KeyboardEvent } from 'react'
+import { t } from '../i18n/index.ts'
 
 export type MapMuscle =
   | 'abdominals' | 'abductors' | 'adductors' | 'biceps' | 'calves' | 'chest' | 'forearms' | 'glutes'
@@ -129,9 +130,9 @@ export function MuscleMap({ levels, labels, selected = null, onSelect }: Props) 
   )
 
   return (
-    <svg className="musclemap" viewBox="0 0 360 330" role="group" aria-label="Kas haritası">
-      {renderView(FRONT, 0, 'front', 'Ön')}
-      {renderView(BACK, 180, 'back', 'Arka')}
+    <svg className="musclemap" viewBox="0 0 360 330" role="group" aria-label={t('muscleCard.title')}>
+      {renderView(FRONT, 0, 'front', t('muscleCard.front'))}
+      {renderView(BACK, 180, 'back', t('muscleCard.back'))}
     </svg>
   )
 }

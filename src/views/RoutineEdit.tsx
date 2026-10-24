@@ -1,3 +1,4 @@
+import { labels, t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
@@ -19,17 +20,17 @@ import { snapshotNow } from '../store/autoSnapshot.ts'
 import { deleteRoutineWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
 
-const PROG_LABEL: Record<ProgressionMode, string> = {
-  off: 'Kapalı',
-  linear: 'Doğrusal (tüm tekrarlar tamam → +ağırlık)',
-  double: 'Çift ilerleme (önce tekrar, sonra ağırlık)',
-}
+const PROG_LABEL = labels<ProgressionMode>({
+  off: 'settings.reminderOff',
+  linear: 'routine.prog.linear',
+  double: 'routine.prog.double',
+})
 
-const PROG_SHORT: Record<ProgressionMode, string> = {
-  off: 'İlerleme kapalı',
-  linear: 'Doğrusal',
-  double: 'Çift ilerleme',
-}
+const PROG_SHORT = labels<ProgressionMode>({
+  off: 'routine.progShort.off',
+  linear: 'routine.progShort.linear',
+  double: 'routine.progShort.double',
+})
 
 const round2 = (v: number) => Math.round(v * 100) / 100
 
@@ -50,17 +51,17 @@ function isCustom(cfg: ExCfg, i: number): boolean {
 function advSummary(cfg: ExCfg, unit: Unit): string {
   if (cfg.distance) {
     const parts = [`${formatDistance(cfg.meters ?? 0)} · ${formatLongClock(cfg.reps)}`]
-    if (cfg.superset) parts.push('süperset')
-    if (cfg.restSec !== undefined) parts.push(`${cfg.restSec} sn dinlenme`)
+    if (cfg.superset) parts.push(t('routine.sum.superset'))
+    if (cfg.restSec !== undefined) parts.push(t('routine.sum.rest', { n: cfg.restSec }))
     return parts.join(' · ')
   }
   const parts: string[] = [PROG_SHORT[cfg.prog]]
   // Süreli egzersizde ilerleme süreyi artırır; kg artışı kullanılmaz (bkz. lib/progression.ts).
-  if (cfg.prog !== 'off') parts.push(cfg.timed ? `+${TIMED_STEP_SEC} sn` : `+${round2(kgToUnit(cfg.inc, unit))} ${unit}`)
-  if (!cfg.timed && (cfg.warmups ?? 0) > 0) parts.push(`${cfg.warmups} ısınma`)
-  if ((cfg.drops ?? 0) > 0) parts.push(`${cfg.drops} drop`)
-  if (cfg.superset) parts.push('süperset')
-  if (cfg.restSec !== undefined) parts.push(`${cfg.restSec} sn dinlenme`)
+  if (cfg.prog !== 'off') parts.push(cfg.timed ? `+${t('unit.secValue', { n: TIMED_STEP_SEC })}` : `+${round2(kgToUnit(cfg.inc, unit))} ${unit}`)
+  if (!cfg.timed && (cfg.warmups ?? 0) > 0) parts.push(t('routine.sum.warmups', { n: cfg.warmups ?? 0 }))
+  if ((cfg.drops ?? 0) > 0) parts.push(t('routine.sum.drops', { n: cfg.drops ?? 0 }))
+  if (cfg.superset) parts.push(t('routine.sum.superset'))
+  if (cfg.restSec !== undefined) parts.push(t('routine.sum.rest', { n: cfg.restSec }))
   return parts.join(' · ')
 }
 
@@ -98,7 +99,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
   return (
     <div className="stack">
       <div className="row between">
-        <button className="btn small" onClick={() => navigate('/plan')}>← Planlar</button>
+        <button className="btn small" onClick={() => navigate('/plan')}>← {t('routine.back')}</button>
         <button
           className="btn primary small"
           disabled={!canSave}
@@ -107,19 +108,19 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
             navigate('/plan')
           }}
         >
-          Kaydet
+          {t('common.save')}
         </button>
       </div>
 
       <div>
-        <h1 className="sr-only">{existing ? 'Rutini düzenle' : 'Yeni rutin'}</h1>
-        <div className="eyebrow" aria-hidden="true">{existing ? 'Rutini düzenle' : 'Yeni rutin'}</div>
-        <div className="sub">{draft.ex.length} egzersiz</div>
+        <h1 className="sr-only">{existing ? t('routine.edit') : t('plan.newRoutine')}</h1>
+        <div className="eyebrow" aria-hidden="true">{existing ? t('routine.edit') : t('plan.newRoutine')}</div>
+        <div className="sub">{t('count.exercises', { n: draft.ex.length })}</div>
       </div>
       <input
         className="input routinename"
-        aria-label="Rutin adı"
-        placeholder="Rutin adı (örn. Push A)"
+        aria-label={t('routine.name')}
+        placeholder={t('routine.namePlaceholder')}
         value={draft.name}
         onChange={(e) => setDraft({ ...draft, name: e.target.value })}
       />
@@ -128,15 +129,15 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
         <div key={i} className={`card stack exedit${groups[i] ? ' ss' : ''}`}>
           <div className="row between">
             <div className="grow">
-              <div className="eyebrow muted">Egzersiz {String(i + 1).padStart(2, '0')}</div>
-              {groups[i] && <span className="badge on">Süperset {groupLetter(groups[i].group)}{groups[i].pos + 1}</span>}
+              <div className="eyebrow muted">{t('routine.exerciseN', { n: String(i + 1).padStart(2, '0') })}</div>
+              {groups[i] && <span className="badge on">{t('workout.superset')} {groupLetter(groups[i].group)}{groups[i].pos + 1}</span>}
               <div className="exname">{byId.get(cfg.exId)?.name ?? cfg.exId}</div>
             </div>
-            <button className="btn small" aria-label="Yukarı" onClick={() => move(i, -1)}>↑</button>
-            <button className="btn small" aria-label="Aşağı" onClick={() => move(i, 1)}>↓</button>
+            <button className="btn small" aria-label={t('routine.up')} onClick={() => move(i, -1)}>↑</button>
+            <button className="btn small" aria-label={t('routine.down')} onClick={() => move(i, 1)}>↓</button>
             <button
               className="btn small danger"
-              aria-label="Kaldır"
+              aria-label={t('routine.remove')}
               onClick={() => setDraft((d) => ({ ...d, ex: removeExercise(d.ex, i) }))}
             >
               ✕
@@ -145,7 +146,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
 
           <div className="grid3">
             <label className="field">
-              <span className="sub">Set</span>
+              <span className="sub">{t('workout.col.set')}</span>
               <NumberField
                 value={cfg.sets}
                 min={1}
@@ -155,7 +156,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
             {cfg.distance ? (
               <>
                 <label className="field">
-                  <span className="sub">Mesafe (km)</span>
+                  <span className="sub">{t('workout.distance')}</span>
                   <NumberField
                     value={cfg.meters ?? 0}
                     toDisplay={metersToKm}
@@ -165,14 +166,14 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                   />
                 </label>
                 <label className="field">
-                  <span className="sub">Süre (dk)</span>
+                  <span className="sub">{t('routine.durationMin')}</span>
                   <DurationField long value={cfg.reps} onChange={(v) => patchEx(i, { reps: v, repsMax: v })} />
                 </label>
               </>
             ) : (
               <>
                 <label className="field">
-                  <span className="sub">{cfg.timed ? 'Süre (sn)' : 'Tekrar'}</span>
+                  <span className="sub">{cfg.timed ? t('routine.durationSec') : t('workout.col.reps')}</span>
                   <NumberField
                     value={cfg.reps}
                     min={1}
@@ -180,7 +181,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                   />
                 </label>
                 <label className="field">
-                  <span className="sub">{cfg.bw ? 'Ek yük' : 'Ağırlık'} ({unit})</span>
+                  <span className="sub">{cfg.bw ? t('workout.col.addedLoad', { unit }) : t('home.weightUnit', { unit })}</span>
                   <NumberField
                     value={cfg.weight}
                     min={cfg.bw ? -300 : undefined}
@@ -222,7 +223,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 )
               }
             />
-            <span>Mesafe <span className="sub">(koşu, bisiklet, kürek: mesafe + süre)</span></span>
+            <span>{t('routine.distance')} <span className="sub">{t('routine.distanceHint')}</span></span>
           </label>
 
           {!cfg.distance && (
@@ -233,7 +234,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                   checked={!!cfg.side}
                   onChange={(e) => patchEx(i, { side: e.target.checked })}
                 />
-                <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
+                <span>{t('routine.unilateral')} <span className="sub">{t('routine.unilateralHint')}</span></span>
               </label>
 
               <label className="row">
@@ -243,7 +244,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                   // Ağırlığın anlamı değişir (mutlak yük ↔ ek yük); eski değer yeni anlamda yanlış olurdu.
                   onChange={(e) => patchEx(i, e.target.checked ? { bw: true, weight: 0 } : { bw: undefined, weight: 0 })}
                 />
-                <span>Vücut ağırlığı egzersizi <span className="sub">(ağırlık = ek yük)</span></span>
+                <span>{t('routine.bodyweight')} <span className="sub">{t('routine.bodyweightHint')}</span></span>
               </label>
 
               <label className="row">
@@ -260,7 +261,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                     )
                   }
                 />
-                <span>Süreli <span className="sub">(plank, izometrik: hedef saniyedir)</span></span>
+                <span>{t('routine.timed')} <span className="sub">{t('routine.timedHint')}</span></span>
               </label>
             </>
           )}
@@ -271,7 +272,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
             open={isCustom(cfg, i)}
           >
             <summary>
-              <span>Gelişmiş ayarlar</span>
+              <span>{t('routine.advanced')}</span>
               <span className="advsum">{advSummary(cfg, unit)}</span>
             </summary>
             <div className="stack advbody">
@@ -282,7 +283,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                     checked={!!cfg.superset}
                     onChange={(e) => patchEx(i, { superset: e.target.checked })}
                   />
-                  <span>Öncekiyle süperset <span className="sub">(dönüşümlü, tur sonunda dinlenme)</span></span>
+                  <span>{t('routine.superset')} <span className="sub">{t('routine.supersetHint')}</span></span>
                 </label>
               )}
 
@@ -290,7 +291,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 <div className="grid3">
                   {!cfg.timed && (
                     <label className="field">
-                      <span className="sub">Isınma seti</span>
+                      <span className="sub">{t('routine.warmupSets')}</span>
                       <NumberField
                         value={cfg.warmups ?? 0}
                         onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
@@ -298,7 +299,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                     </label>
                   )}
                   <label className="field">
-                    <span className="sub">Son sete drop</span>
+                    <span className="sub">{t('routine.drops')}</span>
                     <NumberField
                       value={cfg.drops ?? 0}
                       onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
@@ -308,7 +309,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
               )}
 
               <label className="field">
-                <span className="sub">Dinlenme (sn)</span>
+                <span className="sub">{t('routine.restSec')}</span>
                 <NumberField
                   value={cfg.restSec ?? defaultRest}
                   min={10}
@@ -317,13 +318,13 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
               </label>
               {cfg.restSec !== undefined && (
                 <button className="btn small" onClick={() => patchEx(i, { restSec: undefined })}>
-                  Ayardaki süreyi kullan ({defaultRest} sn)
+                  {t('routine.useDefaultRest', { rest: t('unit.secValue', { n: defaultRest }) })}
                 </button>
               )}
 
               {!cfg.distance && (
                 <label className="field">
-                  <span className="sub">İlerleme</span>
+                  <span className="sub">{t('routine.progression')}</span>
                   <select
                     className="input"
                     value={cfg.prog}
@@ -340,7 +341,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 <div className="grid3">
                   {!cfg.timed && (
                     <label className="field">
-                      <span className="sub">Artış ({unit})</span>
+                      <span className="sub">{t('routine.increment', { unit })}</span>
                       <NumberField
                         value={cfg.inc}
                         toDisplay={(v) => kgToUnit(v, unit)}
@@ -352,7 +353,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                   )}
                   {cfg.prog === 'double' && (
                     <label className="field">
-                      <span className="sub">{cfg.timed ? 'Maks. süre (sn)' : 'Maks. tekrar'}</span>
+                      <span className="sub">{cfg.timed ? t('routine.maxSec') : t('routine.maxReps')}</span>
                       <NumberField
                         value={cfg.repsMax}
                         min={1}
@@ -364,7 +365,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
               )}
               {cfg.timed && cfg.prog !== 'off' && (
                 <p className="sub" style={{ margin: 0 }}>
-                  Tüm setlerde hedef süre tutulunca bir sonraki seans hedefi +{TIMED_STEP_SEC} sn artar; ağırlık değişmez.
+                  {t('routine.timedProgHint', { step: t('unit.secValue', { n: TIMED_STEP_SEC }) })}
                 </p>
               )}
             </div>
@@ -372,11 +373,11 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
         </div>
       ))}
 
-      <button className="btn primary block" onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
+      <button className="btn primary block" onClick={() => setPicking(true)}>+ {t('workout.addExercise')}</button>
 
       {existing && (
         <button className="btn block" onClick={() => setSharing(true)}>
-          Rutini paylaş
+          {t('routine.share')}
         </button>
       )}
 
@@ -386,12 +387,12 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
           onClick={() => {
             // Kaydedilmiş rutin kopyalanır; hafta gününe atanmaz. Önce otomatik kopya (rutin ekleme gibi).
             const copy = duplicateRoutine(existing, routines, newId())
-            void snapshotNow('Rutin kopyalamadan önce').catch(() => {})
+            void snapshotNow(t('snapshot.beforeCopyRoutine')).catch(() => {})
             saveRoutine(copy)
             navigate(`/plan/r/${copy.id}`)
           }}
         >
-          Rutini kopyala
+          {t('routine.copy')}
         </button>
       )}
 
@@ -399,26 +400,26 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
         <button
           className="btn danger block dangerzone"
           onClick={() => {
-            if (confirm(`"${existing.name}" rutini silinsin mi?`)) {
+            if (confirm(t('routine.deleteConfirm', { name: existing.name }))) {
               deleteRoutineWithUndo(existing.id)
               navigate('/plan')
             }
           }}
         >
-          Rutini sil
+          {t('routine.delete')}
         </button>
       )}
 
       {/* Kaydedilmiş hâli paylaşılır (kopyalamadaki gibi); kaydedilmemiş düzenlemeler linke girmez. */}
       {existing && (
-        <BottomSheet open={sharing} onClose={() => setSharing(false)} title="Rutini paylaş">
+        <BottomSheet open={sharing} onClose={() => setSharing(false)} title={t('routine.share')}>
           {sharing && <ShareRoutine routine={existing} />}
         </BottomSheet>
       )}
 
-      <BottomSheet open={picking} onClose={() => setPicking(false)} title="Egzersiz seç">
+      <BottomSheet open={picking} onClose={() => setPicking(false)} title={t('routine.pickExercise')}>
         <ExerciseBrowser
-          actionLabel="Ekle"
+          actionLabel={t('workout.add')}
           onSelect={(ex) => {
             setDraft((d) => ({
               ...d,

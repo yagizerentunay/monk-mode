@@ -1,3 +1,4 @@
+import { labels } from '../i18n/index.ts'
 import type { Workout } from '../store/schema.ts'
 import { dayString } from './workout.ts'
 
@@ -24,25 +25,26 @@ export const MUSCLES = [
 
 export type MuscleId = (typeof MUSCLES)[number]
 
-export const MUSCLE_LABEL: Record<MuscleId, string> = {
-  abdominals: 'Karın',
-  abductors: 'Kalça dış',
-  adductors: 'Kalça iç',
-  biceps: 'Biseps',
-  calves: 'Baldır',
-  chest: 'Göğüs',
-  forearms: 'Ön kol',
-  glutes: 'Kalça',
-  hamstrings: 'Arka bacak',
-  lats: 'Sırt (lat)',
-  'lower back': 'Bel',
-  'middle back': 'Orta sırt',
-  neck: 'Boyun',
-  quadriceps: 'Ön bacak',
-  shoulders: 'Omuz',
-  traps: 'Trapez',
-  triceps: 'Triseps',
-}
+/** Kas adları, geçerli arayüz dilinde. */
+export const MUSCLE_LABEL: Readonly<Record<MuscleId, string>> = labels({
+  abdominals: 'muscle.abdominals',
+  abductors: 'muscle.abductors',
+  adductors: 'muscle.adductors',
+  biceps: 'muscle.biceps',
+  calves: 'muscle.calves',
+  chest: 'muscle.chest',
+  forearms: 'muscle.forearms',
+  glutes: 'muscle.glutes',
+  hamstrings: 'muscle.hamstrings',
+  lats: 'muscle.lats',
+  'lower back': 'muscle.lowerBack',
+  'middle back': 'muscle.middleBack',
+  neck: 'muscle.neck',
+  quadriceps: 'muscle.quadriceps',
+  shoulders: 'muscle.shoulders',
+  traps: 'muscle.traps',
+  triceps: 'muscle.triceps',
+})
 
 export type MuscleSets = Record<MuscleId, number>
 

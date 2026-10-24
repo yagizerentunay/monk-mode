@@ -6,7 +6,8 @@
  * Kurallar:
  * - Çalışma zamanı kimliği: `legacyIds[0]` varsa o, yoksa `atlas:<id>`. İlk kimlikten sonraki
  *   `legacyIds` eski kimlik tablosuna (ad, kas, ekipman) girer; geçmiş kayıtlar onları çözer.
- * - Ad `name.en`; yönergeler `instructions.tr` doluysa o, yoksa `instructions.en`.
+ * - Ad `name.en`; yönergeler `instructions.tr` doluysa o, yoksa `instructions.en`. Türkçe seçildiyse ve
+ *   İngilizce de varsa İngilizce arayüz için ayrıca `instructionsEn` yazılır.
  * - Seviye `difficulty`den (`advanced` -> `expert`), kategori Atlas kategorisinden (`mobility` -> `stretching`).
  * - Ekipman: Atlas kodu -> Monk değeri; bench/mat/pull-up-bar tesis kodudur, listedeki ilk tesis dışı
  *   kod seçilir, yoksa (ya da liste boşsa) `null`.
@@ -137,12 +138,18 @@ function mapEquipment(id: string, value: unknown): string | null {
   return picked
 }
 
-function mapInstructions(id: string, value: AtlasExercise['instructions'] | undefined): string[] {
+/**
+ * Yönergeler: `instructions` Türkçe varsa Türkçe, yoksa İngilizcedir (eski davranış, Türkçe arayüz bunu okur).
+ * Türkçe seçildiyse ve İngilizce de varsa `en` ayrıca döner: İngilizce arayüz onu gösterir. Türkçe yokken
+ * `instructions` zaten İngilizcedir, kopya yazılmaz.
+ */
+function mapInstructions(id: string, value: AtlasExercise['instructions'] | undefined): { lines: string[]; en?: string[] } {
   const tr = value?.tr
-  const lines = Array.isArray(tr) && tr.length > 0 ? tr : value?.en
-  const out = stringList(id, 'instructions', lines ?? [])
-  if (out.length === 0) fail(id, 'yönerge yok (instructions.tr ve instructions.en boş)')
-  return out
+  const hasTr = Array.isArray(tr) && tr.length > 0
+  const lines = stringList(id, 'instructions', (hasTr ? tr : value?.en) ?? [])
+  if (lines.length === 0) fail(id, 'yönerge yok (instructions.tr ve instructions.en boş)')
+  const en = hasTr && Array.isArray(value?.en) && value.en.length > 0 ? stringList(id, 'instructions.en', value.en) : undefined
+  return en ? { lines, en } : { lines }
 }
 
 /** Görsel dosyasını seçer: `reference` > `finish` > `start`; hiçbiri yoksa `null`. */
@@ -209,7 +216,7 @@ export function atlasToCatalog(
     const equipment = mapEquipment(at, r.equipment)
     const primaryMuscles = mapMuscles(at, 'primaryMuscles', r.primaryMuscles)
     const secondaryMuscles = mapMuscles(at, 'secondaryMuscles', r.secondaryMuscles)
-    const instructions = mapInstructions(at, r.instructions)
+    const { lines: instructions, en: instructionsEn } = mapInstructions(at, r.instructions)
 
     const aliases = r.aliases === undefined ? [] : stringList(at, 'aliases', r.aliases)
 
@@ -228,7 +235,7 @@ export function atlasToCatalog(
       illustration = to
     }
 
-    // Anahtar sırası bugünkü dosyayla aynı: id, name, aliases, level, equipment, category, kaslar, illustration, instructions.
+    // Anahtar sırası: id, name, aliases, level, equipment, category, kaslar, illustration, instructions, instructionsEn.
     const rec: LibraryRecord = {
       id,
       name: r.name.en,
@@ -240,6 +247,7 @@ export function atlasToCatalog(
       secondaryMuscles,
       ...(illustration === undefined ? {} : { illustration }),
       instructions,
+      ...(instructionsEn === undefined ? {} : { instructionsEn: [...instructionsEn] }),
     }
     library.push(rec)
 

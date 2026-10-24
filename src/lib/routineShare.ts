@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { CustomExercise, ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
 import { MAX_DISTANCE_M, MAX_DISTANCE_SEC } from './distance.ts'
 import { MAX_ROUTINE_SETS } from './intensity.ts'
@@ -135,13 +136,13 @@ function toBase64Url(bytes: Uint8Array): string {
 }
 
 function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
-  if (!/^[A-Za-z0-9_-]+$/.test(text)) throw new ShareError('Link bozuk: geçersiz karakter var.')
+  if (!/^[A-Za-z0-9_-]+$/.test(text)) throw new ShareError(t('shareErr.badChars'))
   const b64 = text.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (text.length % 4)) % 4)
   let bin: string
   try {
     bin = atob(b64)
   } catch {
-    throw new ShareError('Link bozuk: kodlama çözülemedi.')
+    throw new ShareError(t('shareErr.badEncoding'))
   }
   return Uint8Array.from(bin, (c) => c.charCodeAt(0))
 }
@@ -157,7 +158,7 @@ async function readAll(stream: ReadableStream<Uint8Array>, limit: number): Promi
     total += value.length
     if (total > limit) {
       await reader.cancel().catch(() => {})
-      throw new ShareError('Link çok büyük.')
+      throw new ShareError(t('shareErr.tooBig'))
     }
     chunks.push(value)
   }
@@ -183,8 +184,8 @@ const supported = () => typeof CompressionStream === 'function' && typeof Decomp
 
 /** Rutini paylaşım payload'una çevirir. Çok büyük rutinde ya da desteklenmeyen tarayıcıda ShareError verir. */
 export async function encodeRoutine(routine: Routine, customEx: readonly CustomExercise[] = []): Promise<string> {
-  if (!supported()) throw new ShareError('Bu tarayıcı paylaşım linki oluşturamıyor.')
-  if (routine.ex.length > MAX_SHARE_EXERCISES) throw new ShareError(`Rutin paylaşmak için çok büyük (en çok ${MAX_SHARE_EXERCISES} egzersiz).`)
+  if (!supported()) throw new ShareError(t('shareErr.cannotCreate'))
+  if (routine.ex.length > MAX_SHARE_EXERCISES) throw new ShareError(t('shareErr.tooManyExercises', { n: MAX_SHARE_EXERCISES }))
   const used = new Set(routine.ex.map((e) => e.exId))
   const custom = customEx
     .filter((c) => used.has(c.id))
@@ -194,38 +195,38 @@ export async function encodeRoutine(routine: Routine, customEx: readonly CustomE
   const json = new TextEncoder().encode(JSON.stringify(payload))
   const packed = await readAll(streamOf(json).pipeThrough(new CompressionStream('deflate-raw')), Infinity)
   const text = toBase64Url(packed)
-  if (text.length > MAX_PAYLOAD_CHARS) throw new ShareError('Rutin paylaşmak için çok büyük: birkaç egzersizi ayrı bir rutine bölmeyi dene.')
+  if (text.length > MAX_PAYLOAD_CHARS) throw new ShareError(t('shareErr.routineTooBig'))
   return text
 }
 
 /** Paylaşım payload'unu çözer ve doğrular. Bozuk, çok büyük ya da desteklenmeyen sürümde ShareError verir. */
 export async function decodeRoutine(text: string): Promise<SharedRoutine> {
-  if (!supported()) throw new ShareError('Bu tarayıcı paylaşım linkini açamıyor.')
-  if (text.length === 0) throw new ShareError('Link boş.')
-  if (text.length > MAX_PAYLOAD_CHARS) throw new ShareError('Link çok büyük.')
+  if (!supported()) throw new ShareError(t('shareErr.cannotOpen'))
+  if (text.length === 0) throw new ShareError(t('shareErr.empty'))
+  if (text.length > MAX_PAYLOAD_CHARS) throw new ShareError(t('shareErr.tooBig'))
   const packed = fromBase64Url(text)
   let json: Uint8Array
   try {
     json = await readAll(streamOf(packed).pipeThrough(new DecompressionStream('deflate-raw')), MAX_JSON_BYTES)
   } catch (e) {
     if (e instanceof ShareError) throw e
-    throw new ShareError('Link bozuk: veri açılamadı.')
+    throw new ShareError(t('shareErr.cannotInflate'))
   }
   let data: unknown
   try {
     data = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(json))
   } catch {
-    throw new ShareError('Link bozuk: veri okunamadı.')
+    throw new ShareError(t('shareErr.cannotParse'))
   }
-  if (typeof data !== 'object' || data === null || Array.isArray(data)) throw new ShareError('Link bozuk: beklenmeyen veri.')
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) throw new ShareError(t('shareErr.unexpected'))
   const p = data as Record<string, unknown>
-  if (typeof p.v !== 'number') throw new ShareError('Link bozuk: sürüm yok.')
-  if (p.v > SHARE_VERSION) throw new ShareError('Bu link uygulamanın daha yeni bir sürümüyle oluşturulmuş; önce uygulamayı güncelle.')
-  if (p.v !== SHARE_VERSION) throw new ShareError('Bu link biçimi desteklenmiyor.')
-  if (!Array.isArray(p.e) || p.e.length > MAX_SHARE_EXERCISES) throw new ShareError('Link bozuk: egzersiz listesi geçersiz.')
+  if (typeof p.v !== 'number') throw new ShareError(t('shareErr.noVersion'))
+  if (p.v > SHARE_VERSION) throw new ShareError(t('shareErr.newerVersion'))
+  if (p.v !== SHARE_VERSION) throw new ShareError(t('shareErr.unsupported'))
+  if (!Array.isArray(p.e) || p.e.length > MAX_SHARE_EXERCISES) throw new ShareError(t('shareErr.badList'))
   const name = typeof p.n === 'string' ? p.n.slice(0, MAX_NAME_CHARS) : ''
   const routine = sanitizeRoutine({ id: 'shared', name, ex: p.e.map(fromShareEx) })
-  if (!routine) throw new ShareError('Linkte geçerli egzersiz yok.')
+  if (!routine) throw new ShareError(t('shareErr.noExercises'))
   const used = new Set(routine.ex.map((e) => e.exId))
   const customEx = (Array.isArray(p.c) ? p.c : [])
     .map(fromShareCustom)

@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { facetValues, filterExercises, type Exercise } from '../lib/exercises.ts'
 import { ChipRow } from './ChipRow.tsx'
@@ -28,36 +29,36 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
 
   const reset = () => setShown(PAGE)
 
-  if (error) return <p className="sub">Egzersizler yüklenemedi: {error}</p>
+  if (error) return <p className="sub">{t('exercises.loadFailed', { error })}</p>
 
   return (
     <div className="stack exbrowser">
       <input
         className="input"
         type="search"
-        placeholder="Egzersiz ara…"
+        placeholder={t('exercises.search')}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value)
           reset()
         }}
       />
-      <div className="eyebrow muted">Kas grubu</div>
+      <div className="eyebrow muted">{t('exercises.muscleGroup')}</div>
       <ChipRow>
-        <button className={`chip${muscle === null ? ' on' : ''}`} onClick={() => { setMuscle(null); reset() }}>Tüm kaslar</button>
+        <button className={`chip${muscle === null ? ' on' : ''}`} onClick={() => { setMuscle(null); reset() }}>{t('exercises.allMuscles')}</button>
         {muscles.map((m) => (
           <button key={m} className={`chip${muscle === m ? ' on' : ''}`} onClick={() => { setMuscle(m); reset() }}>{muscleLabel(m)}</button>
         ))}
       </ChipRow>
-      <div className="eyebrow muted">Ekipman</div>
+      <div className="eyebrow muted">{t('exercises.equipment')}</div>
       <ChipRow>
-        <button className={`chip${equipment === null ? ' on' : ''}`} onClick={() => { setEquipment(null); reset() }}>Tüm ekipman</button>
+        <button className={`chip${equipment === null ? ' on' : ''}`} onClick={() => { setEquipment(null); reset() }}>{t('exercises.allEquipment')}</button>
         {equipments.map((q) => (
           <button key={q} className={`chip${equipment === q ? ' on' : ''}`} onClick={() => { setEquipment(q); reset() }}>{equipmentLabel(q)}</button>
         ))}
       </ChipRow>
 
-      <p className="sub resultcount">{loading ? 'Yükleniyor…' : `${filtered.length} egzersiz`}</p>
+      <p className="sub resultcount">{loading ? t('common.loading') : t('count.exercises', { n: filtered.length })}</p>
 
       <div className="card" style={{ padding: '4px 14px' }}>
         {filtered.slice(0, shown).map((e) => (
@@ -73,12 +74,12 @@ export function ExerciseBrowser({ onSelect, actionLabel }: Props) {
             {actionLabel ? <span className="exaction">{actionLabel}</span> : <span className="chev" aria-hidden="true">›</span>}
           </button>
         ))}
-        {!loading && filtered.length === 0 && <p className="sub">Sonuç yok.</p>}
+        {!loading && filtered.length === 0 && <p className="sub">{t('exercises.noResults')}</p>}
       </div>
 
       {filtered.length > shown && (
         <button className="btn block" onClick={() => setShown((n) => n + PAGE)}>
-          Daha fazla göster
+          {t('exercises.showMore')}
         </button>
       )}
     </div>

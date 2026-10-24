@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { restDoneAlert } from '../lib/alert.ts'
 import { collectDiagnostics, diagnosticsReport, type DiagRow } from '../lib/diagnostics.ts'
 import { useStore } from '../store/useStore.ts'
@@ -30,24 +31,23 @@ export function DiagnosticsCard() {
     const text = diagnosticsReport(rows, navigator.userAgent)
     try {
       await navigator.clipboard.writeText(text)
-      setCopied('Rapor kopyalandı.')
+      setCopied(t('diag.copied'))
       setFallback(null)
     } catch {
-      setCopied('Kopyalanamadı; aşağıdaki metni seçip kopyala.')
+      setCopied(t('diag.copyFailed'))
       setFallback(text)
     }
   }
 
   return (
     <div className="card stack diagnostics">
-      <div className="eyebrow">Tanılama</div>
+      <div className="eyebrow">{t('diag.title')}</div>
       <p className="sub" style={{ margin: 0 }}>
-        Bu cihazda çevrimdışı çalışma, kalıcı depolama, paylaşım ve ses gibi özelliklerin gerçekten çalışıp
-        çalışmadığını gösterir. Hiçbir şeyi değiştirmez.
+        {t('diag.hint')}
       </p>
       {rows === null ? (
         <button className="btn block" disabled={busy} onClick={() => void refresh()}>
-          Tanılamayı göster
+          {t('diag.show')}
         </button>
       ) : (
         <>
@@ -62,13 +62,13 @@ export function DiagnosticsCard() {
             ))}
           </ul>
           <div className="row">
-            <button className="btn small grow" onClick={testSound}>Test sesi çal</button>
-            <button className="btn small grow" disabled={busy} onClick={() => void refresh()}>Yenile</button>
+            <button className="btn small grow" onClick={testSound}>{t('diag.testSound')}</button>
+            <button className="btn small grow" disabled={busy} onClick={() => void refresh()}>{t('diag.refresh')}</button>
           </div>
-          <button className="btn primary block" onClick={() => void copy()}>Raporu kopyala</button>
+          <button className="btn primary block" onClick={() => void copy()}>{t('diag.copy')}</button>
           {copied && <p className="sub" role="status" style={{ margin: 0 }}>{copied}</p>}
           {fallback && (
-            <textarea className="input" readOnly rows={6} value={fallback} onFocus={(e) => e.target.select()} aria-label="Tanılama raporu" />
+            <textarea className="input" readOnly rows={6} value={fallback} onFocus={(e) => e.target.select()} aria-label={t('diag.reportAria')} />
           )}
         </>
       )}

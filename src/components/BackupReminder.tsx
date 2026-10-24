@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useEffect, useMemo, useState } from 'react'
 import { backupStatus, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { shareBackup } from '../store/downloadBackup.ts'
@@ -32,18 +33,18 @@ export function BackupReminder() {
   )
 
   if (done) {
-    return <div className="card banner ok" role="status">✓ Yedek alındı.</div>
+    return <div className="card banner ok" role="status">✓ {t('backup.done')}</div>
   }
   if (!status.due) return null
 
   return (
     <div className="card banner stack" role="status">
       <div>
-        <b className="banner-title">⚠ Verini yedekle</b>
+        <b className="banner-title">⚠ {t('backup.remindTitle')}</b>
         <div className="sub">
           {status.never
-            ? `Hiç yedek almadın; ${workouts.length} antrenman yalnızca bu tarayıcıda duruyor.`
-            : `Son yedeğin ${status.days} gün önce; o günden beri yeni kayıtların yedeklenmedi.`}
+            ? t('backup.remindNever', { workouts: t('count.workouts', { n: workouts.length }) })
+            : t('backup.remindSince', { days: t('count.days', { n: status.days ?? 0 }) })}
         </div>
       </div>
       <div className="row">
@@ -52,17 +53,17 @@ export function BackupReminder() {
             className="btn primary small grow"
             onClick={() => void backupToFolder({ ask: true }).then((r) => setDone(r === 'saved'))}
           >
-            Klasöre yedekle
+            {t('backup.toFolder')}
           </button>
         )}
         <button
           className={`btn small grow${hasFolder ? '' : ' primary'}`}
           onClick={() => void shareBackup().then((r) => setDone(r !== 'cancelled'))}
         >
-          Yedeği kaydet
+          {t('backup.save')}
         </button>
         <button className="btn small grow" onClick={() => snoozeBackup(Date.now())}>
-          {SNOOZE_DAYS} gün sonra hatırlat
+          {t('backup.snooze', { days: t('count.days', { n: SNOOZE_DAYS }) })}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { loadExercises } from '../lib/exercises.ts'
 import { exportCsv, exportMeasurementsCsv, type SaveResult } from '../store/downloadBackup.ts'
 import { useStore } from '../store/useStore.ts'
@@ -23,7 +24,7 @@ export function CsvExportCard() {
     setMessage(null)
     try {
       const r = await run()
-      if (r !== 'cancelled') setMessage(r === 'shared' ? `CSV kaydedildi: ${what}.` : `CSV indirildi: ${what}.`)
+      if (r !== 'cancelled') setMessage(r === 'shared' ? t('csv.saved', { what }) : t('csv.downloaded', { what }))
     } catch (e) {
       setMessage((e as Error).message)
     } finally {
@@ -33,21 +34,20 @@ export function CsvExportCard() {
 
   return (
     <div className="card stack">
-      <div className="eyebrow">Excel için dışa aktar</div>
+      <div className="eyebrow">{t('csv.title')}</div>
       <p className="sub" style={{ margin: 0 }}>
-        Tamamlanan her set bir satır olur; noktalı virgül ayraçlı, virgül ondalıklı dosya Türkçe Excel'de çift tıklayınca doğru açılır.
-        Yedeğin yerini tutmaz: geri yüklenemez.
+        {t('csv.hint')}
       </p>
-      <button className="btn block" disabled={count === 0 || busy} onClick={() => void save(exportCsv, `${count} antrenman`)}>
-        Antrenmanları CSV olarak kaydet
+      <button className="btn block" disabled={count === 0 || busy} onClick={() => void save(exportCsv, t('count.workouts', { n: count }))}>
+        {t('csv.workouts')}
       </button>
       {measureCount > 0 && (
         <button
           className="btn block"
           disabled={busy}
-          onClick={() => void save(exportMeasurementsCsv, `${measureCount} ölçü kaydı`)}
+          onClick={() => void save(exportMeasurementsCsv, t('count.measurements', { n: measureCount }))}
         >
-          Ölçüleri CSV olarak kaydet
+          {t('csv.measurements')}
         </button>
       )}
       {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}

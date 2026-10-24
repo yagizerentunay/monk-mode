@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { fingerprint } from '../lib/backupReminder.ts'
 import { measurementsToCsv, workoutsToCsv } from '../lib/exportCsv.ts'
 import { loadExercises } from '../lib/exercises.ts'
@@ -21,7 +22,7 @@ function saveFile(name: string, text: string, type: string): void {
 export function downloadBackup(now: Date = new Date()): void {
   useStore.getState().markBackedUp(now.getTime())
   const text = exportBackup(snapshot(useStore.getState()), now)
-  saveFile(`monk-mode-yedek-${dayString(now)}.json`, text, 'application/json')
+  saveFile(t('file.backup', { date: dayString(now) }), text, 'application/json')
 }
 
 export type SaveResult = 'shared' | 'downloaded' | 'cancelled'
@@ -67,14 +68,14 @@ export function markedBackupText(now: Date): string {
  * Kullanıcı dokunuşuyla çağrılmalı (paylaşım menüsü jest ister).
  */
 export async function shareBackup(now: Date = new Date()): Promise<SaveResult> {
-  const name = `monk-mode-yedek-${dayString(now)}.json`
+  const name = t('file.backup', { date: dayString(now) })
   const file = new File([markedBackupText(now)], name, { type: 'application/json' })
   if (!canShareFile(file)) {
     downloadBackup(now)
     return 'downloaded'
   }
   // Kullanıcı vazgeçti (AbortError) ya da paylaşım başarısız: yedek alınmış sayılmaz.
-  if ((await shareFile(file, 'monk-mode yedeği')) === 'cancelled') return 'cancelled'
+  if ((await shareFile(file, t('file.backupTitle'))) === 'cancelled') return 'cancelled'
   useStore.getState().markBackedUp(now.getTime())
   return 'shared'
 }
@@ -94,28 +95,28 @@ export async function exportCsv(now: Date = new Date()): Promise<SaveResult> {
   }
   for (const c of customEx) byId.set(c.id, c.name)
   const csv = workoutsToCsv(workouts, { unit: settings.unit, names: (id) => byId.get(id) ?? id })
-  const name = `monk-mode-antrenmanlar-${dayString(now)}.csv`
+  const name = t('file.workoutsCsv', { date: dayString(now) })
   const file = new File([csv], name, { type: 'text/csv' })
   if (!canShareFile(file)) {
     saveFile(name, csv, 'text/csv')
     return 'downloaded'
   }
-  return shareFile(file, 'monk-mode antrenmanları')
+  return shareFile(file, t('file.workoutsTitle'))
 }
 
 /** Vücut ölçülerini ayrı bir CSV olarak kaydeder (bkz. lib/exportCsv.ts); telefonda paylaşım menüsü, yoksa indirme. */
 export async function exportMeasurementsCsv(now: Date = new Date()): Promise<SaveResult> {
   const csv = measurementsToCsv(useStore.getState().measurements)
-  const name = `monk-mode-olculer-${dayString(now)}.csv`
+  const name = t('file.measurementsCsv', { date: dayString(now) })
   const file = new File([csv], name, { type: 'text/csv' })
   if (!canShareFile(file)) {
     saveFile(name, csv, 'text/csv')
     return 'downloaded'
   }
-  return shareFile(file, 'monk-mode ölçüleri')
+  return shareFile(file, t('file.measurementsTitle'))
 }
 
 /** Okunamayan kayıtlı verinin ham metnini olduğu gibi indirir (kurtarma ya da inceleme için). */
 export function downloadRaw(raw: string, now: Date = new Date()): void {
-  saveFile(`monk-mode-bozuk-veri-${dayString(now)}.txt`, raw, 'text/plain')
+  saveFile(t('file.raw', { date: dayString(now) }), raw, 'text/plain')
 }

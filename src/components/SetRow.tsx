@@ -1,3 +1,4 @@
+import { t, labels } from '../i18n/index.ts'
 import type { SetKind } from '../lib/intensity.ts'
 import { formatPace, kmToMeters, metersToKm, setMeters } from '../lib/distance.ts'
 import { SIDES, type Side } from '../lib/sets.ts'
@@ -9,8 +10,8 @@ import { DurationField } from './DurationField.tsx'
 import { HoldTimer } from './HoldTimer.tsx'
 import { NumberField } from './NumberField.tsx'
 
-const SIDE_LABEL: Record<Side, string> = { L: 'Sol', R: 'Sağ' }
-const KIND_LABEL: Record<SetKind, string> = { work: '', warmup: 'Isınma', drop: 'Dropset' }
+const SIDE_LABEL = labels<Side>({ L: 'side.L', R: 'side.R' })
+const KIND_LABEL = labels<Exclude<SetKind, 'work'>>({ warmup: 'workout.warmup', drop: 'set.kindDrop' })
 /** Ek yük alanında girilebilecek en büyük asist (kg); bunun altı yazılamaz. */
 const MAX_ASSIST = 300
 
@@ -87,7 +88,7 @@ export function SetRow({
   const weight = (
     <NumberField
       className={`grow${warnZero ? ' warnfield' : ''}`}
-      label={`${name} ${bw ? 'ek yük' : 'ağırlık'}`}
+      label={`${name} ${bw ? t('set.addedLoad') : t('set.weight')}`}
       value={set.w}
       min={bw ? -MAX_ASSIST : undefined}
       toDisplay={(v) => kgToUnit(v, unit)}
@@ -105,27 +106,27 @@ export function SetRow({
           <span className="setno">{badge}</span>
           <NumberField
             className="grow"
-            label={`${name} mesafe`}
+            label={`${name} ${t('set.distance')}`}
             value={setMeters(set)}
             toDisplay={metersToKm}
             fromDisplay={kmToMeters}
             step={0.1}
             onChange={(v) => onChange({ m: v })}
           />
-          <DurationField className="grow" long label={`${name} süre`} value={set.r} onChange={(v) => onChange({ r: v })} />
+          <DurationField className="grow" long label={`${name} ${t('set.time')}`} value={set.r} onChange={(v) => onChange({ r: v })} />
           <CheckButton
             on={set.done}
-            label={set.done ? 'Seti geri al' : 'Seti tamamla'}
+            label={set.done ? t('set.undo') : t('set.complete')}
             onClick={() => {
               onChange({ done: !set.done })
               if (!set.done) onCompleted()
             }}
           />
         </div>
-        {pace && <div className="sub bwhint">Tempo {pace}</div>}
+        {pace && <div className="sub bwhint">{t('set.pace', { pace })}</div>}
         {set.done && (
           <div className="rirrow">
-            <button className="chip" onClick={onRemove} aria-label={`${name} sil`}>Sil</button>
+            <button className="chip" onClick={onRemove} aria-label={t('set.deleteAria', { name })}>{t('set.delete')}</button>
           </div>
         )}
       </div>
@@ -142,7 +143,7 @@ export function SetRow({
           <div className="setrow">
             <span className="setno">{badge}</span>
             {weight}
-            <span className="sub unitnote">{unit} / taraf</span>
+            <span className="sub unitnote">{t('set.perSide', { unit })}</span>
           </div>
           {SIDES.map((side) => {
             const s = sides[side]
@@ -153,21 +154,21 @@ export function SetRow({
                 {timed ? (
                   <DurationField
                     className="grow"
-                    label={`${name} ${SIDE_LABEL[side]} süre`}
+                    label={`${name} ${SIDE_LABEL[side]} ${t('set.time')}`}
                     value={s.r}
                     onChange={(v) => onSide(side, { r: v })}
                   />
                 ) : (
                   <NumberField
                     className="grow"
-                    label={`${name} ${SIDE_LABEL[side]} tekrar`}
+                    label={`${name} ${SIDE_LABEL[side]} ${t('set.reps')}`}
                     value={s.r}
                     onChange={(v) => onSide(side, { r: Math.round(v) })}
                   />
                 )}
                 <CheckButton
                   on={s.done}
-                  label={`${SIDE_LABEL[side]} tarafı ${s.done ? 'geri al' : 'tamamla'}`}
+                  label={s.done ? t('set.sideUndo', { side: SIDE_LABEL[side] }) : t('set.sideComplete', { side: SIDE_LABEL[side] })}
                   onClick={() => {
                     onSide(side, { done: !s.done })
                     if (!s.done && other.done) onCompleted()
@@ -182,18 +183,18 @@ export function SetRow({
           <span className="setno">{badge}</span>
           {weight}
           {timed ? (
-            <DurationField className="grow" label={`${name} süre`} value={set.r} onChange={(v) => onChange({ r: v })} />
+            <DurationField className="grow" label={`${name} ${t('set.time')}`} value={set.r} onChange={(v) => onChange({ r: v })} />
           ) : (
             <NumberField
               className="grow"
-              label={`${name} tekrar`}
+              label={`${name} ${t('set.reps')}`}
               value={set.r}
               onChange={(v) => onChange({ r: Math.round(v) })}
             />
           )}
           <CheckButton
             on={set.done}
-            label={set.done ? 'Seti geri al' : 'Seti tamamla'}
+            label={set.done ? t('set.undo') : t('set.complete')}
             onClick={() => {
               onChange({ done: !set.done })
               if (!set.done) onCompleted()
@@ -209,19 +210,19 @@ export function SetRow({
             SIDES.map((side) => (
               <HoldTimer
                 key={side}
-                label={`${name} ${SIDE_LABEL[side]} süre`}
+                label={`${name} ${SIDE_LABEL[side]} ${t('set.time')}`}
                 caption={SIDE_LABEL[side]}
                 onStop={(sec) => onSide(side, { r: sec })}
               />
             ))
           ) : (
-            <HoldTimer label={`${name} süre`} onStop={(sec) => onChange({ r: sec })} />
+            <HoldTimer label={`${name} ${t('set.time')}`} onStop={(sec) => onChange({ r: sec })} />
           )}
         </div>
       )}
-      {warnZero && <div className="zerowarn" role="note">Ağırlık 0 görünüyor. Yanlışlıkla mı girdin?</div>}
+      {warnZero && <div className="zerowarn" role="note">{t('set.zeroWarn')}</div>}
       {bw && bwKg !== undefined && (
-        <div className="sub bwhint">Toplam {formatWeight(Math.max(0, effectiveLoad({ bw, bwKg }, set.w)), unit)} {unit}</div>
+        <div className="sub bwhint">{t('set.total', { load: `${formatWeight(Math.max(0, effectiveLoad({ bw, bwKg }, set.w)), unit)} ${unit}` })}</div>
       )}
 
       {/*
@@ -249,21 +250,21 @@ export function SetRow({
               {set.rir === undefined && prevRir !== undefined && (
                 <button
                   className="chip rir-same"
-                  aria-label={`${name} RIR önceki set gibi ${rirLabel(prevRir)}`}
+                  aria-label={t('set.rirSameAria', { name, rir: rirLabel(prevRir) })}
                   onClick={() => onChange({ rir: prevRir })}
                 >
-                  Aynı ({rirLabel(prevRir)})
+                  {t('set.rirSame', { rir: rirLabel(prevRir) })}
                 </button>
               )}
             </>
           )}
           {set.done && canDrop && (
-            <button className="chip" onClick={onDrop} aria-label={`${name} sonrası dropset ekle`}>
+            <button className="chip" onClick={onDrop} aria-label={t('set.addDropAria', { name })}>
               ↓ Drop
             </button>
           )}
           {(kind === 'work' ? set.done : !set.done) && (
-            <button className="chip" onClick={onRemove} aria-label={`${name} sil`}>Sil</button>
+            <button className="chip" onClick={onRemove} aria-label={t('set.deleteAria', { name })}>{t('set.delete')}</button>
           )}
         </div>
       )}

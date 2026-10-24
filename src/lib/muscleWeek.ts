@@ -1,4 +1,5 @@
 import { MUSCLES, muscleRank, targetFor, type MuscleId, type MuscleTargets, type WeekComparison } from './muscles.ts'
+import { formatDecimal } from './units.ts'
 
 export interface WeekRow {
   muscle: MuscleId
@@ -37,9 +38,9 @@ export function weekRows(
   return { rows, hidden }
 }
 
-/** 6,5 gibi: tam sayıda ondalık yok, ondalık ayracı virgül. */
+/** 6,5 gibi: tam sayıda ondalık yok, ondalık ayracı dile göre (Türkçede virgül). */
 export function fmt(n: number): string {
-  return (Math.round(n * 10) / 10).toString().replace('.', ',')
+  return formatDecimal(Math.round(n * 10) / 10)
 }
 
 /** Geçen haftaya göre fark: "+3", "−2", "+0,5"; fark yoksa "=". */

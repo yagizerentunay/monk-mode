@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { t } from '../i18n/index.ts'
+import { formatDateTime } from '../lib/calendar.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { listSnapshots, loadSnapshot, MAX_SNAPSHOTS, type SnapshotMeta } from '../store/snapshots.ts'
 import { useStore } from '../store/useStore.ts'
@@ -17,13 +19,12 @@ export function SnapshotsCard() {
   useEffect(refresh, [])
 
   const restore = async (s: SnapshotMeta) => {
-    const when = new Date(s.at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })
-    if (!confirm(`Tüm veriler ${when} kopyasıyla değiştirilsin mi? Şu anki hâlin de önce kopyalanır.`)) return
+    if (!confirm(t('snapshots.confirm', { when: formatDateTime(s.at) }))) return
     try {
       const state = await loadSnapshot(s.at)
-      await snapshotNow('Geri yüklemeden önce')
+      await snapshotNow(t('snapshot.beforeSnapshotRestore'))
       replaceAll(state)
-      setMessage(`Geri yüklendi: ${state.workouts.length} antrenman.`)
+      setMessage(t('snapshots.restored', { workouts: t('count.workouts', { n: state.workouts.length }) }))
     } catch (e) {
       setMessage((e as Error).message)
     }
@@ -32,20 +33,18 @@ export function SnapshotsCard() {
 
   return (
     <div className="card stack">
-      <div className="eyebrow">Otomatik kopyalar</div>
+      <div className="eyebrow">{t('snapshots.title')}</div>
       <p className="sub" style={{ margin: 0 }}>
-        Her antrenman bitince ve yedek yükleme ya da sıfırlama gibi işlemlerden önce verinin kopyası bu tarayıcıda
-        saklanır (son {MAX_SNAPSHOTS}). Yanlışlıkla silmeye karşı korur; tarayıcı verisi silinirse bunlar da gider,
-        dışa yedeğin yerini tutmaz.
+        {t('snapshots.hint', { n: MAX_SNAPSHOTS })}
       </p>
-      {list && list.length === 0 && <p className="sub" style={{ margin: 0 }}>Henüz kopya yok.</p>}
+      {list && list.length === 0 && <p className="sub" style={{ margin: 0 }}>{t('snapshots.empty')}</p>}
       {list?.map((s) => (
         <div key={s.at} className="row between">
           <div>
-            <div>{new Date(s.at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}</div>
-            <div className="sub" style={{ margin: 0 }}>{s.reason} · {s.workouts} antrenman</div>
+            <div>{formatDateTime(s.at)}</div>
+            <div className="sub" style={{ margin: 0 }}>{s.reason} · {t('count.workouts', { n: s.workouts })}</div>
           </div>
-          <button className="btn small" onClick={() => void restore(s)}>Geri yükle</button>
+          <button className="btn small" onClick={() => void restore(s)}>{t('snapshots.restore')}</button>
         </div>
       ))}
       {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}

@@ -1,7 +1,11 @@
+import { t } from '../i18n/index.ts'
 import type { ExCfg, Routine } from '../store/schema.ts'
 
-/** Addaki "(kopya)" / "(kopya N)" son eki; kopyanın kopyası "(kopya) (kopya)" olmasın diye atılır. */
-const COPY_SUFFIX = /\s*\(kopya(?: \d+)?\)\s*$/i
+/**
+ * Addaki "(kopya)" / "(kopya N)" son eki (İngilizcede "(copy)"); kopyanın kopyası "(kopya) (kopya)" olmasın
+ * diye atılır. İki dilin eki de tanınır: dil değiştikten sonra kopyalanan rutinde de ek birikmez.
+ */
+const COPY_SUFFIX = /\s*\((?:kopya|copy)(?: \d+)?\)\s*$/i
 
 const norm = (name: string) => name.trim().toLowerCase()
 
@@ -11,9 +15,9 @@ const norm = (name: string) => name.trim().toLowerCase()
  */
 export function copyName(name: string, existing: readonly string[]): string {
   const taken = new Set(existing.map(norm))
-  const base = name.replace(COPY_SUFFIX, '').trim() || name.trim() || 'Rutin'
-  let candidate = `${base} (kopya)`
-  for (let n = 2; taken.has(norm(candidate)); n++) candidate = `${base} (kopya ${n})`
+  const base = name.replace(COPY_SUFFIX, '').trim() || name.trim() || t('routine.fallbackName')
+  let candidate = t('routine.copyName', { name: base })
+  for (let n = 2; taken.has(norm(candidate)); n++) candidate = t('routine.copyNameN', { name: base, n })
   return candidate
 }
 

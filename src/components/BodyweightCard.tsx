@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { formatAxisDay } from '../lib/calendar.ts'
 import { kgToUnit } from '../lib/units.ts'
@@ -6,9 +7,9 @@ import { BodyweightTrend } from './BodyweightTrend.tsx'
 import { LineChart } from './LineChart.tsx'
 
 const RANGES = [
-  { label: '30 gün', n: 30 },
-  { label: '90 gün', n: 90 },
-  { label: 'Tümü', n: Infinity },
+  { label: () => t('count.days', { n: 30 }), n: 30 },
+  { label: () => t('count.days', { n: 90 }), n: 90 },
+  { label: () => t('bw.all'), n: Infinity },
 ] as const
 
 /** İstatistik ekranında kilo grafiği (aralık seçilebilir) ve trend özeti. */
@@ -28,17 +29,17 @@ export function BodyweightCard() {
   return (
     <div className="card stack">
       <div>
-        <div className="eyebrow">Kilo trendi</div>
-        <h2 style={{ margin: 0 }}>Vücut ağırlığı</h2>
+        <div className="eyebrow">{t('bw.eyebrow')}</div>
+        <h2 style={{ margin: 0 }}>{t('home.bodyweight')}</h2>
       </div>
       {bodyweight.length === 0 ? (
-        <p className="sub" style={{ margin: 0 }}>Henüz tartı yok. Ana Sayfa'dan ilk tartını kaydedince trend burada belirir.</p>
+        <p className="sub" style={{ margin: 0 }}>{t('bw.empty')}</p>
       ) : (
         <>
           <div className="chips statseg">
             {RANGES.map((r) => (
-              <button key={r.label} className={`chip${range === r.n ? ' on' : ''}`} onClick={() => setRange(r.n)}>
-                {r.label}
+              <button key={r.n} className={`chip${range === r.n ? ' on' : ''}`} onClick={() => setRange(r.n)}>
+                {r.label()}
               </button>
             ))}
           </div>

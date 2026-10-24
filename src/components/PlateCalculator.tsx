@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { formatPlates, platesFor } from '../lib/plates.ts'
 import { formatDecimal, formatWeight, kgToUnit, roundTo, unitToKg } from '../lib/units.ts'
@@ -38,10 +39,10 @@ export function PlateCalculator({ initialKg, weights }: Props) {
       )}
 
       <div className="row between">
-        <span className="eyebrow muted">Hedef ({unit})</span>
+        <span className="eyebrow muted">{t('plates.targetUnit', { unit })}</span>
         <div className="plate-target">
           <NumberField
-            label="Hedef ağırlık"
+            label={t('plates.targetWeight')}
             value={kg}
             toDisplay={(v) => kgToUnit(v, unit)}
             fromDisplay={(v) => unitToKg(v, unit)}
@@ -53,12 +54,12 @@ export function PlateCalculator({ initialKg, weights }: Props) {
 
       {result.belowBar ? (
         <p className="sub" role="status" style={{ margin: 0 }}>
-          Hedef bar ağırlığından ({formatDecimal(kit.bar)} {unit}) az.
+          {t('plates.belowBar', { bar: `${formatDecimal(kit.bar)} ${unit}` })}
         </p>
       ) : (
         <div className="card stack" role="status">
-          <div className="eyebrow">Taraf başına</div>
-          <div className="platetext">{text ?? 'Yalnız bar'}</div>
+          <div className="eyebrow">{t('plates.perSide')}</div>
+          <div className="platetext">{text ?? t('plates.barOnly')}</div>
           {stack.length > 0 && (
             <div className="platebar" aria-hidden="true">
               <div className="barstub" />
@@ -70,16 +71,16 @@ export function PlateCalculator({ initialKg, weights }: Props) {
             </div>
           )}
           <div className="sub">
-            Bar {formatDecimal(kit.bar)} {unit} · yük {formatDecimal(result.loaded)} {unit}
+            {t('plates.summary', { bar: `${formatDecimal(kit.bar)} ${unit}`, loaded: `${formatDecimal(result.loaded)} ${unit}` })}
           </div>
           {result.short > 0 && (
             <div className="warntext">
-              Eldeki plakalarla tam tutmuyor: en yakın {formatDecimal(result.loaded)} {unit} ({formatDecimal(result.short)} {unit} az).
+              {t('plates.short', { loaded: `${formatDecimal(result.loaded)} ${unit}`, short: `${formatDecimal(result.short)} ${unit}` })}
             </div>
           )}
         </div>
       )}
-      <p className="sub" style={{ margin: 0 }}>Bar ve plakalar Ayarlar'dan değiştirilir.</p>
+      <p className="sub" style={{ margin: 0 }}>{t('plates.settingsHint')}</p>
     </div>
   )
 }

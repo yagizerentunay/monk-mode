@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { downloadBackup, downloadRaw } from '../store/downloadBackup.ts'
 import { dismissCorrupt, dismissSanitized, useStorageStatus } from '../store/persist.ts'
 
@@ -18,19 +19,17 @@ export function StorageWarnings() {
       {corrupt && (
         <div className="card banner stack" role="alert">
           <div>
-            <b className="banner-title">⚠ Kayıtlı verin okunamadı</b>
+            <b className="banner-title">⚠ {t('storage.corruptTitle')}</b>
             <div className="sub">
-              {blocked
-                ? 'Tarayıcıdaki veri bozuk ve ayrı bir kopyası yazılamadı (depolama dolu olabilir). Bozuk veri şimdilik dokunulmadan duruyor; yeni kayıtların diske yazılmıyor. Önce ham veriyi indir; devam edersen bozuk veri silinir.'
-                : 'Tarayıcıdaki veri bozuk olduğu için yüklenemedi ve uygulama boş başladı. Ham veri silinmedi: bu tarayıcıda ayrı bir kopya olarak saklandı. Kurtarmak ya da göndermek için dosya olarak indirebilirsin.'}
+              {blocked ? t('storage.corruptBlocked') : t('storage.corrupt')}
             </div>
           </div>
           <div className="row">
             <button className="btn primary small grow" onClick={() => downloadRaw(corrupt.raw)}>
-              Ham veriyi indir
+              {t('storage.downloadRaw')}
             </button>
             <button className="btn small grow" onClick={dismissCorrupt}>
-              {blocked ? 'İndirdim, devam et' : 'Kapat'}
+              {blocked ? t('storage.continue') : t('common.close')}
             </button>
           </div>
         </div>
@@ -38,20 +37,20 @@ export function StorageWarnings() {
       {sanitized && (
         <div className="card banner stack" role="alert">
           <div>
-            <b className="banner-title">⚠ Bozuk kayıtlar atlandı</b>
+            <b className="banner-title">⚠ {t('storage.sanitizedTitle')}</b>
             <div className="sub">
               {blocked
-                ? `Kayıtlı verinde ${sanitized.dropped} bozuk kayıt vardı ve ham verinin ayrı bir kopyası yazılamadı (depolama dolu olabilir). Yeni kayıtların şimdilik diske yazılmıyor. Önce ham veriyi indir; devam edersen bozuk kayıtlar kalıcı olarak kaybolur.`
-                : `Kayıtlı verinde ${sanitized.dropped} bozuk kayıt vardı; atlandı. Ham veri ayrı saklandı.`}
-              {!blocked && sanitized.repaired > 0 && ` ${sanitized.repaired} kayıt da otomatik düzeltildi.`}
+                ? t('storage.sanitizedBlocked', { n: sanitized.dropped })
+                : t('storage.sanitized', { n: sanitized.dropped })}
+              {!blocked && sanitized.repaired > 0 && ` ${t('storage.repaired', { n: sanitized.repaired })}`}
             </div>
           </div>
           <div className="row">
             <button className="btn primary small grow" onClick={() => downloadRaw(sanitized.raw)}>
-              Ham veriyi indir
+              {t('storage.downloadRaw')}
             </button>
             <button className="btn small grow" onClick={dismissSanitized}>
-              {blocked ? 'İndirdim, devam et' : 'Kapat'}
+              {blocked ? t('storage.continue') : t('common.close')}
             </button>
           </div>
         </div>
@@ -59,14 +58,13 @@ export function StorageWarnings() {
       {saveFailed && (
         <div className="card banner stack" role="alert">
           <div>
-            <b className="banner-title">⚠ Veriler kaydedilemiyor</b>
+            <b className="banner-title">⚠ {t('storage.saveFailedTitle')}</b>
             <div className="sub">
-              Depolama dolu ya da kapalı (gizli mod olabilir). Sayfayı kapatırsan son değişikliklerin kaybolabilir.
-              Ayarlar'dan yedek indirmeni öneririm.
+              {t('storage.saveFailed')}
             </div>
           </div>
           <button className="btn small" onClick={() => downloadBackup()}>
-            Yedeği indir
+            {t('storage.downloadBackup')}
           </button>
         </div>
       )}

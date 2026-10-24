@@ -1,5 +1,7 @@
 import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
+import { t } from '../i18n/index.ts'
+import { formatDateTime } from '../lib/calendar.ts'
 import { isChunkLoadError } from '../lib/chunkError.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { downloadRaw } from '../store/downloadBackup.ts'
@@ -7,7 +9,6 @@ import { STORAGE_KEY } from '../store/persist.ts'
 import { listSnapshots, loadSnapshot } from '../store/snapshots.ts'
 import { useStore } from '../store/useStore.ts'
 
-const formatWhen = (at: number) => new Date(at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })
 
 export interface ErrorFallbackViewProps {
   error: unknown
@@ -30,27 +31,25 @@ export function ErrorFallbackView(p: ErrorFallbackViewProps) {
   const body = (
     <div className="card banner stack error-fallback" role="alert">
       <div>
-        <b className="banner-title">{chunk ? 'Sayfa yüklenemedi' : 'Bir şeyler ters gitti'}</b>
+        <b className="banner-title">{chunk ? t('error.chunkTitle') : t('error.title')}</b>
         <div className="sub">
-          {chunk
-            ? 'Sayfa yüklenemedi; bağlantını kontrol edip yenile. Verilerin cihazında duruyor.'
-            : 'Verilerin hâlâ bu tarayıcıda duruyor. Yeniden deneyebilir ya da aşağıdan veriyi kurtarabilirsin.'}
+          {chunk ? t('error.chunkBody') : t('error.body')}
         </div>
       </div>
       <div className="stack">
         {chunk ? (
-          <button className="btn primary block" onClick={p.onReload}>Yenile</button>
+          <button className="btn primary block" onClick={p.onReload}>{t('diag.refresh')}</button>
         ) : (
-          <button className="btn primary block" onClick={p.onRetry}>Yeniden dene</button>
+          <button className="btn primary block" onClick={p.onRetry}>{t('error.retry')}</button>
         )}
-        <button className="btn block" onClick={p.onHome}>Ana sayfa</button>
+        <button className="btn block" onClick={p.onHome}>{t('error.home')}</button>
         {!chunk && (
           <>
-            <button className="btn block" onClick={p.onDownloadRaw}>Ham veriyi indir</button>
+            <button className="btn block" onClick={p.onDownloadRaw}>{t('storage.downloadRaw')}</button>
             {p.snapshotAt !== undefined && (
               <div>
-                <button className="btn block" onClick={p.onRestore}>Son otomatik kopyayı geri yükle</button>
-                <div className="sub">Son kopya: {formatWhen(p.snapshotAt)}</div>
+                <button className="btn block" onClick={p.onRestore}>{t('error.restoreLast')}</button>
+                <div className="sub">{t('error.lastCopy', { when: formatDateTime(p.snapshotAt) })}</div>
               </div>
             )}
           </>
@@ -58,7 +57,7 @@ export function ErrorFallbackView(p: ErrorFallbackViewProps) {
       </div>
       {p.message && <div className="sub" role="status">{p.message}</div>}
       <details className="error-detail">
-        <summary className="sub">Teknik ayrıntı</summary>
+        <summary className="sub">{t('error.details')}</summary>
         <pre>{detail}</pre>
       </details>
     </div>
@@ -82,18 +81,18 @@ function ErrorFallback({ error, standalone, onReset }: { error: unknown; standal
 
   const restore = async () => {
     if (snapshotAt === undefined) return
-    if (!confirm(`Tüm veriler ${formatWhen(snapshotAt)} kopyasıyla değiştirilsin mi? Şu anki hâlin de önce kopyalanır.`)) return
+    if (!confirm(t('snapshots.confirm', { when: formatDateTime(snapshotAt) }))) return
     try {
       const state = await loadSnapshot(snapshotAt)
       try {
-        await snapshotNow('Geri yüklemeden önce')
+        await snapshotNow(t('snapshot.beforeSnapshotRestore'))
       } catch {
         // Bozuk mevcut veri kopyalanamayabilir; geri yükleme yine de sürer.
       }
       useStore.getState().replaceAll(state)
       onReset()
     } catch (e) {
-      setMessage(`Geri yüklenemedi: ${e instanceof Error ? e.message : 'bilinmeyen hata'}`)
+      setMessage(t('error.restoreFailed', { error: e instanceof Error ? e.message : t('error.unknown') }))
     }
   }
 
@@ -101,7 +100,7 @@ function ErrorFallback({ error, standalone, onReset }: { error: unknown; standal
     try {
       downloadRaw(localStorage.getItem(STORAGE_KEY) ?? '')
     } catch (e) {
-      setMessage(`Ham veri indirilemedi: ${e instanceof Error ? e.message : 'bilinmeyen hata'}`)
+      setMessage(t('error.rawFailed', { error: e instanceof Error ? e.message : t('error.unknown') }))
     }
   }
 

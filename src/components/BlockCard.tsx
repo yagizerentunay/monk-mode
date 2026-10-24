@@ -1,3 +1,4 @@
+import { locale, t } from '../i18n/index.ts'
 import { useState } from 'react'
 import {
   blockStatus,
@@ -18,7 +19,7 @@ const WEEK_CHOICES = Array.from({ length: MAX_BLOCK_WEEKS - MIN_BLOCK_WEEKS + 1 
 /** Plan'da kaç geçmiş blok listelenir. */
 const HISTORY_SHOWN = 5
 
-const short = (d: string) => parseDay(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+const short = (d: string) => parseDay(d).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })
 
 /**
  * Plan sekmesinde antrenman bloğu (mezosiklus) yönetimi: başlat, düzenle, bitir, iptal et ve biten
@@ -42,12 +43,12 @@ export function BlockCard() {
     `${short(blockWeekRange(b, 1, weekStart).first)} – ${short(blockWeekRange(b, b.weeks, weekStart).last)}`
 
   return (
-    <section className="card stack blockcard" aria-label="Antrenman bloğu">
+    <section className="card stack blockcard" aria-label={t('block.title')}>
       <div className="row between">
-        <div className="eyebrow">Antrenman bloğu</div>
+        <div className="eyebrow">{t('block.title')}</div>
         {st && (
           <span className={`sub${st.deload ? ' warntext' : ''}`}>
-            {st.phase === 'upcoming' ? 'Başlamadı' : st.phase === 'over' ? 'Süresi doldu' : `${st.week}/${st.weeks}. hafta`}
+            {st.phase === 'upcoming' ? t('block.notStarted') : st.phase === 'over' ? t('block.expired') : t('block.weekOf', { week: st.week, weeks: st.weeks })}
           </span>
         )}
       </div>
@@ -55,37 +56,38 @@ export function BlockCard() {
       {block && st ? (
         <>
           <div className="sub">
-            {block.weeks} hafta · {span(block)}
+            {t('count.weeks', { n: block.weeks })} · {span(block)}
             <br />
-            Deload: {block.deload}. hafta ({range(block, block.deload)}){st.deload ? ' · bu hafta' : ''}
+            {t('block.deloadLine', { week: t('block.weekN', { n: block.deload }), range: range(block, block.deload) })}
+            {st.deload ? ` · ${t('block.thisWeek')}` : ''}
           </div>
           <div className="row">
-            <button className="btn small grow" onClick={() => setEditing(true)}>Düzenle</button>
+            <button className="btn small grow" onClick={() => setEditing(true)}>{t('common.edit')}</button>
             <button className={`btn small grow${st.phase === 'over' ? ' primary' : ''}`} onClick={() => endBlock('done', dayString(today))}>
-              Bitir
+              {t('block.finish')}
             </button>
             <button
               className="btn small grow"
               onClick={() => {
-                if (confirm('Blok iptal edilsin mi? Geçmişte "iptal" olarak kalır.')) endBlock('cancelled', dayString(today))
+                if (confirm(t('block.cancelConfirm'))) endBlock('cancelled', dayString(today))
               }}
             >
-              İptal et
+              {t('block.cancel')}
             </button>
           </div>
         </>
       ) : (
         <>
           <div className="sub">
-            4–6 haftalık bir blok kur; son hafta (ya da seçtiğin hafta) planlı deload olsun. Ana Sayfa hangi haftada olduğunu gösterir.
+            {t('block.intro')}
           </div>
-          <button className="btn block" onClick={() => setEditing(true)}>Blok başlat</button>
+          <button className="btn block" onClick={() => setEditing(true)}>{t('block.start')}</button>
         </>
       )}
 
       {history.length > 0 && (
         <div className="stack blockhistory">
-          <div className="eyebrow muted">Geçmiş bloklar</div>
+          <div className="eyebrow muted">{t('block.history')}</div>
           <ul>
             {history.map((b) => (
               <PastRow key={b.id} block={b} />
@@ -94,7 +96,7 @@ export function BlockCard() {
         </div>
       )}
 
-      <BottomSheet open={editing} onClose={() => setEditing(false)} title={block ? 'Bloğu düzenle' : 'Blok başlat'}>
+      <BottomSheet open={editing} onClose={() => setEditing(false)} title={block ? t('block.edit') : t('block.start')}>
         {editing && <BlockForm block={block} today={today} weekStart={weekStart} onDone={() => setEditing(false)} />}
       </BottomSheet>
     </section>
@@ -105,9 +107,9 @@ function PastRow({ block }: { block: PastBlock }) {
   return (
     <li className="row between">
       <span>
-        {block.weeks} hafta · {short(block.start)} – {short(block.end)}
+        {t('count.weeks', { n: block.weeks })} · {short(block.start)} – {short(block.end)}
       </span>
-      <span className={block.outcome === 'done' ? 'sub ok' : 'sub'}>{block.outcome === 'done' ? 'Bitti' : 'İptal'}</span>
+      <span className={block.outcome === 'done' ? 'sub ok' : 'sub'}>{block.outcome === 'done' ? t('block.done') : t('block.cancelled')}</span>
     </li>
   )
 }
@@ -138,12 +140,12 @@ function BlockForm({
   return (
     <div className="stack">
       <label className="field">
-        <span className="sub">Başlangıç günü</span>
+        <span className="sub">{t('block.startDay')}</span>
         <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
       </label>
-      <span className="sub">1. hafta bu günün haftasıdır: {range(1)}</span>
+      <span className="sub">{t('block.firstWeek', { range: range(1) })}</span>
       <div className="field">
-        <span className="sub" id="block-weeks">Hafta sayısı</span>
+        <span className="sub" id="block-weeks">{t('block.weekCount')}</span>
         <div className="seg" role="radiogroup" aria-labelledby="block-weeks">
           {WEEK_CHOICES.map((n) => (
             <button
@@ -157,17 +159,17 @@ function BlockForm({
                 setWeeks(n)
               }}
             >
-              {n} hafta
+              {t('count.weeks', { n })}
             </button>
           ))}
         </div>
       </div>
       <label className="field">
-        <span className="sub">Deload haftası</span>
+        <span className="sub">{t('blockStrip.deloadWeek')}</span>
         <select className="input" value={deload} onChange={(e) => setDeload(Number(e.target.value))}>
           {Array.from({ length: weeks }, (_, i) => i + 1).map((w) => (
             <option key={w} value={w}>
-              {w}. hafta ({range(w)}){w === weeks ? ' · son hafta' : ''}
+              {t('block.weekN', { n: w })} ({range(w)}){w === weeks ? ` · ${t('block.lastWeek')}` : ''}
             </option>
           ))}
         </select>
@@ -181,7 +183,7 @@ function BlockForm({
           onDone()
         }}
       >
-        {block ? 'Kaydet' : 'Bloğu başlat'}
+        {block ? t('common.save') : t('block.startCta')}
       </button>
     </div>
   )

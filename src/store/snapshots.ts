@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { fingerprint } from '../lib/backupReminder.ts'
 import { exportBackup, importBackup } from './backup.ts'
 import type { State } from './schema.ts'
@@ -111,7 +112,7 @@ export async function loadSnapshot(at: number): Promise<State> {
     const req = tx.objectStore(STORE).get(at)
     await done(tx)
     const record = req.result as SnapshotRecord | undefined
-    if (!record) throw new Error('Kopya bulunamadı.')
+    if (!record) throw new Error(t('snapshots.notFound'))
     return importBackup(record.text)
   } finally {
     db.close()

@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { BodyweightEntry, WorkoutEntry } from '../store/schema.ts'
 import { formatWeight, type Unit } from './units.ts'
 
@@ -58,7 +59,7 @@ export function formatTimedLoad(bw: boolean | undefined, w: number, unit: Unit):
 export function formatLoad(bw: boolean | undefined, w: number, unit: Unit): string {
   if (!bw) return formatWeight(w, unit)
   const text = formatWeight(Math.abs(w), unit)
-  if (Number(text) === 0) return 'Vücut ağırlığı'
+  if (Number(text) === 0) return t('equipment.bodyOnly')
   return `${w > 0 ? '+' : '−'}${text} ${unit}`
 }
 

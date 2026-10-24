@@ -1,3 +1,4 @@
+import { t, type Lang } from '../i18n/index.ts'
 import type { CustomExercise } from '../store/schema.ts'
 import type { LegacyRecord, LibraryRecord } from './exerciseData.ts'
 import { equipmentLabel, muscleLabel } from './labels.ts'
@@ -18,6 +19,8 @@ export interface Exercise {
   illustration?: string
   /** Kurulum ve hareket yönergeleri (yalnız kütüphane kayıtlarında; Atlas'ta Türkçe yoksa İngilizce). */
   instructions?: string[]
+  /** İngilizce yönergeler; `instructions` Türkçeyken ve İngilizcesi varken bulunur (bkz. instructionsFor). */
+  instructionsEn?: string[]
   custom?: boolean
   /** Kütüphaneden çıkarılmış eski kimlik: geçmişte adı ve kası çözülür, seçicilerde çıkmaz. */
   legacy?: boolean
@@ -25,14 +28,22 @@ export interface Exercise {
   original?: MuscleFix
 }
 
+/**
+ * Arayüz diline göre yönergeler: İngilizcede `instructionsEn` varsa o, yoksa var olan (Türkçe ya da zaten
+ * İngilizce) yönergeler. Özel ve eski egzersizlerin yönergesi yoktur (boş liste).
+ */
+export function instructionsFor(ex: Pick<Exercise, 'instructions' | 'instructionsEn'>, lang: Lang): string[] {
+  return (lang === 'en' ? ex.instructionsEn : undefined) ?? ex.instructions ?? []
+}
+
 /** `public/` köküne göreli yolu, uygulamanın yayın adresine (örn. `/monk-mode/`) çevirir. */
 function assetUrl(path: string): string {
   return `${import.meta.env.BASE_URL}${path}`
 }
 
-async function fetchJson<T>(file: string, what: string): Promise<T> {
+async function fetchJson<T>(file: string, what: () => string): Promise<T> {
   const r = await fetch(assetUrl(`data/${file}`))
-  if (!r.ok) throw new Error(`${what} yüklenemedi (${r.status})`)
+  if (!r.ok) throw new Error(t('exercises.fetchFailed', { what: what(), status: r.status }))
   return (await r.json()) as T
 }
 
@@ -40,7 +51,7 @@ let cache: Promise<Exercise[]> | null = null
 
 /** Egzersiz kütüphanesini bir kez yükler. */
 export function loadExercises(): Promise<Exercise[]> {
-  cache ??= fetchJson<LibraryRecord[]>('exercises.json', 'Egzersiz verisi')
+  cache ??= fetchJson<LibraryRecord[]>('exercises.json', () => t('exercises.data'))
     .then((records) =>
       records.map((e): Exercise => {
         // Atlas'ta görseli olmayan kayıtlar `illustration` alanı olmadan gelir.
@@ -59,7 +70,7 @@ let legacyCache: Promise<Exercise[]> | null = null
 
 /** Kütüphanede olmayan eski kimlikleri bir kez yükler (bkz. exerciseData.ts). */
 export function loadLegacyExercises(): Promise<Exercise[]> {
-  legacyCache ??= fetchJson<LegacyRecord[]>('legacy-exercises.json', 'Eski egzersiz verisi')
+  legacyCache ??= fetchJson<LegacyRecord[]>('legacy-exercises.json', () => t('exercises.legacyData'))
     .then((rows) =>
       rows.map((r): Exercise => ({ ...r, level: 'beginner', category: 'strength', legacy: true })),
     )

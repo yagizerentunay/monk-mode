@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { SetEntry } from '../store/schema.ts'
 import { deriveSet } from './sets.ts'
 
@@ -81,9 +82,9 @@ export function describeSets(sets: SetEntry[]): SetMeta[] {
     chain = kind === 'drop' ? chain + 1 : 0
     const isChainEnd = !sets[i + 1]?.drop
     const canDrop = kind !== 'warmup' && isChainEnd && chain < MAX_DROPS
-    if (kind === 'work') return { kind, name: `Set ${++work}`, badge: String(work), canDrop }
-    if (kind === 'warmup') return { kind, name: `Isınma ${++warm}`, badge: 'Is', canDrop }
-    return { kind, name: `Drop ${++drop}`, badge: '↓', canDrop }
+    if (kind === 'work') return { kind, name: t('set.workName', { n: ++work }), badge: String(work), canDrop }
+    if (kind === 'warmup') return { kind, name: t('set.warmupName', { n: ++warm }), badge: t('set.warmupBadge'), canDrop }
+    return { kind, name: t('set.dropName', { n: ++drop }), badge: '↓', canDrop }
   })
 }
 

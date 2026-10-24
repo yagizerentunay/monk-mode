@@ -1,4 +1,5 @@
 import type { SetEntry } from '../store/schema.ts'
+import { formatDecimal } from './units.ts'
 
 /**
  * Mesafe setleri (koşu, bisiklet, kürek, yürüyüş: mesafe + süre). Tasarım kararı süreli setlerle (lib/timed.ts)
@@ -47,7 +48,7 @@ export function setMeters(set: Pick<SetEntry, 'm'>): number {
 export function formatDistance(m: number): string {
   const v = clampMeters(m)
   if (v < 1000) return `${v} m`
-  return `${(Math.round(v / 10) / 100).toString().replace('.', ',')} km`
+  return `${formatDecimal(Math.round(v / 10) / 100)} km`
 }
 
 /** Kilometre alanında gösterilen değer (m → km). */

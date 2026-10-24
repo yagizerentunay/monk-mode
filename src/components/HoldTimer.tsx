@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useEffect, useState } from 'react'
 import { elapsedSec, formatClockField } from '../lib/timed.ts'
 
@@ -28,20 +29,20 @@ export function HoldTimer({ label, caption, onStop }: Props) {
     return (
       <button
         className="chip hold"
-        aria-label={`${label} başlat`}
+        aria-label={t('hold.startAria', { label })}
         onClick={() => {
           setNow(Date.now())
           setStartedAt(Date.now())
         }}
       >
-        ▶ {caption ?? 'Süre ölç'}
+        ▶ {caption ?? t('hold.measure')}
       </button>
     )
   }
   return (
     <button
       className="chip hold on"
-      aria-label={`${label} durdur`}
+      aria-label={t('hold.stopAria', { label })}
       onClick={() => {
         onStop(elapsedSec(startedAt, Date.now()))
         setStartedAt(null)

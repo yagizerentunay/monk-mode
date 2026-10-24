@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useEffect, useRef, useState } from 'react'
 import { formatClock, restDoneAlert } from '../lib/alert.ts'
 
@@ -31,13 +32,13 @@ export function RestTimer({ endsAt, onChange }: Props) {
   return (
     <div className={`rest${done ? ' done' : ''}`} role="timer">
       <div className="rest-label">
-        <span className="eyebrow">Dinlenme</span>
-        <div className="rest-time bignum">{done ? 'Hazır!' : formatClock(left)}</div>
+        <span className="eyebrow">{t('rest.title')}</span>
+        <div className="rest-time bignum">{done ? t('rest.ready') : formatClock(left)}</div>
       </div>
       <div className="rest-actions">
-        <button className="btn small" onClick={() => onChange(endsAt - 15000)} aria-label="15 saniye azalt">−15 sn</button>
-        <button className="btn small" onClick={() => onChange(endsAt + 15000)} aria-label="15 saniye ekle">+15 sn</button>
-        <button className="btn small rest-skip" onClick={() => onChange(null)}>{done ? 'Kapat' : 'Geç'}</button>
+        <button className="btn small" onClick={() => onChange(endsAt - 15000)} aria-label={t('rest.minusAria')}>−{t('unit.secValue', { n: 15 })}</button>
+        <button className="btn small" onClick={() => onChange(endsAt + 15000)} aria-label={t('rest.plusAria')}>+{t('unit.secValue', { n: 15 })}</button>
+        <button className="btn small rest-skip" onClick={() => onChange(null)}>{done ? t('common.close') : t('rest.skip')}</button>
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import { labels, t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { averageOver, dayIndex, formatRate, goalStatus, weeklyRate } from '../lib/bodyweight.ts'
 import { formatWeight } from '../lib/units.ts'
@@ -9,7 +10,7 @@ interface Props {
   compact?: boolean
 }
 
-const STATUS_TEXT = { on: 'Hedefte ✓', below: 'Hedeften düşük', above: 'Hedeften yüksek' } as const
+const STATUS_TEXT = labels({ on: 'bwTrend.on', below: 'bwTrend.below', above: 'bwTrend.above' })
 
 /** Vücut ağırlığı için 7 günlük ortalama, haftalık değişim hızı ve (varsa) hedefe göre durum. */
 export function BodyweightTrend({ compact = false }: Props) {
@@ -29,27 +30,27 @@ export function BodyweightTrend({ compact = false }: Props) {
       {!compact && (
         <>
           <div className="row between">
-            <span className="sub">Son 7 gün ortalaması</span>
+            <span className="sub">{t('bwTrend.avg7')}</span>
             <b className="bwval">{avg === null ? '—' : `${formatWeight(avg, unit)} ${unit}`}</b>
           </div>
           {avg !== null && prev !== null && (
             <div className="row between">
-              <span className="sub">Önceki 7 güne göre</span>
+              <span className="sub">{t('bwTrend.vsPrev7')}</span>
               <b className="bwval">{formatRate(avg - prev, unit)}</b>
             </div>
           )}
         </>
       )}
       <div className="row between">
-        <span className="sub">Haftalık değişim (son 4 hafta)</span>
-        <b className="bwval">{rate === null ? 'Yeterli veri yok' : formatRate(rate, unit)}</b>
+        <span className="sub">{t('bwTrend.weekly')}</span>
+        <b className="bwval">{rate === null ? t('bwTrend.notEnough') : formatRate(rate, unit)}</b>
       </div>
       {rate === null && (
-        <div className="sub">Hız için son 4 haftada en az 3 tartı ve 10 günlük aralık gerekir.</div>
+        <div className="sub">{t('bwTrend.needData')}</div>
       )}
       {goal !== undefined && (
         <div className="row between">
-          <span className="sub">Hedef {formatRate(goal, unit)}</span>
+          <span className="sub">{t('bwTrend.goal', { rate: formatRate(goal, unit) })}</span>
           {rate === null ? (
             <span className="sub">—</span>
           ) : (

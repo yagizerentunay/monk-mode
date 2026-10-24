@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { createHash } from 'node:crypto'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
@@ -110,6 +111,8 @@ export default defineConfig({
   // Ayarlar'da gösterilen sürüm; tek kaynak package.json (GitHub release etiketi v<sürüm>).
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [react(), prefetchChunks(), versionFile(), contentSecurityPolicy()],
+  // Birim testleri cihaz dilinden bağımsız Türkçe arayüzle koşar (bkz. src/test/setup.ts).
+  test: { setupFiles: ['src/test/setup.ts'] },
   build: {
     rolldownOptions: {
       output: {

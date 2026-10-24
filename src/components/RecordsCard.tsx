@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { isRecentRecord, personalRecords, RECENT_RECORD_DAYS } from '../lib/records.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -24,10 +25,10 @@ export function RecordsCard() {
   return (
     <div className="card stack">
       <div>
-        <div className="eyebrow">Kişisel rekorlar</div>
-        <h2 style={{ margin: 0 }}>Rekorlar</h2>
+        <div className="eyebrow">{t('records.eyebrow')}</div>
+        <h2 style={{ margin: 0 }}>{t('records.title')}</h2>
         <div className="sub">
-          {records.length} egzersiz · son {RECENT_RECORD_DAYS} günde {recentCount} yeni rekor
+          {t('count.exercises', { n: records.length })} · {t('records.recent', { days: RECENT_RECORD_DAYS, n: recentCount })}
         </div>
       </div>
       <RecordsList

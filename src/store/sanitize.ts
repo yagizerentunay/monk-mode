@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type {
   BodyweightEntry,
   CustomExercise,
@@ -84,7 +85,7 @@ export function repairedTotal(r: SanitizeReport): number {
 /** İçe aktarma/yükleme mesajına eklenen ek: atılan kayıt yoksa boş metin. */
 export function describeDropped(r: SanitizeReport): string {
   const n = droppedTotal(r)
-  return n > 0 ? `${n} bozuk kayıt atlandı` : ''
+  return n > 0 ? t('sanitize.dropped', { n }) : ''
 }
 
 // --- yardımcılar -------------------------------------------------------------------------------

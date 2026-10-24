@@ -1,4 +1,4 @@
-import type { Unit } from './units.ts'
+import { formatDecimal, type Unit } from './units.ts'
 
 /** Eldeki bar ve plaka çeşitleri. Değerler kitin ait olduğu birimdedir (kg kiti kg, lb kiti lb). */
 export interface PlateKit {
@@ -112,5 +112,5 @@ export function plateTargets(sets: { w: number; done: boolean }[]): { weights: n
 /** "2 × 20 + 1.25" biçiminde kısa gösterim; boş liste için null. */
 export function formatPlates(perSide: PlateCount[]): string | null {
   if (perSide.length === 0) return null
-  return perSide.map((p) => (p.count > 1 ? `${p.count} × ${String(p.plate).replace('.', ',')}` : String(p.plate).replace('.', ','))).join(' + ')
+  return perSide.map((p) => (p.count > 1 ? `${p.count} × ${formatDecimal(p.plate)}` : formatDecimal(p.plate))).join(' + ')
 }

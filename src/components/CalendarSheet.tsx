@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { draftForDate } from '../lib/backdate.ts'
 import { formatDayTitle, MONTH_NAMES, monthGrid, parseDay, shiftMonth, weekdayOrder } from '../lib/calendar.ts'
@@ -54,22 +55,22 @@ function CalendarSheetInner({ onClose, initialDate }: { onClose: () => void; ini
 
   const title =
     effective.kind === 'cal'
-      ? 'Takvim'
+      ? t('home.calendar')
       : effective.kind === 'pick'
-        ? 'Rutin seç'
+        ? t('calendar.pickRoutine')
         : effective.kind === 'record'
-          ? 'Antrenman kaydet'
+          ? t('calendar.logWorkout')
           : formatDayTitle(effective.date)
 
   return (
     <BottomSheet open onClose={onClose} title={title}>
       <div className="stack">
-        {effective.kind === 'day' && <button className="btn small" onClick={() => setView({ kind: 'cal' })}>‹ Takvim</button>}
+        {effective.kind === 'day' && <button className="btn small" onClick={() => setView({ kind: 'cal' })}>‹ {t('home.calendar')}</button>}
         {(effective.kind === 'detail' || effective.kind === 'pick') && (
           <button className="btn small" onClick={() => goDay(effective.date)}>‹ {formatDayTitle(effective.date)}</button>
         )}
         {effective.kind === 'record' && (
-          <button className="btn small" onClick={() => setView({ kind: 'pick', date: effective.date })}>‹ Rutin seç</button>
+          <button className="btn small" onClick={() => setView({ kind: 'pick', date: effective.date })}>‹ {t('calendar.pickRoutine')}</button>
         )}
 
         {effective.kind === 'cal' && (
@@ -112,9 +113,9 @@ function CalendarSheetInner({ onClose, initialDate }: { onClose: () => void; ini
                 >
                   <div>
                     <div className="exname">{r.name}</div>
-                    <div className="sub">{r.ex.length} egzersiz</div>
+                    <div className="sub">{t('count.exercises', { n: r.ex.length })}</div>
                   </div>
-                  {r.id === plannedOn(effective.date)?.id && <span className="badge on">planlı</span>}
+                  {r.id === plannedOn(effective.date)?.id && <span className="badge on">{t('calendar.plannedBadge')}</span>}
                 </button>
               ))}
           </div>
@@ -151,9 +152,9 @@ function MonthView({ cursor, setCursor, weekStart, today, trained, planned, onPi
   return (
     <>
       <div className="row between">
-        <button className="btn small" aria-label="Önceki ay" onClick={() => setCursor((c) => shiftMonth(c.year, c.month, -1))}>‹</button>
+        <button className="btn small" aria-label={t('calendar.prevMonth')} onClick={() => setCursor((c) => shiftMonth(c.year, c.month, -1))}>‹</button>
         <b className="calmonth">{MONTH_NAMES[cursor.month]} {cursor.year}</b>
-        <button className="btn small" aria-label="Sonraki ay" onClick={() => setCursor((c) => shiftMonth(c.year, c.month, 1))}>›</button>
+        <button className="btn small" aria-label={t('calendar.nextMonth')} onClick={() => setCursor((c) => shiftMonth(c.year, c.month, 1))}>›</button>
       </div>
       <div className="calgrid calhead">
         {weekdayOrder(weekStart).map((d) => <span key={d} className="sub">{DAY_SHORT[d]}</span>)}
@@ -166,7 +167,7 @@ function MonthView({ cursor, setCursor, weekStart, today, trained, planned, onPi
             <button
               key={cell.date}
               className={`calcell${cell.inMonth ? '' : ' out'}${cell.date === today ? ' today' : ''}`}
-              aria-label={`${formatDayTitle(cell.date)}${done ? ', antrenman yapıldı' : plan ? ', planlı' : ''}`}
+              aria-label={`${formatDayTitle(cell.date)}${done ? t('home.dayTrained') : plan ? t('home.dayPlanned') : ''}`}
               onClick={() => onPick(cell.date)}
             >
               <span>{cell.day}</span>
@@ -175,7 +176,7 @@ function MonthView({ cursor, setCursor, weekStart, today, trained, planned, onPi
           )
         })}
       </div>
-      <div className="sub">Yeşil nokta: antrenman yapıldı · gri nokta: planlı. Bir güne dokun.</div>
+      <div className="sub">{t('calendar.legend')}</div>
       <button
         className="btn small"
         onClick={() => {
@@ -183,7 +184,7 @@ function MonthView({ cursor, setCursor, weekStart, today, trained, planned, onPi
           setCursor(() => ({ year: d.getFullYear(), month: d.getMonth() }))
         }}
       >
-        Bugün
+        {t('calendar.today')}
       </button>
     </>
   )
@@ -210,26 +211,28 @@ function DayView({ date, today, workouts, planned, hasRoutines, onOpen, onRecord
           <div>
             <div className="exname">{w.name}</div>
             <div className="sub">
-              {doneSetCount(w).done} set{hasVolume(w) && ` · ${formatWeight(workoutVolume(w), unit)} ${unit}`}
+              {t('count.sets', { n: doneSetCount(w).done })}{hasVolume(w) && ` · ${formatWeight(workoutVolume(w), unit)} ${unit}`}
             </div>
           </div>
-          <span className="badge ok">Aç ▶</span>
+          <span className="badge ok">{t('calendar.open')} ▶</span>
         </button>
       ))}
       {workouts.length === 0 && (
         <p className="sub" style={{ margin: 0 }}>
-          {future ? 'Gelecek bir gün.' : 'Bu günde kayıtlı antrenman yok.'}
-          {planned ? ` Planlanan: ${planned.name} (${planned.ex.length} egzersiz).` : ' Bu gün için plan yok.'}
+          {future ? t('calendar.future') : t('calendar.noWorkout')}
+          {planned
+            ? ` ${t('calendar.planned', { name: planned.name, exercises: t('count.exercises', { n: planned.ex.length }) })}`
+            : ` ${t('calendar.noPlan')}`}
         </p>
       )}
       {future ? (
-        <p className="sub" style={{ margin: 0 }}>Antrenman kaydı yalnız bugüne kadar girilebilir.</p>
+        <p className="sub" style={{ margin: 0 }}>{t('calendar.onlyPast')}</p>
       ) : (
         <>
           <button className="btn primary block" disabled={!hasRoutines} onClick={onRecord}>
-            {workouts.length > 0 ? 'Bu tarihe bir antrenman daha kaydet' : 'Bu tarihe antrenman kaydet'}
+            {workouts.length > 0 ? t('calendar.logAnother') : t('calendar.logOnDate')}
           </button>
-          {!hasRoutines && <p className="sub" style={{ margin: 0 }}>Kaydetmek için önce Plan'dan bir rutin oluştur.</p>}
+          {!hasRoutines && <p className="sub" style={{ margin: 0 }}>{t('calendar.needRoutine')}</p>}
         </>
       )}
     </>
@@ -250,11 +253,11 @@ function RecordView({ date, routine, workouts, onSave, onCancel }: RecordProps) 
   const progressionRule = useStore((s) => s.settings.progressionRule)
   // Taslak yalnız rutin/tarih değişince kurulur; düzenleyici kendi taslağını tutar.
   const draft = useMemo(() => (routine ? draftForDate(routine, workouts, date, bodyweight, progressionRule) : null), [routine, date]) // eslint-disable-line react-hooks/exhaustive-deps
-  if (!draft) return <p className="sub">Rutin bulunamadı.</p>
+  if (!draft) return <p className="sub">{t('calendar.routineMissing')}</p>
   return (
     <>
       <p className="sub" style={{ margin: 0 }}>
-        Setler önerilen değerlerle "yapıldı" olarak geldi. Gerçekte yaptığına göre düzelt, yapmadığın seti ya da egzersizi sil.
+        {t('calendar.recordHint')}
       </p>
       <WorkoutEditor workout={draft} onSave={onSave} onCancel={onCancel} />
     </>

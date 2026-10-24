@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { saveRest } from '../lib/restState.ts'
 import { snapshotNow } from './autoSnapshot.ts'
 import { useToast } from './toast.ts'
@@ -18,9 +19,9 @@ function backup(reason: string): void {
 export function deleteWorkoutWithUndo(id: string): void {
   const workout = useStore.getState().workouts.find((w) => w.id === id)
   if (!workout) return
-  backup('Antrenman silinmeden önce')
+  backup(t('snapshot.beforeDeleteWorkout'))
   useStore.getState().deleteWorkout(id)
-  useToast.getState().show('Antrenman silindi', () => useStore.getState().addWorkout(workout))
+  useToast.getState().show(t('toast.workoutDeleted'), () => useStore.getState().addWorkout(workout))
 }
 
 /** Rutini siler; geri alınca eski sırasına ve (hâlâ boşsa) hafta günlerine döner. */
@@ -32,9 +33,9 @@ export function deleteRoutineWithUndo(id: string): void {
   const days = Object.entries(week)
     .filter(([, rid]) => rid === id)
     .map(([day]) => Number(day))
-  backup('Rutin silinmeden önce')
+  backup(t('snapshot.beforeDeleteRoutine'))
   useStore.getState().deleteRoutine(id)
-  useToast.getState().show('Rutin silindi', () => useStore.getState().restoreRoutine(routine, index, days))
+  useToast.getState().show(t('toast.routineDeleted'), () => useStore.getState().restoreRoutine(routine, index, days))
 }
 
 /** Kuvvet hedefini siler; geri alınca eski sırasına döner. */
@@ -42,9 +43,9 @@ export function deleteGoalWithUndo(id: string): void {
   const index = useStore.getState().goals.findIndex((g) => g.id === id)
   if (index < 0) return
   const goal = useStore.getState().goals[index]
-  backup('Hedef silinmeden önce')
+  backup(t('snapshot.beforeDeleteGoal'))
   useStore.getState().deleteGoal(id)
-  useToast.getState().show('Hedef silindi', () => useStore.getState().restoreGoal(goal, index))
+  useToast.getState().show(t('toast.goalDeleted'), () => useStore.getState().restoreGoal(goal, index))
 }
 
 /**
@@ -54,9 +55,9 @@ export function deleteGoalWithUndo(id: string): void {
 export function discardActiveWithUndo(restEnds: number | null = null): void {
   const workout = useStore.getState().active
   if (!workout) return
-  backup('Devam eden antrenman silinmeden önce')
+  backup(t('snapshot.beforeDiscardActive'))
   useStore.getState().discardWorkout()
-  useToast.getState().show('Devam eden antrenman silindi', () => {
+  useToast.getState().show(t('toast.activeDiscarded'), () => {
     useStore.getState().restoreActive(workout)
     // Başka bir antrenman başlamışsa restoreActive dokunmaz; sayaç da ona ait kalır.
     if (restEnds !== null && restEnds > Date.now() && useStore.getState().active?.id === workout.id) {

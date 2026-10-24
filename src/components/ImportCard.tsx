@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { parseImport } from '../lib/importCsv.ts'
 import type { ParsedImport } from '../lib/importTypes.ts'
 import { buildImport } from '../lib/importWorkouts.ts'
@@ -37,7 +38,7 @@ export function ImportCard() {
     setParsed(null)
     try {
       const result = parseImport(await file.text())
-      if (result.workouts.length === 0) throw new Error('Dosyada içe aktarılabilir antrenman bulunamadı.')
+      if (result.workouts.length === 0) throw new Error(t('import.noWorkouts'))
       setParsed(result)
       setShowMap(false)
     } catch (e) {
@@ -49,11 +50,11 @@ export function ImportCard() {
 
   const commit = () => {
     if (!plan) return
-    void snapshotNow('İçe aktarmadan önce')
+    void snapshotNow(t('snapshot.beforeImport'))
     importWorkouts(plan.workouts, plan.newCustom)
     setMessage(
-      `${plan.workouts.length} antrenman (${plan.sets} set) içe aktarıldı` +
-        (plan.newCustom.length ? `, ${plan.newCustom.length} yeni özel egzersiz eklendi.` : '.'),
+      t('import.done', { workouts: t('count.workouts', { n: plan.workouts.length }), sets: t('count.sets', { n: plan.sets }) }) +
+        (plan.newCustom.length ? `, ${t('import.newCustom', { n: plan.newCustom.length })}.` : '.'),
     )
     setParsed(null)
   }
@@ -64,14 +65,13 @@ export function ImportCard() {
 
   return (
     <div className="card stack importcard">
-      <div className="eyebrow">İçe aktarma</div>
-      <h2>Başka uygulamadan içe aktar</h2>
+      <div className="eyebrow">{t('import.eyebrow')}</div>
+      <h2>{t('import.title')}</h2>
       <p className="sub" style={{ margin: 0 }}>
-        Strong veya Hevy'nin CSV dışa aktarımını seç. Strong dosyası İngilizce dışa aktarılmış olmalı. Veri bu
-        tarayıcıda kalır; aynı dosyayı ikinci kez yüklemek kayıtları çoğaltmaz.
+        {t('import.hint')}
       </p>
       <button className="btn block" disabled={loading} onClick={() => fileRef.current?.click()}>
-        CSV dosyası seç
+        {t('import.choose')}
       </button>
       <input
         ref={fileRef}
@@ -84,25 +84,25 @@ export function ImportCard() {
       {parsed && plan && (
         <div className="stack">
           <div className="row between">
-            <span className="sub">Biçim</span>
+            <span className="sub">{t('import.format')}</span>
             <b>{FORMAT_LABEL[parsed.format]}</b>
           </div>
           <div className="row between">
-            <span className="sub">Antrenman</span>
-            <b>{plan.workouts.length}{plan.duplicates > 0 ? ` (+${plan.duplicates} zaten kayıtlı)` : ''}</b>
+            <span className="sub">{t('import.workouts')}</span>
+            <b>{plan.workouts.length}{plan.duplicates > 0 ? ` (${t('import.duplicates', { n: plan.duplicates })})` : ''}</b>
           </div>
           <div className="row between">
-            <span className="sub">Tarih aralığı</span>
+            <span className="sub">{t('import.range')}</span>
             <b>{first} – {last}</b>
           </div>
           <div className="row between">
-            <span className="sub">Set</span>
+            <span className="sub">{t('card.sets')}</span>
             <b>{plan.sets}</b>
           </div>
           <div className="row between">
-            <span className="sub">Ağırlık birimi</span>
+            <span className="sub">{t('import.unit')}</span>
             {parsed.unit ? (
-              <b>{parsed.unit} (dosyadan)</b>
+              <b>{t('import.unitFromFile', { unit: parsed.unit })}</b>
             ) : (
               <ChipRow>
                 {(['kg', 'lb'] as const).map((u) => (
@@ -115,14 +115,13 @@ export function ImportCard() {
           </div>
           {!parsed.unit && (
             <p className="warntext" style={{ margin: 0 }}>
-              Dosya ağırlık birimini söylemiyor. Yanlış seçersen tüm ağırlıklar kayar; emin değilsen Strong'da
-              birimine bak.
+              {t('import.unitWarning')}
             </p>
           )}
           <div className="sub">
-            {matched} egzersiz kütüphaneyle eşleşti, {plan.newCustom.length} tanesi özel egzersiz olarak eklenecek.
+            {t('import.matched', { matched: t('count.exercises', { n: matched }), custom: plan.newCustom.length })}
             <button className="linkbtn" onClick={() => setShowMap((v) => !v)}>
-              {showMap ? 'Gizle' : 'Eşleşmeleri gör'}
+              {showMap ? t('import.hide') : t('import.showMatches')}
             </button>
           </div>
           {showMap && (
@@ -131,7 +130,7 @@ export function ImportCard() {
                 <div key={m.exId + m.name} className="row between">
                   <span>{m.name}</span>
                   <span className={m.custom ? 'warntext' : 'sub'}>
-                    {m.custom ? 'yeni özel' : `→ ${m.target}`} · {m.sets}
+                    {m.custom ? t('import.newCustomShort') : `→ ${m.target}`} · {m.sets}
                   </span>
                 </div>
               ))}
@@ -142,9 +141,9 @@ export function ImportCard() {
           ))}
           <div className="row">
             <button className="btn primary grow" disabled={plan.workouts.length === 0} onClick={commit}>
-              İçe aktar
+              {t('import.import')}
             </button>
-            <button className="btn grow" onClick={() => setParsed(null)}>Vazgeç</button>
+            <button className="btn grow" onClick={() => setParsed(null)}>{t('common.cancel')}</button>
           </div>
         </div>
       )}

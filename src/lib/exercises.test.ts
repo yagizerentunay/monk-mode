@@ -3,6 +3,7 @@ import { muscleSets } from './muscles.ts'
 import { alternativesFor } from './swap.ts'
 import {
   buildCatalog,
+  instructionsFor,
   facetValues,
   filterExercises,
   fromCustom,
@@ -220,5 +221,19 @@ describe('thumbSource', () => {
     expect(thumbSource({ primaryMuscles: ['neck'] })).toBeNull()
     expect(thumbSource({ primaryMuscles: [] })).toBeNull()
     expect(thumbSource({ primaryMuscles: ['göğüs'] })).toBeNull()
+  })
+})
+
+describe('instructionsFor', () => {
+  const tr = ['Birinci adım.']
+  const en = ['Step one.']
+  it('İngilizcede instructionsEn varsa onu, yoksa var olan yönergeyi verir', () => {
+    expect(instructionsFor({ instructions: tr, instructionsEn: en }, 'en')).toEqual(en)
+    expect(instructionsFor({ instructions: en }, 'en')).toEqual(en)
+  })
+  it('Türkçede hep instructions; özel ve eski egzersizde boş liste', () => {
+    expect(instructionsFor({ instructions: tr, instructionsEn: en }, 'tr')).toEqual(tr)
+    expect(instructionsFor({}, 'tr')).toEqual([])
+    expect(instructionsFor({}, 'en')).toEqual([])
   })
 })

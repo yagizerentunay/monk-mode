@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useEffect, useState } from 'react'
 import { TOAST_MS, useToast, type ToastItem } from '../store/toast.ts'
 
@@ -43,7 +44,7 @@ function ToastView({ toast }: { toast: ToastItem }) {
             dismiss()
           }}
         >
-          Geri al
+          {t('toast.undo')}
         </button>
       )}
     </div>

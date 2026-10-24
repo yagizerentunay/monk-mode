@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useState } from 'react'
 import {
   currentEnv,
@@ -22,19 +23,16 @@ export function HomeScreenHint() {
   return (
     <div className="card banner stack" role="note">
       <div>
-        <b className="banner-title">Verini güvene al: ana ekrana ekle</b>
-        <div className="sub">
-          iPhone'da sekmede açılan uygulamanın verisi, bir süre kullanılmazsa tarayıcı tarafından silinebilir.
-          Ana ekrana eklenen uygulama bu temizlikten korunur.
-        </div>
+        <b className="banner-title">{t('homeHint.title')}</b>
+        <div className="sub">{t('homeHint.body')}</div>
       </div>
       <ol className="sub" style={{ margin: 0, paddingLeft: 20 }}>
-        <li>Ayarlar → "Yedeği kaydet (JSON)" ile yedek al.</li>
-        <li>Paylaş menüsünden "Ana Ekrana Ekle"yi seç.</li>
-        <li>Ana ekrandaki monk-mode'u aç; Ayarlar → "Yedekten yükle" ile yedeği içe aktar.</li>
+        <li>{t('homeHint.step1')}</li>
+        <li>{t('homeHint.step2')}</li>
+        <li>{t('homeHint.step3')}</li>
       </ol>
       <p className="sub" style={{ margin: 0 }}>
-        Ana ekran uygulaması ayrı depolama kullanır; yedeği yüklemezsen boş başlar.
+        {t('homeHint.separate')}
       </p>
       <button
         className="btn small"
@@ -44,7 +42,7 @@ export function HomeScreenHint() {
           setDismissed(at)
         }}
       >
-        Anladım
+        {t('common.gotIt')}
       </button>
     </div>
   )

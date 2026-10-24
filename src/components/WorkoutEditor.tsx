@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useState } from 'react'
 import {
   addSetTo,
@@ -40,7 +41,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
   const save = () => {
     const out = finalizeEdit(draft)
     if (!out) {
-      setError('Hiç çalışma seti kalmadı. Antrenmanı silmek için Vazgeç\'e basıp "Sil"i kullan.')
+      setError(t('editor.noSets'))
       return
     }
     onSave(out)
@@ -48,9 +49,9 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
 
   return (
     <div className="stack workouteditor">
-      <div className="eyebrow">Antrenmanı düzenle</div>
+      <div className="eyebrow">{t('editor.title')}</div>
       <label className="field">
-        <span className="sub">Antrenman notu</span>
+        <span className="sub">{t('editor.workoutNote')}</span>
         <textarea
           className="input"
           rows={2}
@@ -70,7 +71,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
               <div className="exname grow">{name}</div>
               <button
                 className="btn small"
-                aria-label={`${name} yukarı taşı`}
+                aria-label={t('workout.moveUpAria', { name })}
                 disabled={ei === 0}
                 onClick={() => setDraft((d) => moveEntryAt(d, ei, -1))}
               >
@@ -78,7 +79,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
               </button>
               <button
                 className="btn small"
-                aria-label={`${name} aşağı taşı`}
+                aria-label={t('workout.moveDownAria', { name })}
                 disabled={ei === draft.entries.length - 1}
                 onClick={() => setDraft((d) => moveEntryAt(d, ei, 1))}
               >
@@ -86,9 +87,9 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
               </button>
               <button
                 className="btn small danger"
-                aria-label={`${name} egzersizini sil`}
+                aria-label={t('editor.removeExerciseAria', { name })}
                 onClick={() => {
-                  if (confirm(`"${name}" bu antrenmandan çıkarılsın mı?`)) setDraft((d) => removeEntryAt(d, ei))
+                  if (confirm(t('editor.removeExerciseConfirm', { name }))) setDraft((d) => removeEntryAt(d, ei))
                 }}
               >
                 ✕
@@ -97,9 +98,9 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
 
             {entry.bw && (
               <div className="row between editbw">
-                <span className="sub">Vücut ağırlığı ({unit}){entry.bwKg === undefined ? ' · kayıt yok' : ''}</span>
+                <span className="sub">{t('editor.bodyweight', { unit })}{entry.bwKg === undefined ? ` · ${t('editor.noRecord')}` : ''}</span>
                 <NumberField
-                  label={`${name} vücut ağırlığı`}
+                  label={t('editor.bodyweightAria', { name })}
                   value={entry.bwKg ?? 0}
                   toDisplay={(v) => kgToUnit(v, unit)}
                   fromDisplay={(v) => unitToKg(v, unit)}
@@ -114,7 +115,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 <span className="setno">{meta[si].badge}</span>
                 <NumberField
                   className="grow"
-                  label={`${name} ${meta[si].name} mesafe`}
+                  label={`${name} ${meta[si].name} ${t('set.distance')}`}
                   value={setMeters(set)}
                   toDisplay={metersToKm}
                   fromDisplay={kmToMeters}
@@ -125,13 +126,13 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 <DurationField
                   className="grow"
                   long
-                  label={`${name} ${meta[si].name} süre`}
+                  label={`${name} ${meta[si].name} ${t('set.time')}`}
                   value={set.r}
                   onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
                 />
                 <button
                   className="btn small"
-                  aria-label={`${name} ${meta[si].name} sil`}
+                  aria-label={t('set.deleteAria', { name: `${name} ${meta[si].name}` })}
                   onClick={() => setDraft((d) => removeSetAt(d, ei, si))}
                 >
                   ✕
@@ -144,7 +145,7 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                 <span className="setno">{meta[si].badge}</span>
                 <NumberField
                   className={`grow${zero[si] ? ' warnfield' : ''}`}
-                  label={`${name} ${meta[si].name} ${entry.bw ? 'ek yük' : 'ağırlık'}`}
+                  label={`${name} ${meta[si].name} ${entry.bw ? t('set.addedLoad') : t('set.weight')}`}
                   value={set.w}
                   min={entry.bw ? -300 : undefined}
                   toDisplay={(v) => kgToUnit(v, unit)}
@@ -158,14 +159,14 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                     {entry.timed ? (
                       <DurationField
                         className="grow"
-                        label={`${name} ${meta[si].name} sol süre`}
+                        label={`${name} ${meta[si].name} ${t('editor.left')} ${t('set.time')}`}
                         value={set.sides.L.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { L: v }))}
                       />
                     ) : (
                       <NumberField
                         className="grow"
-                        label={`${name} ${meta[si].name} sol tekrar`}
+                        label={`${name} ${meta[si].name} ${t('editor.left')} ${t('set.reps')}`}
                         value={set.sides.L.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { L: v }))}
                       />
@@ -174,14 +175,14 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                     {entry.timed ? (
                       <DurationField
                         className="grow"
-                        label={`${name} ${meta[si].name} sağ süre`}
+                        label={`${name} ${meta[si].name} ${t('editor.right')} ${t('set.time')}`}
                         value={set.sides.R.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { R: v }))}
                       />
                     ) : (
                       <NumberField
                         className="grow"
-                        label={`${name} ${meta[si].name} sağ tekrar`}
+                        label={`${name} ${meta[si].name} ${t('editor.right')} ${t('set.reps')}`}
                         value={set.sides.R.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { R: v }))}
                       />
@@ -193,29 +194,29 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
                     {entry.timed ? (
                       <DurationField
                         className="grow"
-                        label={`${name} ${meta[si].name} süre`}
+                        label={`${name} ${meta[si].name} ${t('set.time')}`}
                         value={set.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
                       />
                     ) : (
                       <NumberField
                         className="grow"
-                        label={`${name} ${meta[si].name} tekrar`}
+                        label={`${name} ${meta[si].name} ${t('set.reps')}`}
                         value={set.r}
                         onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
                       />
                     )}
-                    <span className="sub">{entry.timed ? 'sn' : 'tkr'}</span>
+                    <span className="sub">{entry.timed ? t('unit.sec') : t('editor.repsShort')}</span>
                   </>
                 )}
                 <button
                   className="btn small"
-                  aria-label={`${name} ${meta[si].name} sil`}
+                  aria-label={t('set.deleteAria', { name: `${name} ${meta[si].name}` })}
                   onClick={() => setDraft((d) => removeSetAt(d, ei, si))}
                 >
                   ✕
                 </button>
-                {zero[si] && <div className="zerowarn" role="note">Ağırlık 0 görünüyor. Yanlışlıkla mı girdin?</div>}
+                {zero[si] && <div className="zerowarn" role="note">{t('set.zeroWarn')}</div>}
               </div>
             ))}
 
@@ -224,8 +225,8 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
             </div>
             <input
               className="input"
-              aria-label={`${name} notu`}
-              placeholder="Not"
+              aria-label={t('workout.noteAria', { name })}
+              placeholder={t('workout.note')}
               maxLength={NOTE_MAX}
               value={entry.note ?? ''}
               onChange={(e) => setDraft((d) => setEntryNoteIn(d, ei, e.target.value))}
@@ -236,8 +237,8 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
 
       {error && <p className="warntext" role="alert" style={{ margin: 0 }}>{error}</p>}
       <div className="row">
-        <button className="btn primary grow" onClick={save}>Kaydet</button>
-        <button className="btn grow" onClick={onCancel}>Vazgeç</button>
+        <button className="btn primary grow" onClick={save}>{t('common.save')}</button>
+        <button className="btn grow" onClick={onCancel}>{t('common.cancel')}</button>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
+import { t } from '../i18n/index.ts'
 import type { BodyweightEntry } from '../store/schema.ts'
-import { kgToUnit, type Unit } from './units.ts'
+import { kgToUnit, type Unit, formatDecimal } from './units.ts'
 
 /** Hedef hıza bu kadar (kg/hafta) yakın olan hız "hedefte" sayılır; günlük tartı dalgalanması büyüktür. */
 export const GOAL_TOLERANCE_KG = 0.15
@@ -66,7 +67,7 @@ export function goalStatus(rate: number, goal: number, tolerance: number = GOAL_
 /** "+0,25 kg/hf" gibi: işaretli, en fazla iki ondalık, ondalık ayracı virgül. */
 export function formatRate(kgPerWeek: number, unit: Unit): string {
   const v = Math.round(kgToUnit(kgPerWeek, unit) * 100) / 100
-  const text = String(Math.abs(v)).replace('.', ',')
+  const text = formatDecimal(Math.abs(v))
   const sign = v > 0 ? '+' : v < 0 ? '−' : ''
-  return `${sign}${text} ${unit}/hf`
+  return `${sign}${text} ${unit}${t('unit.perWeek')}`
 }

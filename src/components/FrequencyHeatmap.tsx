@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { formatDayTitle, weekdayOrder } from '../lib/calendar.ts'
 import { DAY_SHORT } from '../lib/dates.ts'
 import { cellLabel, HEAT_LEGEND, type HeatmapGrid } from '../lib/frequency.ts'
@@ -35,7 +36,7 @@ export function FrequencyHeatmap({ grid, weekStart }: Props) {
           className="heat-grid"
           style={style}
           role="group"
-          aria-label={first && last ? `Günlük set sayısı, ${formatDayTitle(first.date)} - ${formatDayTitle(last.date)}` : 'Günlük set sayısı'}
+          aria-label={first && last ? `${t('freq.dailySets')}, ${formatDayTitle(first.date)} - ${formatDayTitle(last.date)}` : t('freq.dailySets')}
         >
           {grid.weeks.flat().map((day) =>
             day.future ? (
@@ -52,14 +53,14 @@ export function FrequencyHeatmap({ grid, weekStart }: Props) {
           )}
         </div>
       </div>
-      <div className="heat-legend" aria-label="Renk göstergesi: günlük tamamlanan set sayısı" role="group">
+      <div className="heat-legend" aria-label={t('freq.legendAria')} role="group">
         {HEAT_LEGEND.map((l) => (
           <span key={l.level} className="heat-key">
             <span className={`heat-cell heat-l${l.level}`} aria-hidden="true" />
             {l.label}
           </span>
         ))}
-        <span className="heat-key">set / gün</span>
+        <span className="heat-key">{t('freq.perDay')}</span>
       </div>
     </div>
   )

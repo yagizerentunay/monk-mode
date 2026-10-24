@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { formatShortDay } from '../lib/calendar.ts'
 import { formatDistanceSet, formatLongClock } from '../lib/distance.ts'
 import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
@@ -43,7 +44,7 @@ export function RecordsList({ records, nameOf, unit, today, showAll, onToggleAll
               <div className="grow">
                 <div className="exname">
                   {nameOf(r.exId)}
-                  {recent && <span className="rec-new"> Son {RECENT_RECORD_DAYS} günde yeni</span>}
+                  {recent && <span className="rec-new"> {t('records.newBadge', { days: RECENT_RECORD_DAYS })}</span>}
                 </div>
                 {best && (
                   <div className="sub">
@@ -52,12 +53,12 @@ export function RecordsList({ records, nameOf, unit, today, showAll, onToggleAll
                 )}
                 {r.pace && (
                   <div className="sub">
-                    En iyi tempo {formatLongClock(r.pace.value)} /km · {setText(r, r.pace, unit)} · {formatShortDay(r.pace.d, today)}
+                    {t('records.bestPace', { pace: `${formatLongClock(r.pace.value)} /km` })} · {setText(r, r.pace, unit)} · {formatShortDay(r.pace.d, today)}
                   </div>
                 )}
                 {!topSame && (
                   <div className="sub">
-                    {best ? 'En ağır' : r.timed || r.distance ? 'En uzun' : 'En iyi'}: {setText(r, r.top, unit)} · {formatShortDay(r.top.d, today)}
+                    {best ? t('records.heaviest') : r.timed || r.distance ? t('records.longest') : t('records.best')}: {setText(r, r.top, unit)} · {formatShortDay(r.top.d, today)}
                   </div>
                 )}
               </div>
@@ -67,7 +68,7 @@ export function RecordsList({ records, nameOf, unit, today, showAll, onToggleAll
       </div>
       {records.length > RECORDS_LIMIT && (
         <button type="button" className="btn small" aria-expanded={showAll} onClick={onToggleAll}>
-          {showAll ? 'Daha az göster' : `Tümünü gör (${records.length})`}
+          {showAll ? t('records.showLess') : t('records.showAll', { n: records.length })}
         </button>
       )}
     </div>
