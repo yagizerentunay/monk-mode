@@ -9,6 +9,7 @@ import { BackupNudge } from '../components/BackupNudge.tsx'
 import { RirSummary } from '../components/RirSummary.tsx'
 import { Seal } from '../components/Brand.tsx'
 import { SetRow } from '../components/SetRow.tsx'
+import { ShareCardButton } from '../components/ShareCardButton.tsx'
 import { SwapSheet } from '../components/SwapSheet.tsx'
 import { WorkoutClock } from '../components/WorkoutClock.tsx'
 import { formatShortDay } from '../lib/calendar.ts'
@@ -206,6 +207,7 @@ export function Workout() {
             {prs.map((p) => <div key={p.name} className="wk-pr-item" lang={p.lang}>{p.name}</div>)}
           </div>
         )}
+        <ShareCardButton workout={workout} prs={prs} />
         <BackupNudge />
         <button className="btn primary block" onClick={() => navigate('/')}>Ana sayfaya dön</button>
       </div>

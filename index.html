@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111315" />
+    <!-- Tema, ilk boyamadan önce: kayıtlı ayarı okur, açık temanın koyu yanıp sönmesini önler (bkz. src/lib/theme.ts).
+         CSP bu betiğe derlemede hesaplanan sha256 ile izin verir (vite.config.ts); değiştirmek yeterli, hash kendiliğinden güncellenir. -->
+    <script>
+      (function () {
+        var theme = 'system'
+        try {
+          var saved = JSON.parse(localStorage.getItem('monk_state_v1')).settings.theme
+          if (saved === 'dark' || saved === 'light') theme = saved
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme)
+        var light = theme === 'light' || (theme === 'system' && matchMedia('(prefers-color-scheme: light)').matches)
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', light ? '#f3efe9' : '#111315')
+      })()
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icon-192.png" />

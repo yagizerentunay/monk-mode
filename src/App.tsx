@@ -5,6 +5,7 @@ import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { Toast } from './components/Toast.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
+import { useThemeSync } from './lib/theme.ts'
 import { useOnline } from './lib/useOnline.ts'
 import { autoFolderBackup } from './store/folderBackup.ts'
 import { Home } from './views/Home.tsx'
@@ -18,9 +19,11 @@ const RoutineEdit = lazy(() => import('./views/RoutineEdit.tsx').then((m) => ({ 
 const Stats = lazy(() => import('./views/Stats.tsx').then((m) => ({ default: m.Stats })))
 const Library = lazy(() => import('./views/Library.tsx').then((m) => ({ default: m.Library })))
 const Settings = lazy(() => import('./views/Settings.tsx').then((m) => ({ default: m.Settings })))
+const ShareImport = lazy(() => import('./views/ShareImport.tsx').then((m) => ({ default: m.ShareImport })))
 
 export default function App() {
   const online = useOnline()
+  useThemeSync()
   // Klasöre otomatik yedek (Ayarlar'da açıksa): açılışta ve sekme arka plana geçerken, veri değiştiyse.
   useEffect(() => {
     autoFolderBackup()
@@ -51,6 +54,7 @@ export default function App() {
               <Route path="/stats" element={<Stats />} />
               <Route path="/library" element={<Library />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/share/:payload" element={<ShareImport />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

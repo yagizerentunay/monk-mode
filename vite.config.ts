@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import pkg from './package.json' with { type: 'json' }
@@ -78,13 +79,27 @@ export const CSP = [
   "form-action 'none'",
 ].join('; ')
 
+/**
+ * index.html'deki satır içi betiklere (tema açılışı) yalnız içerik hash'iyle izin verilir; 'unsafe-inline' yok.
+ * Hash derlenmiş HTML'den hesaplanır, betik değişince kendiliğinden güncellenir. Tarayıcı CRLF'yi LF'ye
+ * çevirerek hash'ler; Windows'ta CRLF ile çekilmiş dosya da aynı hash'i vermeli.
+ */
+export function cspFor(html: string): string {
+  const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+    (m) => `'sha256-${createHash('sha256').update(m[1].replace(/\r\n?/g, '\n')).digest('base64')}'`,
+  )
+  return hashes.length ? CSP.replace("script-src 'self'", `script-src 'self' ${hashes.join(' ')}`) : CSP
+}
+
 function contentSecurityPolicy(): Plugin {
   return {
     name: 'monk-csp',
     apply: 'build',
     transformIndexHtml: {
       order: 'post',
-      handler: () => [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP }, injectTo: 'head-prepend' }],
+      handler: (html) => [
+        { tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: cspFor(html) }, injectTo: 'head-prepend' },
+      ],
     },
   }
 }

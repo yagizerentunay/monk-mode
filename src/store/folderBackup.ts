@@ -28,7 +28,7 @@ export interface FolderStatus {
 
 function hasData(): boolean {
   const s = useStore.getState()
-  return s.workouts.length > 0 || s.bodyweight.length > 0
+  return s.workouts.length > 0 || s.bodyweight.length > 0 || s.measurements.length > 0
 }
 
 export async function folderStatus(): Promise<FolderStatus | null> {

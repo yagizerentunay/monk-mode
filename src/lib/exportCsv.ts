@@ -1,9 +1,10 @@
-import type { SetEntry, Workout } from '../store/schema.ts'
+import type { MeasurementEntry, SetEntry, Workout } from '../store/schema.ts'
 import { setMeters } from './distance.ts'
 import { describeSets, type SetKind } from './intensity.ts'
 import { effectiveLoad } from './load.ts'
+import { MEASURE_KEYS, MEASURE_LABEL, MEASURE_UNIT } from './measurements.ts'
 import { SIDES } from './sets.ts'
-import { formatWeight, type Unit } from './units.ts'
+import { formatDecimal, formatWeight, type Unit } from './units.ts'
 
 /** Türkçe Excel'in beklediği ayraç; ondalık ayracı da virgüldür, bu yüzden alanlar noktalı virgülle ayrılır. */
 const SEP = ';'
@@ -104,4 +105,20 @@ export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): s
   }
 
   return BOM + [CSV_HEADERS.map(quote), ...rows].map((r) => r.join(SEP)).join(EOL) + EOL
+}
+
+export const MEASUREMENT_CSV_HEADERS = [
+  'Tarih',
+  ...MEASURE_KEYS.map((k) => `${MEASURE_LABEL[k]} (${MEASURE_UNIT[k]})`),
+] as const
+
+/**
+ * Vücut ölçülerini antrenmanlardan ayrı bir CSV'ye çevirir (sütunları farklı olduğundan aynı dosyaya
+ * girmez): her gün bir satır, ölçülmeyen alan boş, ondalık virgül. Sıra: tarih.
+ */
+export function measurementsToCsv(entries: readonly MeasurementEntry[]): string {
+  const rows = [...entries]
+    .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0))
+    .map((e) => [e.d, ...MEASURE_KEYS.map((k) => (e[k] === undefined ? '' : formatDecimal(e[k])))])
+  return BOM + [MEASUREMENT_CSV_HEADERS.map(quote), ...rows].map((r) => r.join(SEP)).join(EOL) + EOL
 }
