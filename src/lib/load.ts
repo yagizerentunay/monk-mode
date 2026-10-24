@@ -27,14 +27,18 @@ export function bodyweightOn(log: readonly BodyweightEntry[], day: string): numb
  * İlerleme önerisi ve ön doldurma için kullanılabilecek son kayıt. Yalnız aynı ağırlık anlamındaki
  * kayıt geçerlidir: ek yükle girilmiş (`bw`) ile mutlak yükle girilmiş kayıt karıştırılmaz. Aksi hâlde
  * eski "67 kg" barfiks kaydı, vücut ağırlığı moduna geçince 67 kg ek yük olarak ön dolardı. Aynı şekilde
- * süreli kayıtta `r` saniyedir; tekrarla girilmiş geçmiş süreli hedefi (ya da tersini) beslemez.
+ * süreli kayıtta `r` saniyedir; tekrarla girilmiş geçmiş süreli hedefi (ya da tersini) beslemez. Mesafe
+ * kaydı (`distance`: mesafe + süre) yalnız mesafe kaydıyla karşılaştırılır; orada ağırlık anlamı (`bw`) yoktur.
  */
 export function comparableLast(
   last: WorkoutEntry | undefined,
   bw: boolean,
   timed = false,
+  distance = false,
 ): WorkoutEntry | undefined {
-  return last && !!last.bw === bw && !!last.timed === timed ? last : undefined
+  if (!last || !!last.distance !== distance) return undefined
+  if (distance) return last
+  return !!last.bw === bw && !!last.timed === timed ? last : undefined
 }
 
 /**

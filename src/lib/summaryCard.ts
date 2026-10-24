@@ -1,5 +1,6 @@
 import type { Workout, WorkoutEntry } from '../store/schema.ts'
 import { formatDayTitle } from './calendar.ts'
+import { distanceTotals, formatDistanceSet } from './distance.ts'
 import { effectiveLoad, formatLoadWithUnit, formatTimedLoad } from './load.ts'
 import { setReps } from './sets.ts'
 import { formatDuration } from './timed.ts'
@@ -58,12 +59,18 @@ export function formatSessionLength(workout: Workout): string {
 
 /**
  * Bir hareketin tek satırlık özeti: tamamlanan çalışma seti sayısı ve en iyi set. Süreli harekette en
- * uzun tutuş saniyeyle ("45 sn", "1:30"), diğerlerinde en ağır set ("62,5 kg × 8").
+ * uzun tutuş saniyeyle ("45 sn", "1:30"), mesafe harekette toplam mesafe, süre ve tempo
+ * ("5 km · 27:30 · 5:30 /km"), diğerlerinde en ağır set ("62,5 kg × 8").
  */
 export function entryDetail(entry: WorkoutEntry, unit: Unit): string {
   const sets = entry.sets.filter((s) => s.done && !s.warmup)
   if (sets.length === 0) return 'Set yapılmadı'
   const count = `${sets.length} set`
+  if (entry.distance) {
+    const { m, sec } = distanceTotals(sets)
+    const total = formatDistanceSet({ m, r: sec })
+    return total ? `${count} · ${total}` : count
+  }
   if (entry.timed) {
     const best = sets.reduce((a, b) => (setReps(b) > setReps(a) ? b : a))
     const load = formatTimedLoad(entry.bw, best.w, unit)

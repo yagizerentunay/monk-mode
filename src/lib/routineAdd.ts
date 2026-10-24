@@ -1,5 +1,6 @@
 import type { ExCfg, Routine } from '../store/schema.ts'
-import { isBodyOnly, isTimedName, isUnilateralName, type Exercise } from './exercises.ts'
+import { DEFAULT_DISTANCE_M, DEFAULT_DISTANCE_SEC, DEFAULT_DISTANCE_SETS } from './distance.ts'
+import { isBodyOnly, isDistanceName, isTimedName, isUnilateralName, type Exercise } from './exercises.ts'
 import { DEFAULT_TIMED_SEC } from './timed.ts'
 
 /**
@@ -9,6 +10,21 @@ import { DEFAULT_TIMED_SEC } from './timed.ts'
  * varsayılanı kullanır; değişirse ikisi birlikte değişir.
  */
 export function defaultExCfg(ex: Pick<Exercise, 'id' | 'name' | 'equipment'>): ExCfg {
+  // Koşu, bisiklet, kürek gibi adlar mesafe egzersizi gelir: tek set, 5 km / 30 dk hedef, ilerleme kapalı.
+  if (isDistanceName(ex.name)) {
+    return {
+      exId: ex.id,
+      sets: DEFAULT_DISTANCE_SETS,
+      reps: DEFAULT_DISTANCE_SEC,
+      weight: 0,
+      prog: 'off',
+      inc: 0,
+      repsMax: DEFAULT_DISTANCE_SEC,
+      side: false,
+      distance: true,
+      meters: DEFAULT_DISTANCE_M,
+    }
+  }
   const timed = isTimedName(ex.name)
   return {
     exId: ex.id,

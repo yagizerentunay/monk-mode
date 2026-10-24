@@ -45,7 +45,7 @@ export interface GoalPoint {
 /** Egzersizin tekrarlı seansları ve en iyi tahmini 1RM'leri, eski→yeni. */
 export function goalHistory(workouts: Workout[], exId: string): GoalPoint[] {
   return exerciseHistory(workouts, exId)
-    .filter((p) => !p.timed && p.e1rm > 0)
+    .filter((p) => !p.timed && !p.distance && p.e1rm > 0)
     .map((p) => ({ d: p.d, e1rm: p.e1rm }))
 }
 

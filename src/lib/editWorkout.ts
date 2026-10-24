@@ -1,6 +1,7 @@
 import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { cleanNote, NOTE_MAX } from './notes.ts'
 import { deriveSet } from './sets.ts'
+import { clampDistanceSec, clampMeters } from './distance.ts'
 import { clampSec } from './timed.ts'
 
 /**
@@ -17,6 +18,8 @@ export interface SetPatch {
   /** Tek taraflı sette sol / sağ tekrar. */
   L?: number
   R?: number
+  /** Mesafe girdisinde mesafe (m). */
+  m?: number
 }
 
 const nonNegative = (v: number): number => (Number.isFinite(v) && v > 0 ? v : 0)
@@ -34,10 +37,18 @@ function mapSet(w: Workout, ei: number, si: number, fn: (s: SetEntry) => SetEntr
 /**
  * Bir setin ağırlığını ya da tekrarını düzeltir; tek taraflıda sol/sağ ayrı düzeltilir. Vücut ağırlığı
  * egzersizinde ağırlık ek yüktür ve negatif (asist) olabilir. Süreli egzersizde "tekrar" saniyedir ve 0-3600'e çekilir.
+ * Mesafe egzersizinde `r` setin süresidir (0-86.400 sn) ve `m` mesafedir (0-1.000.000 m).
  */
 export function editSet(workout: Workout, ei: number, si: number, patch: SetPatch): Workout {
   const signed = !!workout.entries[ei]?.bw
   const timed = !!workout.entries[ei]?.timed
+  if (workout.entries[ei]?.distance) {
+    return mapSet(workout, ei, si, (s) => ({
+      ...s,
+      ...(patch.r !== undefined ? { r: clampDistanceSec(patch.r) } : {}),
+      ...(patch.m !== undefined ? { m: clampMeters(patch.m) } : {}),
+    }))
+  }
   return mapSet(workout, ei, si, (s) => {
     let next: SetEntry = { ...s }
     if (patch.w !== undefined) next.w = signed ? (Number.isFinite(patch.w) ? patch.w : 0) : nonNegative(patch.w)

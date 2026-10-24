@@ -10,6 +10,8 @@ import { duplicateRoutine } from '../lib/routineCopy.ts'
 import { groupLetter, moveExercise, removeExercise, supersetInfo } from '../lib/superset.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { DEFAULT_TIMED_SEC, MAX_TIMED_SEC, TIMED_STEP_SEC } from '../lib/timed.ts'
+import { DEFAULT_DISTANCE_M, DEFAULT_DISTANCE_SEC, DEFAULT_DISTANCE_SETS, formatDistance, formatLongClock, kmToMeters, metersToKm } from '../lib/distance.ts'
+import { DurationField } from '../components/DurationField.tsx'
 import { kgToUnit, unitToKg, type Unit } from '../lib/units.ts'
 import { newId } from '../lib/workout.ts'
 import type { ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
@@ -33,6 +35,8 @@ const round2 = (v: number) => Math.round(v * 100) / 100
 
 /** Varsayılandan (yeni eklenen egzersiz: çift ilerleme, ısınma/drop/süperset yok) farklı bir gelişmiş ayar var mı? */
 function isCustom(cfg: ExCfg, i: number): boolean {
+  // Mesafe egzersizinde yalnız süperset ve dinlenme ayarlanır (ilerleme, ısınma, drop yok).
+  if (cfg.distance) return (i > 0 && !!cfg.superset) || cfg.restSec !== undefined
   return (
     (!cfg.timed && (cfg.warmups ?? 0) > 0) ||
     (cfg.drops ?? 0) > 0 ||
@@ -44,6 +48,12 @@ function isCustom(cfg: ExCfg, i: number): boolean {
 
 /** Kapalı bölümde görünen tek satırlık özet: hiçbir ayar gizlenip kaybolmaz. */
 function advSummary(cfg: ExCfg, unit: Unit): string {
+  if (cfg.distance) {
+    const parts = [`${formatDistance(cfg.meters ?? 0)} · ${formatLongClock(cfg.reps)}`]
+    if (cfg.superset) parts.push('süperset')
+    if (cfg.restSec !== undefined) parts.push(`${cfg.restSec} sn dinlenme`)
+    return parts.join(' · ')
+  }
   const parts: string[] = [PROG_SHORT[cfg.prog]]
   // Süreli egzersizde ilerleme süreyi artırır; kg artışı kullanılmaz (bkz. lib/progression.ts).
   if (cfg.prog !== 'off') parts.push(cfg.timed ? `+${TIMED_STEP_SEC} sn` : `+${round2(kgToUnit(cfg.inc, unit))} ${unit}`)
@@ -142,62 +152,118 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 onChange={(v) => patchEx(i, { sets: Math.min(MAX_ROUTINE_SETS, Math.max(1, Math.round(v))) })}
               />
             </label>
-            <label className="field">
-              <span className="sub">{cfg.timed ? 'Süre (sn)' : 'Tekrar'}</span>
-              <NumberField
-                value={cfg.reps}
-                min={1}
-                onChange={(v) => patchEx(i, { reps: Math.min(cfg.timed ? MAX_TIMED_SEC : Infinity, Math.max(1, Math.round(v))) })}
-              />
-            </label>
-            <label className="field">
-              <span className="sub">{cfg.bw ? 'Ek yük' : 'Ağırlık'} ({unit})</span>
-              <NumberField
-                value={cfg.weight}
-                min={cfg.bw ? -300 : undefined}
-                toDisplay={(v) => kgToUnit(v, unit)}
-                fromDisplay={(v) => unitToKg(v, unit)}
-                step={0.5}
-                onChange={(v) => patchEx(i, { weight: v })}
-              />
-            </label>
+            {cfg.distance ? (
+              <>
+                <label className="field">
+                  <span className="sub">Mesafe (km)</span>
+                  <NumberField
+                    value={cfg.meters ?? 0}
+                    toDisplay={metersToKm}
+                    fromDisplay={kmToMeters}
+                    step={0.1}
+                    onChange={(v) => patchEx(i, { meters: v })}
+                  />
+                </label>
+                <label className="field">
+                  <span className="sub">Süre (dk)</span>
+                  <DurationField long value={cfg.reps} onChange={(v) => patchEx(i, { reps: v, repsMax: v })} />
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="field">
+                  <span className="sub">{cfg.timed ? 'Süre (sn)' : 'Tekrar'}</span>
+                  <NumberField
+                    value={cfg.reps}
+                    min={1}
+                    onChange={(v) => patchEx(i, { reps: Math.min(cfg.timed ? MAX_TIMED_SEC : Infinity, Math.max(1, Math.round(v))) })}
+                  />
+                </label>
+                <label className="field">
+                  <span className="sub">{cfg.bw ? 'Ek yük' : 'Ağırlık'} ({unit})</span>
+                  <NumberField
+                    value={cfg.weight}
+                    min={cfg.bw ? -300 : undefined}
+                    toDisplay={(v) => kgToUnit(v, unit)}
+                    fromDisplay={(v) => unitToKg(v, unit)}
+                    step={0.5}
+                    onChange={(v) => patchEx(i, { weight: v })}
+                  />
+                </label>
+              </>
+            )}
           </div>
 
           <label className="row">
             <input
               type="checkbox"
-              checked={!!cfg.side}
-              onChange={(e) => patchEx(i, { side: e.target.checked })}
-            />
-            <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
-          </label>
-
-          <label className="row">
-            <input
-              type="checkbox"
-              checked={!!cfg.bw}
-              // Ağırlığın anlamı değişir (mutlak yük ↔ ek yük); eski değer yeni anlamda yanlış olurdu.
-              onChange={(e) => patchEx(i, e.target.checked ? { bw: true, weight: 0 } : { bw: undefined, weight: 0 })}
-            />
-            <span>Vücut ağırlığı egzersizi <span className="sub">(ağırlık = ek yük)</span></span>
-          </label>
-
-          <label className="row">
-            <input
-              type="checkbox"
-              checked={!!cfg.timed}
-              // Hedef sayının anlamı değişir (tekrar ↔ saniye); eski değer yeni anlamda yanlış olurdu.
+              checked={!!cfg.distance}
+              // Hedefin anlamı değişir (tekrar × ağırlık ↔ mesafe + süre); eski değerler yeni anlamda yanlış olurdu.
               onChange={(e) =>
                 patchEx(
                   i,
                   e.target.checked
-                    ? { timed: true, reps: DEFAULT_TIMED_SEC, repsMax: DEFAULT_TIMED_SEC, warmups: 0 }
-                    : { timed: undefined, reps: 8, repsMax: 12 },
+                    ? {
+                        distance: true,
+                        meters: DEFAULT_DISTANCE_M,
+                        reps: DEFAULT_DISTANCE_SEC,
+                        repsMax: DEFAULT_DISTANCE_SEC,
+                        sets: DEFAULT_DISTANCE_SETS,
+                        weight: 0,
+                        prog: 'off',
+                        inc: 0,
+                        warmups: 0,
+                        drops: 0,
+                        side: false,
+                        bw: undefined,
+                        timed: undefined,
+                      }
+                    : { distance: undefined, meters: undefined, sets: 3, reps: 8, repsMax: 12, prog: 'double', inc: 2.5 },
                 )
               }
             />
-            <span>Süreli <span className="sub">(plank, izometrik: hedef saniyedir)</span></span>
+            <span>Mesafe <span className="sub">(koşu, bisiklet, kürek: mesafe + süre)</span></span>
           </label>
+
+          {!cfg.distance && (
+            <>
+              <label className="row">
+                <input
+                  type="checkbox"
+                  checked={!!cfg.side}
+                  onChange={(e) => patchEx(i, { side: e.target.checked })}
+                />
+                <span>Tek taraflı <span className="sub">(sol/sağ ayrı, ağırlık taraf başına)</span></span>
+              </label>
+
+              <label className="row">
+                <input
+                  type="checkbox"
+                  checked={!!cfg.bw}
+                  // Ağırlığın anlamı değişir (mutlak yük ↔ ek yük); eski değer yeni anlamda yanlış olurdu.
+                  onChange={(e) => patchEx(i, e.target.checked ? { bw: true, weight: 0 } : { bw: undefined, weight: 0 })}
+                />
+                <span>Vücut ağırlığı egzersizi <span className="sub">(ağırlık = ek yük)</span></span>
+              </label>
+
+              <label className="row">
+                <input
+                  type="checkbox"
+                  checked={!!cfg.timed}
+                  // Hedef sayının anlamı değişir (tekrar ↔ saniye); eski değer yeni anlamda yanlış olurdu.
+                  onChange={(e) =>
+                    patchEx(
+                      i,
+                      e.target.checked
+                        ? { timed: true, reps: DEFAULT_TIMED_SEC, repsMax: DEFAULT_TIMED_SEC, warmups: 0 }
+                        : { timed: undefined, reps: 8, repsMax: 12 },
+                    )
+                  }
+                />
+                <span>Süreli <span className="sub">(plank, izometrik: hedef saniyedir)</span></span>
+              </label>
+            </>
+          )}
 
           <details
             key={`adv-${cfg.exId}-${i}`}
@@ -220,24 +286,26 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 </label>
               )}
 
-              <div className="grid3">
-                {!cfg.timed && (
+              {!cfg.distance && (
+                <div className="grid3">
+                  {!cfg.timed && (
+                    <label className="field">
+                      <span className="sub">Isınma seti</span>
+                      <NumberField
+                        value={cfg.warmups ?? 0}
+                        onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
+                      />
+                    </label>
+                  )}
                   <label className="field">
-                    <span className="sub">Isınma seti</span>
+                    <span className="sub">Son sete drop</span>
                     <NumberField
-                      value={cfg.warmups ?? 0}
-                      onChange={(v) => patchEx(i, { warmups: Math.min(MAX_WARMUPS, Math.max(0, Math.round(v))) })}
+                      value={cfg.drops ?? 0}
+                      onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
                     />
                   </label>
-                )}
-                <label className="field">
-                  <span className="sub">Son sete drop</span>
-                  <NumberField
-                    value={cfg.drops ?? 0}
-                    onChange={(v) => patchEx(i, { drops: Math.min(MAX_DROPS, Math.max(0, Math.round(v))) })}
-                  />
-                </label>
-              </div>
+                </div>
+              )}
 
               <label className="field">
                 <span className="sub">Dinlenme (sn)</span>
@@ -253,20 +321,22 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
                 </button>
               )}
 
-              <label className="field">
-                <span className="sub">İlerleme</span>
-                <select
-                  className="input"
-                  value={cfg.prog}
-                  onChange={(e) => patchEx(i, { prog: e.target.value as ProgressionMode })}
-                >
-                  {(Object.keys(PROG_LABEL) as ProgressionMode[]).map((m) => (
-                    <option key={m} value={m}>{PROG_LABEL[m]}</option>
-                  ))}
-                </select>
-              </label>
+              {!cfg.distance && (
+                <label className="field">
+                  <span className="sub">İlerleme</span>
+                  <select
+                    className="input"
+                    value={cfg.prog}
+                    onChange={(e) => patchEx(i, { prog: e.target.value as ProgressionMode })}
+                  >
+                    {(Object.keys(PROG_LABEL) as ProgressionMode[]).map((m) => (
+                      <option key={m} value={m}>{PROG_LABEL[m]}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
-              {cfg.prog !== 'off' && (
+              {cfg.prog !== 'off' && !cfg.distance && (
                 <div className="grid3">
                   {!cfg.timed && (
                     <label className="field">

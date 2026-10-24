@@ -13,7 +13,7 @@ import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
 import { cleanNote, NOTE_MAX } from '../lib/notes.ts'
 import { moveEntryAt } from '../lib/editWorkout.ts'
 import { deriveSet, toBilateral, toUnilateral, type Side } from '../lib/sets.ts'
-import { swapEntry, toggleTimedEntry } from '../lib/swap.ts'
+import { distanceSets, swapEntry, toggleDistanceEntry, toggleTimedEntry } from '../lib/swap.ts'
 import { DEFAULT_TIMED_SEC } from '../lib/timed.ts'
 import { buildFreeWorkout, buildWorkout, dayString, finalizeSet, lastEntryFor, lastSetup, newId } from '../lib/workout.ts'
 import { loadState, saveState, STORAGE_KEY, useStorageStatus } from './persist.ts'
@@ -73,6 +73,8 @@ export interface Actions {
   toggleUnilateral(entry: number): void
   /** Henüz set tamamlanmamış egzersizi süreli ↔ tekrarlı çevirir (bkz. lib/swap.ts toggleTimedEntry). */
   toggleTimed(entry: number): void
+  /** Henüz set tamamlanmamış egzersizi mesafe (mesafe + süre) ↔ tekrarlı çevirir (bkz. lib/swap.ts toggleDistanceEntry). */
+  toggleDistance(entry: number): void
   toggleSuperset(entry: number): void
   /** Egzersiz / antrenman notu; yazarken ham metin saklanır, kayıtta kırpılır (finishWorkout). */
   setEntryNote(entry: number, text: string): void
@@ -83,7 +85,8 @@ export interface Actions {
   removeSet(entry: number, set: number): void
   /**
    * Seansa egzersiz ekler. `cfg.timed` verilmezse egzersizin son seansı süreliyse süreli başlar (set sayısı,
-   * süre ve ek yük o seanstan gelir); hiç yapılmadıysa tekrarlı başlar, "Süreli" düğmesiyle çevrilir.
+   * süre ve ek yük o seanstan gelir); hiç yapılmadıysa tekrarlı başlar, "Süreli" düğmesiyle çevrilir. Mesafe
+   * için de aynı kural geçerlidir (`cfg.distance`; son seans mesafeyse mesafe, mesafe ve süre oradan gelir).
    */
   addExerciseToActive(exId: string, cfg?: Partial<ExCfg>): void
   /**
@@ -92,8 +95,9 @@ export interface Actions {
    * taraflı mı (arayüz adından belirler, bkz. isUnilateralName); verilmezse bilateral. `bw`: yeni egzersiz
    * vücut ağırlığı egzersizi mi (arayüz ekipmandan belirler, bkz. isBodyOnly); verilmezse mutlak yük.
    * `timed`: yeni egzersiz süreli mi; verilmezse egzersizin son seansına bakılır (süreliyse süreli).
+   * `distance`: yeni egzersiz mesafe egzersizi mi; verilmezse yine son seansına bakılır.
    */
-  swapExercise(entry: number, exId: string, side?: boolean, bw?: boolean, timed?: boolean): void
+  swapExercise(entry: number, exId: string, side?: boolean, bw?: boolean, timed?: boolean, distance?: boolean): void
   /** Aktif antrenmandaki egzersizi bir adım yukarı/aşağı taşır (bkz. moveEntryAt); rutin değişmez. */
   moveEntry(entry: number, dir: -1 | 1): void
   finishWorkout(): Workout | null
@@ -238,7 +242,8 @@ export const useStore = create<Store>((set, get) => ({
     withActive(set, (w) => ({
       ...w,
       entries: w.entries.map((e, i) =>
-        i !== entry
+        // Mesafe setinde sol/sağ yoktur.
+        i !== entry || e.distance
           ? e
           : e.unilateral
             ? { ...e, unilateral: false, sets: toBilateral(e.sets) }
@@ -249,7 +254,13 @@ export const useStore = create<Store>((set, get) => ({
   toggleTimed: (entry) =>
     withActive(set, (w) => ({
       ...w,
-      entries: w.entries.map((e, i) => (i === entry ? toggleTimedEntry(e, get().workouts) : e)),
+      entries: w.entries.map((e, i) => (i === entry && !e.distance ? toggleTimedEntry(e, get().workouts) : e)),
+    })),
+
+  toggleDistance: (entry) =>
+    withActive(set, (w) => ({
+      ...w,
+      entries: w.entries.map((e, i) => (i === entry ? toggleDistanceEntry(e, get().workouts) : e)),
     })),
 
   toggleSuperset: (entry) =>
@@ -275,7 +286,7 @@ export const useStore = create<Store>((set, get) => ({
         if (i !== entry || e.sets.length >= MAX_SETS) return e
         // Yeni set, son asıl çalışma setini örnek alır (ısınma ve dropsetlerin hafif ağırlığını değil).
         const last = [...e.sets].reverse().find((s) => !s.warmup && !s.drop)
-        const base: SetEntry = { w: last?.w ?? 0, r: last?.r ?? 0, done: false }
+        const base: SetEntry = { w: last?.w ?? 0, r: last?.r ?? 0, ...(last?.m !== undefined ? { m: last.m } : {}), done: false }
         // Yeni set, son setin tekrar hedeflerini her iki tarafa da taşır; tamamlanma sıfırlanır.
         const next: SetEntry = last?.sides
           ? deriveSet({ ...base, sides: { L: { r: last.sides.L.r, done: false }, R: { r: last.sides.R.r, done: false } } })
@@ -290,8 +301,8 @@ export const useStore = create<Store>((set, get) => ({
       entries: w.entries.map((e, i) => {
         if (i !== entry) return e
         const k = e.sets.filter((s) => s.warmup).length
-        // Süreli egzersizde ısınma rampası yoktur (tekrar yok).
-        if (k >= MAX_WARMUPS || e.timed) return e
+        // Süreli ve mesafe egzersizinde ısınma rampası yoktur (tekrar yok).
+        if (k >= MAX_WARMUPS || e.timed || e.distance) return e
         // Rampa, ilk çalışma setinin ağırlığından hesaplanır; yeni ısınma mevcut ısınmaların ardına girer.
         const work = e.sets.find((s) => !s.warmup && !s.drop)
         const sets = [...e.sets]
@@ -304,7 +315,7 @@ export const useStore = create<Store>((set, get) => ({
     withActive(set, (w) => ({
       ...w,
       entries: w.entries.map((e, i) => {
-        if (i !== entry || !e.sets[setIdx] || e.sets[setIdx].warmup) return e
+        if (i !== entry || e.distance || !e.sets[setIdx] || e.sets[setIdx].warmup) return e
         // Zincir: aynı setin ardındaki dropların sonuna eklenir ve sonuncusundan hesaplanır.
         let at = setIdx + 1
         while (e.sets[at]?.drop) at++
@@ -330,7 +341,10 @@ export const useStore = create<Store>((set, get) => ({
         ...w.entries,
         (() => {
           // Plan verilmediyse egzersizin son seansındaki set sayısı, ağırlık ve tekrarla başlar.
-          const timed = cfg?.timed ?? !!lastEntryFor(get().workouts, exId)?.timed
+          const lastKind = lastEntryFor(get().workouts, exId)
+          const distance = cfg?.distance ?? (!cfg?.timed && !!lastKind?.distance)
+          if (distance) return { exId, distance: true, sets: distanceSets(get().workouts, exId, cfg?.sets) }
+          const timed = cfg?.timed ?? !!lastKind?.timed
           const prior = lastSetup(get().workouts, exId, !!cfg?.bw, timed)
           const sets = Array.from({ length: cfg?.sets ?? prior?.sets ?? 3 }, () => ({
             w: cfg?.weight ?? prior?.w ?? 0,
@@ -347,13 +361,14 @@ export const useStore = create<Store>((set, get) => ({
       ],
     })),
 
-  swapExercise: (entry, exId, side = false, bw = false, timed) =>
+  swapExercise: (entry, exId, side = false, bw = false, timed, distance) =>
     set((s) => {
       const e = s.active?.entries[entry]
       if (!s.active || !e || e.exId === exId) return {}
       const swapped = swapEntry(e, exId, side, s.workouts, {
         bw,
         timed: timed ?? !!lastEntryFor(s.workouts, exId)?.timed,
+        distance: distance ?? (!timed && !!lastEntryFor(s.workouts, exId)?.distance),
         bwKg: bw ? bodyweightOn(s.bodyweight, s.active.d) : undefined,
         rule: s.settings.progressionRule,
       })

@@ -356,7 +356,7 @@ describe('atlanan satırlar ve hatalar', () => {
     ].join('\n')
     const r = parseImport(c)
     expect(r.skippedRows).toBe(3)
-    expect(r.warnings).toEqual(['3 satır atlandı (tekrarı ve set süresi olmayan, mesafeli ya da süreli/tekrarlı karışık setler)'])
+    expect(r.warnings).toEqual(['3 satır atlandı (tekrarı, set süresi ve mesafesi olmayan ya da türü karışık setler)'])
   })
 
   it('seti kalmayan egzersizi ve antrenmanı çıktıdan düşürür', () => {
@@ -429,10 +429,13 @@ describe('süreli setlerin içe aktarılması', () => {
     expect(r.workouts[0].entries[0].sets).toEqual([{ type: 'normal', weight: 60, reps: 8 }])
   })
 
-  it('mesafeli kardiyo satırı süreli sayılmaz, atlanır', () => {
-    const r = parseImport([STRONG_OLD, so2('Run', '1', '0', '', '5000', '1800'), so2('Plank', '1', '0', '0', '0', '30')].join('\n'))
-    expect(r.skippedRows).toBe(1)
-    expect(r.workouts[0].entries.map((e) => e.name)).toEqual(['Plank'])
+  it('mesafeli kardiyo satırı süreli sayılmaz, mesafe seti olur', () => {
+    const r = parseImport([STRONG_OLD, so2('Run', '1', '0', '', '5', '1800'), so2('Plank', '1', '0', '0', '0', '30')].join('\n'))
+    expect(r.skippedRows).toBe(0)
+    expect(r.workouts[0].entries.map((e) => e.sets)).toEqual([
+      [{ type: 'normal', weight: 0, reps: 1800, distance: 5 }],
+      [{ type: 'normal', weight: 0, reps: 30, timed: true }],
+    ])
   })
 
   it('süreyi 3600e çeker; süresi de tekrarı da olmayan satırı atlar', () => {

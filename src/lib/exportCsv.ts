@@ -1,4 +1,5 @@
 import type { MeasurementEntry, SetEntry, Workout } from '../store/schema.ts'
+import { setMeters } from './distance.ts'
 import { describeSets, type SetKind } from './intensity.ts'
 import { effectiveLoad } from './load.ts'
 import { MEASURE_KEYS, MEASURE_LABEL, MEASURE_UNIT } from './measurements.ts'
@@ -27,6 +28,8 @@ export const CSV_HEADERS = [
   'Antrenman notu',
   // Sona eklendi: önceki sütun konumları (Excel formülleri) değişmesin. Süreli sette tekrar boş, süre dolu.
   'Süre (sn)',
+  // Sona eklendi (aynı nedenle). Mesafe setinde (koşu, kürek…) metre; ağırlık ve tekrar boş, süre "Süre (sn)"de.
+  'Mesafe (m)',
 ] as const
 
 export interface CsvOptions {
@@ -60,7 +63,8 @@ function num(kg: number, unit: Unit): string {
 
 /**
  * Tamamlanan setleri Excel için CSV'ye çevirir: tamamlanan her set bir satır, tek taraflıda taraf başına
- * bir satır (süreli egzersizde "Tekrar" boş, "Süre (sn)" tutulan saniyedir). Tamamlanmamış set atlanır; yalnız bir tarafı yapılmış yarım sette yapılan taraf yazılır.
+ * bir satır (süreli egzersizde "Tekrar" boş, "Süre (sn)" tutulan saniyedir; mesafe egzersizinde ağırlık ve
+ * "Tekrar" boş, "Süre (sn)" setin süresi, "Mesafe (m)" mesafedir). Tamamlanmamış set atlanır; yalnız bir tarafı yapılmış yarım sette yapılan taraf yazılır.
  * Sıra: tarih / başlangıç, egzersiz sırası, set sırası.
  */
 export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): string {
@@ -71,6 +75,7 @@ export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): s
   for (const w of ordered) {
     for (const entry of w.entries) {
       const metas = describeSets(entry.sets)
+      const seconds = entry.timed || entry.distance
       entry.sets.forEach((set: SetEntry, i) => {
         const meta = metas[i]
         const base = (side: string, reps: number): string[] => [
@@ -80,14 +85,15 @@ export function workoutsToCsv(workouts: readonly Workout[], opts: CsvOptions): s
           KIND_LABEL[meta.kind],
           meta.name.replace(/^\D+/, ''),
           side,
-          num(set.w, unit),
-          entry.bw && entry.bwKg !== undefined ? num(entry.bwKg, unit) : '',
-          num(effectiveLoad(entry, set.w), unit),
-          entry.timed ? '' : String(reps),
+          entry.distance ? '' : num(set.w, unit),
+          entry.bw && entry.bwKg !== undefined && !entry.distance ? num(entry.bwKg, unit) : '',
+          entry.distance ? '' : num(effectiveLoad(entry, set.w), unit),
+          seconds ? '' : String(reps),
           set.rir === undefined ? '' : String(set.rir),
           text(entry.note),
           text(w.note),
-          entry.timed ? String(reps) : '',
+          seconds ? String(reps) : '',
+          entry.distance ? String(setMeters(set)) : '',
         ]
         if (set.sides) {
           for (const s of SIDES) if (set.sides[s].done) rows.push(base(SIDE_LABEL[s], set.sides[s].r))

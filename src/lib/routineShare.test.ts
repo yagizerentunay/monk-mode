@@ -35,6 +35,16 @@ describe('rutin paylaşımı', () => {
     expect(customEx).toEqual([custom[0]])
   })
 
+  it('mesafe egzersizi hedef süre ve mesafesiyle gidip döner', async () => {
+    const cardio: Routine = {
+      id: 'r-cardio',
+      name: 'Kardiyo',
+      ex: [{ exId: 'Treadmill', sets: 1, reps: 1800, repsMax: 1800, weight: 0, prog: 'off', inc: 0, distance: true, meters: 5000, restSec: 120 }],
+    }
+    const { routine: back } = await decodeRoutine(await encodeRoutine(cardio, []))
+    expect(back).toEqual({ ...cardio, id: '' })
+  })
+
   it('link kısa: 4 egzersizlik rutin 300 karakterin altında', async () => {
     expect((await encodeRoutine(routine, custom)).length).toBeLessThan(300)
   })

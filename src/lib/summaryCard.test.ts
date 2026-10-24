@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import { formatDistanceSet } from './distance.ts'
 import { buildCardData, cardFileName, entryDetail, fitText, formatSessionLength, MAX_CARD_EXERCISES, MAX_CARD_PRS, prExIds } from './summaryCard.ts'
 
 const names = (id: string) => ({ bench: 'Bench Press', plank: 'Plank', pullup: 'Barfiks' })[id] ?? id
@@ -35,6 +36,14 @@ describe('buildCardData', () => {
     expect(data.volume).toBeUndefined()
     expect(data.exercises[0].detail).toBe('2 set · 1:30')
     expect(entryDetail(entry('plank', [set(10, 40)], { timed: true, bw: true }), 'kg')).toBe('1 set · +10 kg · 40 sn')
+  })
+
+  it('mesafe harekette toplam mesafe, süre ve tempoyu yazar, hacim satırı olmaz', () => {
+    const w = workout([entry('run', [set(0, 900, { m: 2500 }), set(0, 750, { m: 2500 })], { distance: true })])
+    const data = buildCardData(w, opts)
+    expect(data.volume).toBeUndefined()
+    expect(data.exercises[0].detail).toBe(`2 set · ${formatDistanceSet({ m: 5000, r: 1650 })}`)
+    expect(entryDetail(entry('run', [set(0, 0, { m: 0 })], { distance: true }), 'kg')).toBe('1 set')
   })
 
   it('vücut ağırlığı ve lb birimini uygulamadaki gibi gösterir', () => {
