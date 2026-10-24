@@ -731,6 +731,20 @@ export const tr = {
   'targets.valueAria': '{muscle} haftalık hedef (set)',
   'targets.increase': '{muscle} hedefini artır',
   'targets.reset': 'Varsayılana dön',
+  'exercises.fetchFailed': '{what} yüklenemedi ({status})',
+  'exercises.data': 'Egzersiz verisi',
+  'exercises.legacyData': 'Eski egzersiz verisi',
+  'library.secondary': 'yardımcı: {list}',
+  'library.fixed': 'kaslar düzeltildi',
+  'library.noImage': 'Bu hareketin kendi görseli henüz yok; hedef kasın referans çizimi gösteriliyor.',
+  'library.namePlaceholder': 'Egzersiz adı',
+  'library.mainMuscle': 'Ana kas',
+  'library.mainMuscleOptional': 'Ana kas (isteğe bağlı)',
+  'library.equipmentOptional': 'Ekipman (isteğe bağlı)',
+  'library.eyebrow': 'Kütüphane',
+  'library.title': 'Egzersizler',
+  'library.custom': 'Özel',
+  'library.customTitle': 'Özel egzersiz',
   // @end
 } as const
 
