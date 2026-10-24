@@ -592,7 +592,7 @@ export const en: Messages = {
   'shareImport.noneUsable': 'None of the movements in this routine are in your library; it cannot be added.',
   'shareImport.movements': { one: '{n} movement', other: '{n} movements' },
   'shareImport.someMissing': { one: '{missing} will be skipped because it is not in your library; the remaining {rest} will be added.', other: '{missing} will be skipped because they are not in your library; the remaining {rest} will be added.' },
-  'shareImport.customNote': { one: '{movements} is the sharer's custom exercise; it will be added to your custom exercises.', other: '{movements} are the sharer's custom exercises; they will be added to your custom exercises.' },
+  'shareImport.customNote': { one: "{movements} is the sharer's custom exercise; it will be added to your custom exercises.", other: "{movements} are the sharer's custom exercises; they will be added to your custom exercises." },
   'shareImport.unchanged': 'Your existing routines and workout history stay as they are. After adding, you can adjust the weights to suit you.',
   'shareImport.loadingLibrary': 'Loading library…',
   'shareImport.add': 'Add to my routines',
