@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { Exercise } from '../lib/exercises.ts'
 import { buildTemplateRoutines, type BuiltTemplate, type StarterTemplate } from '../lib/starterTemplates.ts'
 import { useToast } from './toast.ts'
@@ -14,7 +15,7 @@ export function addTemplateRoutines(template: StarterTemplate, byId: ReadonlyMap
   if (usable.length === 0) return null
   for (const routine of usable) useStore.getState().saveRoutine(routine)
   useToast.getState().show(
-    `${template.name} eklendi: ${usable.map((r) => r.name).join(', ')}`,
+    t('tpl.added', { template: template.name, routines: usable.map((r) => r.name).join(', ') }),
     () => {
       for (const routine of usable) useStore.getState().deleteRoutine(routine.id)
     },

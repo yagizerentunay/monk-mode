@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { ExCfg, Routine } from '../store/schema.ts'
 import type { Exercise } from './exercises.ts'
 import { defaultExCfg } from './routineAdd.ts'
@@ -13,6 +14,9 @@ import { newId } from './workout.ts'
  * Pulldown için geçici ikame konur ve
  * `subFor` ile işaretlenir; hareket Atlas'a eklenince şablondaki kimlik değiştirilir. Kullanıcının
  * zaten eklediği rutinler şablondan etkilenmez.
+ *
+ * Açıklamalar ve Türkçe gün adları (Üst Vücut A…) okunduğu anda arayüz dilinde çözülür (getter); rutin
+ * eklenirken o anki dildeki ad kullanılır, eklenen rutinin adı sonradan dil değişse de değişmez.
  */
 
 export interface TemplateExercise {
@@ -93,8 +97,12 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
     id: 'full-body',
     name: 'Full Body',
-    summary: 'Her antrenmanda bütün vücut; yeni başlayan için en iyi dayanaklı düzen.',
-    schedule: 'Haftada 3 gün (örn. Pzt-Çar-Cum), A ve B sırayla: A-B-A, sonraki hafta B-A-B. Ana Sayfa sıradaki rutini kendisi önerir.',
+    get summary() {
+      return t('tpl.fullBody.summary')
+    },
+    get schedule() {
+      return t('tpl.fullBody.schedule')
+    },
     recommended: true,
     days: [
       {
@@ -125,11 +133,17 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
     id: 'upper-lower',
     name: 'Upper / Lower',
-    summary: 'Üst ve alt vücut dönüşümlü; her bölge haftada 2 kez çalışır.',
-    schedule: 'Haftada 4 gün: Üst A, Alt A, Üst B, Alt B (örn. Pzt-Sal-Per-Cum).',
+    get summary() {
+      return t('tpl.upperLower.summary')
+    },
+    get schedule() {
+      return t('tpl.upperLower.schedule')
+    },
     days: [
       {
-        name: 'Üst Vücut A',
+        get name() {
+          return t('tpl.upperA')
+        },
         ex: [
           ex(DB_BENCH, 3, 8, 12, 2, 120),
           ex(PULLDOWN, 3, 8, 12, 2.5, 90),
@@ -141,7 +155,9 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ],
       },
       {
-        name: 'Alt Vücut A',
+        get name() {
+          return t('tpl.lowerA')
+        },
         ex: [
           ex(SQUAT, 3, 6, 10, 5, 150),
           ex(DB_RDL, 3, 8, 12, 2, 120),
@@ -152,7 +168,9 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ],
       },
       {
-        name: 'Üst Vücut B',
+        get name() {
+          return t('tpl.upperB')
+        },
         ex: [
           ex(INCLINE_PRESS, 3, 8, 12, 2.5, 90),
           ex(SUPPORTED_ROW, 3, 8, 12, 2, 90),
@@ -164,7 +182,9 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ],
       },
       {
-        name: 'Alt Vücut B',
+        get name() {
+          return t('tpl.lowerB')
+        },
         ex: [
           ex(LEG_PRESS, 3, 8, 12, 5, 120),
           ex(HIP_THRUST, 3, 8, 12, 5, 120),
@@ -179,10 +199,15 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
   {
     id: 'ppl',
     name: 'Push / Pull / Legs',
-    summary: 'İtme, çekme ve bacak günleri; haftada 6 gün için tasarlanmış bir düzen.',
-    schedule: 'Altı gün önerilir: Push, Pull, Legs, Push, Pull, Legs. Ana Sayfa sıradaki rutini kendisi önerir.',
-    note:
-      '6 gün önerilir. Haftada 3 gün çalışırsan her kas haftada yalnız 1 kez çalışır ve haftalık set sayısı çoğu kaynağın önerdiği aralığın altında kalır; 3 gün çalışacaksan Full Body ya da Upper/Lower daha uygun.',
+    get summary() {
+      return t('tpl.ppl.summary')
+    },
+    get schedule() {
+      return t('tpl.ppl.schedule')
+    },
+    get note() {
+      return t('tpl.ppl.note')
+    },
     days: [
       {
         name: 'Push',

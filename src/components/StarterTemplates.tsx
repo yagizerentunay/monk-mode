@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { isTimedName } from '../lib/exercises.ts'
 import { STARTER_TEMPLATES, substitutesOf, type StarterTemplate, type TemplateExercise } from '../lib/starterTemplates.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -11,7 +12,7 @@ interface Props {
 /** Set × tekrar satırı; süreli hareketlerde tekrar yerine saniye yazar. */
 function planText(e: TemplateExercise, timed: boolean): string {
   const range = e.reps === e.repsMax ? `${e.reps}` : `${e.reps}–${e.repsMax}`
-  return timed ? `${e.sets} × ${range} sn` : `${e.sets} × ${range}`
+  return timed ? `${e.sets} × ${t('unit.secValue', { n: range })}` : `${e.sets} × ${range}`
 }
 
 /**
@@ -21,32 +22,31 @@ function planText(e: TemplateExercise, timed: boolean): string {
 export function StarterTemplates({ onAdded }: Props) {
   const { byId, loading, error } = useExercises()
 
-  const add = (t: StarterTemplate) => {
-    if (addTemplateRoutines(t, byId)) onAdded()
+  const add = (tpl: StarterTemplate) => {
+    if (addTemplateRoutines(tpl, byId)) onAdded()
   }
 
   return (
     <div className="stack">
       <p className="sub" style={{ margin: 0 }}>
-        Yeni başlayanlar için hazır rutinler. Eklenince normal rutinlerin gibi düzenlenir; ağırlıkları ilk seansta
-        girersin. Mevcut rutinlerin değişmez.
+        {t('tpl.intro')}
       </p>
-      {error && <p className="sub" role="alert">Egzersiz verisi yüklenemedi: {error}</p>}
-      {STARTER_TEMPLATES.map((t) => {
-        const subs = substitutesOf(t)
+      {error && <p className="sub" role="alert">{t('tpl.loadFailed', { error })}</p>}
+      {STARTER_TEMPLATES.map((tpl) => {
+        const subs = substitutesOf(tpl)
         return (
-          <div key={t.id} className="card stack" data-template={t.id}>
+          <div key={tpl.id} className="card stack" data-template={tpl.id}>
             <div className="row between">
-              <div className="exname">{t.name}</div>
-              {t.recommended && <span className="badge on">Önerilen başlangıç</span>}
+              <div className="exname">{tpl.name}</div>
+              {tpl.recommended && <span className="badge on">{t('tpl.recommended')}</span>}
             </div>
-            <div className="sub" style={{ margin: 0 }}>{t.summary}</div>
-            <div className="sub" style={{ margin: 0 }}>{t.schedule}</div>
-            {t.note && <p className="sub banner-title" style={{ margin: 0 }}>⚠ {t.note}</p>}
+            <div className="sub" style={{ margin: 0 }}>{tpl.summary}</div>
+            <div className="sub" style={{ margin: 0 }}>{tpl.schedule}</div>
+            {tpl.note && <p className="sub banner-title" style={{ margin: 0 }}>⚠ {tpl.note}</p>}
             <details>
-              <summary>İçeriği gör</summary>
+              <summary>{t('tpl.showContents')}</summary>
               <div className="stack" style={{ marginTop: 8 }}>
-                {t.days.map((day) => (
+                {tpl.days.map((day) => (
                   <div key={day.name}>
                     <b>{day.name}</b>
                     <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
@@ -63,18 +63,19 @@ export function StarterTemplates({ onAdded }: Props) {
                 ))}
                 {subs.length > 0 && (
                   <p className="sub" style={{ margin: 0 }}>
-                    Geçici ikame: {subs.map((s) => `${byId.get(s.exId)?.name ?? s.exId} (${s.for} yerine)`).join(', ')}.
-                    Bu hareketler kütüphaneye eklenince şablon güncellenir; eklediğin rutinler değişmez.
+                    {t('tpl.substitutes', {
+                      list: subs.map((s) => `${byId.get(s.exId)?.name ?? s.exId} (${t('swap.insteadOf', { name: s.for })})`).join(', '),
+                    })}
                   </p>
                 )}
               </div>
             </details>
             <button
-              className={`btn block${t.recommended ? ' primary' : ''}`}
+              className={`btn block${tpl.recommended ? ' primary' : ''}`}
               disabled={loading}
-              onClick={() => add(t)}
+              onClick={() => add(tpl)}
             >
-              {t.days.length} rutini ekle
+              {t('tpl.add', { n: tpl.days.length })}
             </button>
           </div>
         )

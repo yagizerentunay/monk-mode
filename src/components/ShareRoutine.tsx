@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { encodeQr } from '../lib/qr.ts'
 import { encodeRoutine, shareUrl, ShareError } from '../lib/routineShare.ts'
 import type { Routine } from '../store/schema.ts'
@@ -20,7 +21,7 @@ export function ShareRoutine({ routine }: { routine: Routine }) {
     let alive = true
     encodeRoutine(routine, customEx)
       .then((payload) => alive && setLink({ url: shareUrl(payload) }))
-      .catch((e: unknown) => alive && setLink({ error: e instanceof ShareError ? e.message : 'Paylaşım linki oluşturulamadı.' }))
+      .catch((e: unknown) => alive && setLink({ error: e instanceof ShareError ? e.message : t('share.createFailed') }))
     return () => {
       alive = false
     }
@@ -34,16 +35,16 @@ export function ShareRoutine({ routine }: { routine: Routine }) {
     if (!url) return
     try {
       await navigator.clipboard.writeText(url)
-      setStatus('Link panoya kopyalandı.')
+      setStatus(t('share.copied'))
     } catch {
-      setStatus('Kopyalanamadı; linki aşağıdan seçip kopyala.')
+      setStatus(t('share.copyFailed'))
     }
   }
 
   const share = async () => {
     if (!url) return
     try {
-      await navigator.share({ title: `monk-mode rutini: ${routine.name}`, url })
+      await navigator.share({ title: t('share.title', { name: routine.name }), url })
     } catch (e) {
       // Kullanıcı menüyü kapattıysa sessiz kal; başka bir hata olursa panoya kopyalamayı dene.
       if (!(e instanceof DOMException && e.name === 'AbortError')) await copy()
@@ -51,27 +52,26 @@ export function ShareRoutine({ routine }: { routine: Routine }) {
   }
 
   if (link && 'error' in link) return <p className="warntext" role="alert">{link.error}</p>
-  if (!url) return <p className="sub">Link hazırlanıyor…</p>
+  if (!url) return <p className="sub">{t('share.preparing')}</p>
 
   return (
     <div className="stack">
       <p className="sub" style={{ margin: 0 }}>
-        Link rutini (egzersizler, set/tekrar, ağırlık, dinlenme) taşır; antrenman geçmişin ve ayarların gitmez. Açan
-        kişi önizleyip kendi rutinlerine ekler.
+        {t('share.hint')}
       </p>
       {matrix ? (
-        <QrCode matrix={matrix} label={`${routine.name} rutininin paylaşım QR kodu`} />
+        <QrCode matrix={matrix} label={t('share.qrAria', { name: routine.name })} />
       ) : (
-        <p className="warntext" role="status">Bu rutin QR koda sığmayacak kadar büyük; linki paylaş ya da kopyala.</p>
+        <p className="warntext" role="status">{t('share.qrTooBig')}</p>
       )}
-      <input className="input" readOnly aria-label="Paylaşım linki" value={url} onFocus={(e) => e.currentTarget.select()} />
+      <input className="input" readOnly aria-label={t('share.linkAria')} value={url} onFocus={(e) => e.currentTarget.select()} />
       {canShare ? (
         <>
-          <button className="btn primary block" onClick={share}>Paylaş</button>
-          <button className="btn block" onClick={copy}>Linki kopyala</button>
+          <button className="btn primary block" onClick={share}>{t('shareCard.share')}</button>
+          <button className="btn block" onClick={copy}>{t('share.copyLink')}</button>
         </>
       ) : (
-        <button className="btn primary block" onClick={copy}>Linki kopyala</button>
+        <button className="btn primary block" onClick={copy}>{t('share.copyLink')}</button>
       )}
       {status && <p className="sub" role="status" style={{ margin: 0 }}>{status}</p>}
     </div>

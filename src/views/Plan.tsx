@@ -1,3 +1,4 @@
+import { locale, t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BlockCard } from '../components/BlockCard.tsx'
@@ -28,26 +29,26 @@ export function Plan() {
   })
   const trainedDays = new Set(workouts.map((w) => w.d))
   const plannedCount = days.filter((d) => week[d.dow]).length
-  const weekLabel = `${monday.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long' })} haftası`
+  const weekLabel = t('plan.weekOf', { date: monday.toLocaleDateString(locale(), { day: '2-digit', month: 'long' }) })
   const nameOf = (id?: string) => routines.find((r) => r.id === id)?.name
 
   return (
     <div className="stack">
       <div>
-        <div className="eyebrow">Haftalık plan</div>
-        <h1 className="display">Bir plan.<span className="hl">Her gün.</span></h1>
+        <div className="eyebrow">{t('plan.eyebrow')}</div>
+        <h1 className="display">{t('plan.titleA')}<span className="hl">{t('plan.titleB')}</span></h1>
       </div>
-      <div className="seg" role="tablist" aria-label="Plan görünümü">
-        <button role="tab" aria-selected={tab === 'week'} className={tab === 'week' ? 'on' : ''} onClick={() => setTab('week')}>Haftalık program</button>
-        <button role="tab" aria-selected={tab === 'routines'} className={tab === 'routines' ? 'on' : ''} onClick={() => setTab('routines')}>Rutinler</button>
+      <div className="seg" role="tablist" aria-label={t('plan.viewAria')}>
+        <button role="tab" aria-selected={tab === 'week'} className={tab === 'week' ? 'on' : ''} onClick={() => setTab('week')}>{t('plan.weekTab')}</button>
+        <button role="tab" aria-selected={tab === 'routines'} className={tab === 'routines' ? 'on' : ''} onClick={() => setTab('routines')}>{t('plan.routinesTab')}</button>
       </div>
 
       {tab === 'week' && (
         <div className="stack">
           <BlockCard />
-          <div className="eyebrow muted">{weekLabel} · {plannedCount} planlı gün</div>
+          <div className="eyebrow muted">{weekLabel} · {t('plan.plannedDays', { n: plannedCount })}</div>
           {routines.length === 0 && (
-            <p className="sub">Önce bir rutin oluştur, sonra günlere ata.</p>
+            <p className="sub">{t('plan.noRoutines')}</p>
           )}
           {days.map((d) => {
             const name = nameOf(week[d.dow])
@@ -65,10 +66,10 @@ export function Plan() {
                   <span className="dno">{String(d.no).padStart(2, '0')}</span>
                 </span>
                 <span className="grow">
-                  <span className="dayname">{name ?? 'Dinlenme'}</span>
-                  <span className="daysub">{name ? 'Planlı antrenman' : 'Toparlanma günü'}{isToday ? ' · Bugün' : ''}</span>
+                  <span className="dayname">{name ?? t('plan.rest')}</span>
+                  <span className="daysub">{name ? t('plan.plannedWorkout') : t('plan.recoveryDay')}{isToday ? ` · ${t('calendar.today')}` : ''}</span>
                 </span>
-                {done && <span className="donemark">✓ Yapıldı</span>}
+                {done && <span className="donemark">✓ {t('home.done')}</span>}
                 <span className="chev" aria-hidden="true">›</span>
               </button>
             )
@@ -78,27 +79,27 @@ export function Plan() {
 
       {tab === 'routines' && (
         <div className="stack">
-          <div className="eyebrow muted">{routines.length} rutin</div>
+          <div className="eyebrow muted">{t('count.routines', { n: routines.length })}</div>
           {routines.map((r) => (
             <Link key={r.id} to={`/plan/r/${r.id}`} className="card tap row between routinecard">
               <div>
                 <div className="exname">{r.name}</div>
-                <div className="sub">{r.ex.length} egzersiz</div>
+                <div className="sub">{t('count.exercises', { n: r.ex.length })}</div>
               </div>
-              <span className="sub">Düzenle ›</span>
+              <span className="sub">{t('common.edit')} ›</span>
             </Link>
           ))}
           <button
             className={`btn block${routines.length === 0 ? ' primary' : ''}`}
             onClick={() => setTemplatesOpen(true)}
           >
-            Başlangıç şablonları
+            {t('plan.templates')}
           </button>
-          <button className={`btn block${routines.length === 0 ? "" : " primary"}`} onClick={() => navigate(`/plan/r/${newId()}`)}>+ Yeni rutin</button>
+          <button className={`btn block${routines.length === 0 ? "" : " primary"}`} onClick={() => navigate(`/plan/r/${newId()}`)}>+ {t('plan.newRoutine')}</button>
         </div>
       )}
 
-      <BottomSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} title="Başlangıç şablonları">
+      <BottomSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} title={t('plan.templates')}>
         <StarterTemplates onAdded={() => setTemplatesOpen(false)} />
       </BottomSheet>
 
@@ -127,7 +128,7 @@ export function Plan() {
               setDayPicker(null)
             }}
           >
-            Dinlenme günü
+            {t('home.restDay')}
           </button>
         </div>
       </BottomSheet>

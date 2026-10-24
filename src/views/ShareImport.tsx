@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { decodeRoutine, ShareError, type SharedRoutine } from '../lib/routineShare.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -12,7 +13,7 @@ type Decoded = { shared: SharedRoutine } | { error: string } | null
 /** Set × tekrar satırı; süreli harekette tekrar yerine saniye yazar. */
 function planText(e: ExCfg): string {
   const range = e.reps === e.repsMax || e.prog !== 'double' ? `${e.reps}` : `${e.reps}–${e.repsMax}`
-  return e.timed ? `${e.sets} × ${range} sn` : `${e.sets} × ${range}`
+  return e.timed ? `${e.sets} × ${t('unit.secValue', { n: range })}` : `${e.sets} × ${range}`
 }
 
 /**
@@ -32,20 +33,20 @@ export function ShareImport() {
     let alive = true
     decodeRoutine(payload)
       .then((shared) => alive && setDecoded({ shared }))
-      .catch((e: unknown) => alive && setDecoded({ error: e instanceof ShareError ? e.message : 'Link açılamadı.' }))
+      .catch((e: unknown) => alive && setDecoded({ error: e instanceof ShareError ? e.message : t('shareImport.openFailed') }))
     return () => {
       alive = false
     }
   }, [payload])
 
-  if (decoded === null) return <p className="sub">Paylaşılan rutin açılıyor…</p>
+  if (decoded === null) return <p className="sub">{t('shareImport.opening')}</p>
 
   if ('error' in decoded) {
     return (
       <div className="stack">
-        <div className="eyebrow">Paylaşılan rutin</div>
+        <div className="eyebrow">{t('shareImport.eyebrow')}</div>
         <p className="warntext" role="alert">{decoded.error}</p>
-        <Link className="btn block" to="/plan">Planlara dön</Link>
+        <Link className="btn block" to="/plan">{t('shareImport.backToPlans')}</Link>
       </div>
     )
   }
@@ -70,24 +71,24 @@ export function ShareImport() {
     })
     if (result.added === 0) return
     const name = result.routines.find((r) => r.id === id)?.name ?? routine.name
-    useToast.getState().show(`"${name}" rutinlerine eklendi`, () => useStore.getState().deleteRoutine(id))
+    useToast.getState().show(t('shareImport.added', { name }), () => useStore.getState().deleteRoutine(id))
     navigate(`/plan/r/${id}`, { replace: true })
   }
 
   return (
     <div className="stack">
       <div>
-        <div className="eyebrow">Paylaşılan rutin</div>
+        <div className="eyebrow">{t('shareImport.eyebrow')}</div>
         <h1 className="display">{routine.name}</h1>
-        <div className="sub">{routine.ex.length} egzersiz</div>
+        <div className="sub">{t('count.exercises', { n: routine.ex.length })}</div>
       </div>
       <div className="card stack">
         <ol className="sharelist">
           {rows.map((r, i) => (
             <li key={i}>
               <span className="exname">{r.name}</span> <span className="sub">· {planText(r.cfg)}</span>
-              {!loading && r.status === 'custom' && <span className="sub"> · özel egzersiz olarak eklenecek</span>}
-              {!loading && r.status === 'missing' && <span className="warntext"> · kütüphanende yok, atlanacak</span>}
+              {!loading && r.status === 'custom' && <span className="sub"> · {t('shareImport.asCustom')}</span>}
+              {!loading && r.status === 'missing' && <span className="warntext"> · {t('shareImport.missing')}</span>}
             </li>
           ))}
         </ol>
@@ -95,22 +96,22 @@ export function ShareImport() {
       {!loading && missing > 0 && (
         <p className="warntext" role="status" style={{ margin: 0 }}>
           {usable.length === 0
-            ? 'Bu rutindeki hareketlerin hiçbiri kütüphanende yok; eklenemiyor.'
-            : `${missing} hareket kütüphanende olmadığı için atlanacak; kalan ${usable.length} hareket eklenir.`}
+            ? t('shareImport.noneUsable')
+            : t('shareImport.someMissing', { n: missing, missing: t('shareImport.movements', { n: missing }), rest: t('shareImport.movements', { n: usable.length }) })}
         </p>
       )}
       {!loading && newCustom > 0 && (
         <p className="sub" style={{ margin: 0 }}>
-          {newCustom} hareket paylaşanın özel egzersizi; özel egzersizlerine eklenecek.
+          {t('shareImport.customNote', { n: newCustom, movements: t('shareImport.movements', { n: newCustom }) })}
         </p>
       )}
       <p className="sub" style={{ margin: 0 }}>
-        Mevcut rutinlerin ve antrenman geçmişin değişmez. Ekledikten sonra ağırlıkları kendine göre düzenleyebilirsin.
+        {t('shareImport.unchanged')}
       </p>
       <button className="btn primary block" disabled={loading || usable.length === 0} onClick={add}>
-        {loading ? 'Kütüphane yükleniyor…' : 'Rutinlerime ekle'}
+        {loading ? t('shareImport.loadingLibrary') : t('shareImport.add')}
       </button>
-      <Link className="btn block" to="/plan">Vazgeç</Link>
+      <Link className="btn block" to="/plan">{t('common.cancel')}</Link>
     </div>
   )
 }
