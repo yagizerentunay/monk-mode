@@ -3,16 +3,19 @@ import type {
   CustomExercise,
   ExCfg,
   MeasurementEntry,
+  PastBlock,
   ProgressionMode,
   Routine,
   SetEntry,
   SideSet,
   StrengthGoal,
+  TrainingBlock,
   Workout,
   WorkoutEntry,
 } from './schema.ts'
 import { clampDistanceSec, clampMeters, MAX_DISTANCE_M, MAX_DISTANCE_SEC } from '../lib/distance.ts'
 import { cleanMeasure, hasMeasure, MEASURE_KEYS, type MeasureKey } from '../lib/measurements.ts'
+import { clampWeeks, MAX_BLOCK_WEEKS, MAX_PAST_BLOCKS, MIN_BLOCK_WEEKS } from '../lib/block.ts'
 import { clampSec, MAX_TIMED_SEC } from '../lib/timed.ts'
 
 /**
@@ -43,6 +46,7 @@ export const KINDS = [
   'customEx',
   'muscleFix',
   'goal',
+  'block',
 ] as const
 export type Kind = (typeof KINDS)[number]
 
@@ -454,6 +458,41 @@ function sanitizeGoal(raw: unknown): StrengthGoal | null {
     : null
 }
 
+// --- blok --------------------------------------------------------------------------------------
+
+const BLOCK_CHECKS: Record<string, Check> = {
+  id,
+  start: day,
+  weeks: intIn(MIN_BLOCK_WEEKS, MAX_BLOCK_WEEKS),
+  deload: intIn(1, MAX_BLOCK_WEEKS),
+}
+
+const OUTCOMES: ReadonlySet<unknown> = new Set<PastBlock['outcome']>(['done', 'cancelled'])
+
+/**
+ * Bloğu doğrular. Kimlik ya da başlangıç günü kullanılamazsa null (atılır); `past` iken bitiş günü de
+ * zorunludur. Hafta sayısı aralık dışındaysa 4-6'ya çekilir, deload haftası blok dışındaysa son haftaya
+ * alınır, geçmişteki bloğun sonucu bilinmiyorsa "bitti" sayılır.
+ */
+function sanitizeBlock(raw: unknown, rep: SanitizeReport, past: boolean): Record<string, unknown> | null {
+  if (!isRecord(raw) || id(raw.id) === BAD || !isDay(raw.start)) return null
+  if (past && !isDay(raw.end)) return null
+  const checks: Record<string, Check> = past
+    ? { ...BLOCK_CHECKS, end: day, outcome: (v) => (OUTCOMES.has(v) ? v : BAD) }
+    : BLOCK_CHECKS
+  const { out, bad } = pick(raw, checks)
+  let fixed = bad
+  fixed = fill(out, 'weeks', clampWeeks(raw.weeks)) || fixed
+  fixed = fill(out, 'deload', out.weeks) || fixed
+  if ((out.deload as number) > (out.weeks as number)) {
+    out.deload = out.weeks
+    fixed = true
+  }
+  if (past) fixed = fill(out, 'outcome', 'done') || fixed
+  if (fixed) rep.repaired.block++
+  return out
+}
+
 /** Gün (0-6) → rutin kimliği; geçersiz çiftler atılır. */
 function sanitizeWeek(raw: Record<string, unknown>, rep: SanitizeReport): Record<number, string> {
   const week: Record<number, string> = {}
@@ -501,5 +540,15 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
     if (!active) rep.dropped.active++
   }
 
-  return { routines, week, workouts, active, bodyweight, measurements, customEx, goals }
+  let block: TrainingBlock | null = null
+  if (raw.block !== undefined && raw.block !== null) {
+    block = sanitizeBlock(raw.block, rep, false) as TrainingBlock | null
+    if (!block) rep.dropped.block++
+  }
+  const allPast = list(raw, 'pastBlocks', 'block', rep, (v) => sanitizeBlock(v, rep, true) as PastBlock | null)
+  // Uygulama geçmişi MAX_PAST_BLOCKS'ta tutar; fazlası (elle düzenlenmiş yedek) en eskiden atılır.
+  rep.dropped.block += Math.max(0, allPast.length - MAX_PAST_BLOCKS)
+  const pastBlocks = allPast.slice(-MAX_PAST_BLOCKS)
+
+  return { routines, week, workouts, active, bodyweight, measurements, customEx, goals, block, pastBlocks }
 }

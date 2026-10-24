@@ -126,3 +126,27 @@ export function isDeloadSnoozed(snoozedUntil: number | undefined, now: number): 
 export function deloadSnoozeUntil(now: number): number {
   return now + DELOAD_SNOOZE_DAYS * DAY_MS
 }
+
+/** Deload haftasında çalışma setleri bu oranlar arasında azaltılır (%40–50); ağırlık aynı kalır. */
+export const DELOAD_SET_CUT_MIN = 0.4
+export const DELOAD_SET_CUT_MAX = 0.5
+
+/** "%40–50": öneri metinleri sabitlerle aynı kalsın diye. */
+export function deloadCutText(): string {
+  return `%${Math.round(DELOAD_SET_CUT_MIN * 100)}–${Math.round(DELOAD_SET_CUT_MAX * 100)}`
+}
+
+/** Deload'da önerilen RIR aralığı ("4–5"): bilinçli hafif seans eşiğinden (EASY_RIR) başlar. */
+export function deloadRirText(): string {
+  return `${EASY_RIR}–${EASY_RIR + 1}`
+}
+
+/**
+ * Deload haftasında önerilen çalışma seti sayısı: setlerin en az yarısı kalır (en çok %50 azalma, yukarı
+ * yuvarlanır), en az 1. Ağırlık değişmez: ilerleme kuralı bir sonraki seansı son seansın yükünden kurar,
+ * ağırlığı düşürmek deload sonrası planı da düşürürdü; eksik set ise ilerlemeyi yalnız bir seans bekletir.
+ */
+export function deloadSetCount(sets: number): number {
+  if (sets <= 0) return 0
+  return Math.max(1, Math.ceil(sets * (1 - DELOAD_SET_CUT_MAX)))
+}

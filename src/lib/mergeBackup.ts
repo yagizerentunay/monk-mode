@@ -1,4 +1,5 @@
-import type { CustomExercise, State, StrengthGoal, Workout } from '../store/schema.ts'
+import type { CustomExercise, PastBlock, State, StrengthGoal, Workout } from '../store/schema.ts'
+import { MAX_PAST_BLOCKS } from './block.ts'
 import { mergeRoutines } from './mergeRoutines.ts'
 import { sameMuscleFix, type MuscleFix } from './muscleFix.ts'
 
@@ -20,6 +21,8 @@ export interface MergeReport {
   customEx: MergeCount
   muscleFix: MergeCount
   goals: MergeCount
+  /** Antrenman blokları: geçmiş bloklar ve (yerelde yoksa) süren blok. */
+  blocks: MergeCount
   /** `workouts.identical` içinden: kimliği farklı ama içeriği aynı olduğu için atlananlar (CSV içe aktarma kopyası). */
   contentDuplicates: number
 }
@@ -35,7 +38,8 @@ export function totalAdded(r: MergeReport): number {
     r.measurements.added +
     r.customEx.added +
     r.muscleFix.added +
-    r.goals.added
+    r.goals.added +
+    r.blocks.added
   )
 }
 
@@ -80,6 +84,8 @@ const names = (customEx: readonly CustomExercise[]): Map<string, string> =>
  * - özel egzersiz: kimliğe göre. Kas düzeltmesi: yalnız yerelde olmayan egzersizler için eklenir.
  * - hedefler: kimliğe göre. Kimliği farklı ama egzersiz + hedef + gün aynıysa (iki cihazda ayrı girilmiş
  *   aynı hedef) zaten var sayılır. Yeni gelenler sona eklenir.
+ * - blok geçmişi: kimliğe göre; bitişe göre sıralı, en çok MAX_PAST_BLOCKS. Süren blok yereldeyse yerel
+ *   kalır; yerelde süren blok yoksa ve gelen blok yerelde bitirilmemişse gelen blok süren blok olur.
  * - ayarlar, haftalık program, aktif antrenman: yerel aynen kalır.
  */
 export function mergeState(local: State, incoming: State): { state: State; report: MergeReport } {
@@ -91,6 +97,7 @@ export function mergeState(local: State, incoming: State): { state: State; repor
     customEx: count(),
     muscleFix: count(),
     goals: count(),
+    blocks: count(),
     contentDuplicates: 0,
   }
 
@@ -206,6 +213,38 @@ export function mergeState(local: State, incoming: State): { state: State; repor
     }
   }
 
+  // Antrenman blokları. Gelen geçmiş blok yerelde hâlâ sürüyorsa (öbür cihazda bitirilmiş) yerel kazanır.
+  const localPast = new Map(local.pastBlocks.map((b) => [b.id, b]))
+  const freshPast: PastBlock[] = []
+  for (const b of incoming.pastBlocks) {
+    const mine = localPast.get(b.id)
+    if (mine) {
+      if (same(mine, b)) report.blocks.identical++
+      else report.blocks.conflicting++
+    } else if (b.id === local.block?.id) report.blocks.conflicting++
+    else {
+      localPast.set(b.id, b)
+      freshPast.push(b)
+    }
+  }
+  const pastBlocks = [...local.pastBlocks, ...freshPast]
+    .sort((a, b) => a.end.localeCompare(b.end))
+    .slice(-MAX_PAST_BLOCKS)
+  // Sınır yüzünden düşen eski bloklar eklenmiş sayılmaz.
+  report.blocks.added = freshPast.filter((b) => pastBlocks.includes(b)).length
+
+  let block = local.block
+  if (incoming.block) {
+    if (local.block) {
+      if (same(local.block, incoming.block)) report.blocks.identical++
+      else report.blocks.conflicting++
+    } else if (localPast.has(incoming.block.id)) report.blocks.conflicting++
+    else {
+      block = incoming.block
+      report.blocks.added++
+    }
+  }
+
   const state: State = {
     ...local,
     workouts,
@@ -215,6 +254,8 @@ export function mergeState(local: State, incoming: State): { state: State; repor
     customEx: [...local.customEx, ...addedCustom],
     muscleFix,
     goals: [...local.goals, ...addedGoals],
+    block,
+    pastBlocks,
   }
   return { state, report }
 }
@@ -229,8 +270,9 @@ export function describeMerge(r: MergeReport): string {
     r.customEx.added && `${r.customEx.added} özel egzersiz`,
     r.muscleFix.added && `${r.muscleFix.added} kas düzeltmesi`,
     r.goals.added && `${r.goals.added} hedef`,
+    r.blocks.added && `${r.blocks.added} antrenman bloğu`,
   ].filter(Boolean)
-  const kinds = [r.workouts, r.routines, r.bodyweight, r.measurements, r.customEx, r.muscleFix, r.goals]
+  const kinds = [r.workouts, r.routines, r.bodyweight, r.measurements, r.customEx, r.muscleFix, r.goals, r.blocks]
   const identical = kinds.reduce((n, c) => n + c.identical, 0)
   const conflicting = kinds.reduce((n, c) => n + c.conflicting, 0)
   const parts = [

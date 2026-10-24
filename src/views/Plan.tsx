@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { BlockCard } from '../components/BlockCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { StarterTemplates } from '../components/StarterTemplates.tsx'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
@@ -43,6 +44,7 @@ export function Plan() {
 
       {tab === 'week' && (
         <div className="stack">
+          <BlockCard />
           <div className="eyebrow muted">{weekLabel} · {plannedCount} planlı gün</div>
           {routines.length === 0 && (
             <p className="sub">Önce bir rutin oluştur, sonra günlere ata.</p>

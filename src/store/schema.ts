@@ -171,6 +171,27 @@ export interface StrengthGoal {
   done?: string
 }
 
+/**
+ * Antrenman bloğu (mezosiklus): 4–6 haftalık plan, içinde bir planlı deload haftası (bkz. lib/block.ts).
+ * Haftalar takvim haftasıdır (`Settings.weekStart`'a göre): 1. hafta, `start` gününün haftasıdır.
+ */
+export interface TrainingBlock {
+  id: string
+  /** YYYY-MM-DD, yerel gün. */
+  start: string
+  /** Hafta sayısı (4-6). */
+  weeks: number
+  /** Planlı deload haftası (1..weeks); varsayılan son hafta. */
+  deload: number
+}
+
+/** Bitirilmiş ya da iptal edilmiş blok: kısa geçmiş için saklanır. */
+export interface PastBlock extends TrainingBlock {
+  /** YYYY-MM-DD, bitirildiği ya da iptal edildiği yerel gün. */
+  end: string
+  outcome: 'done' | 'cancelled'
+}
+
 export interface Settings {
   unit: Unit
   restSec: number
@@ -219,6 +240,10 @@ export interface State {
   muscleFix: Record<string, MuscleFix>
   /** Kuvvet hedefleri, eklenme sırasında. */
   goals: StrengthGoal[]
+  /** Süren antrenman bloğu; yoksa null. */
+  block: TrainingBlock | null
+  /** Biten ve iptal edilen bloklar, bitişe göre eski→yeni (en çok MAX_PAST_BLOCKS, bkz. lib/block.ts). */
+  pastBlocks: PastBlock[]
 }
 
 export function defaultState(): State {
@@ -234,5 +259,7 @@ export function defaultState(): State {
     customEx: [],
     muscleFix: {},
     goals: [],
+    block: null,
+    pastBlocks: [],
   }
 }

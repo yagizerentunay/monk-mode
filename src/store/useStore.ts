@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { insertWorkout } from '../lib/backdate.ts'
+import { addPastBlock, closeBlock, editBlock, newBlock, planDeloadThisWeek } from '../lib/block.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
@@ -23,12 +24,14 @@ import {
   type CustomExercise,
   type ExCfg,
   type MeasurementEntry,
+  type PastBlock,
   type Routine,
   type SetEntry,
   type Settings,
   type SideSet,
   type State,
   type StrengthGoal,
+  type TrainingBlock,
   type Workout,
 } from './schema.ts'
 
@@ -129,6 +132,17 @@ export interface Actions {
    * işaretlenenleri döner: kutlama bir kez gösterilsin diye.
    */
   settleGoals(): StrengthGoal[]
+  /** Yeni antrenman bloğu başlatır (bkz. lib/block.ts); süren blok varsa dokunmaz. */
+  startBlock(start: string, weeks: number, deload?: number): void
+  /** Süren bloğun başlangıcını, hafta sayısını ya da deload haftasını değiştirir. */
+  editBlock(patch: Partial<Pick<TrainingBlock, 'start' | 'weeks' | 'deload'>>): void
+  /** Süren bloğu bitirir ya da iptal eder ve kısa geçmişe taşır; `end` bitiş günüdür (YYYY-MM-DD). */
+  endBlock(outcome: PastBlock['outcome'], end: string): void
+  /**
+   * Deload'u bu haftaya planlar (bkz. lib/block.ts planDeloadThisWeek); henüz başlamamış blok varsa
+   * hiçbir şey yapmaz. Deload önerisinin susturma süresine (`deloadSnoozedUntil`) dokunmaz.
+   */
+  planDeloadThisWeek(today: Date): void
   replaceAll(state: State): void
   /** Şu anki verinin yedeklendiğini işaretler (yedek indirilince ya da yedekten yüklenince). */
   markBackedUp(now: number): void
@@ -489,6 +503,23 @@ export const useStore = create<Store>((set, get) => ({
     return next.filter((g) => reached.has(g.id))
   },
 
+  startBlock: (start, weeks, deload) =>
+    set((s) => (s.block ? {} : { block: newBlock(newId(), start, weeks, deload) })),
+
+  editBlock: (patch) => set((s) => (s.block ? { block: editBlock(s.block, patch) } : {})),
+
+  endBlock: (outcome, end) =>
+    set((s) =>
+      s.block ? { block: null, pastBlocks: addPastBlock(s.pastBlocks, closeBlock(s.block, end, outcome)) } : {},
+    ),
+
+  planDeloadThisWeek: (today) =>
+    set((s) => {
+      const plan = planDeloadThisWeek(s.block, today, s.settings.weekStart, newId())
+      if (!plan) return {}
+      return { block: plan.block, ...(plan.closed ? { pastBlocks: addPastBlock(s.pastBlocks, plan.closed) } : {}) }
+    }),
+
   replaceAll: (state) => set(() => ({ ...state })),
 
   markBackedUp: (now) =>
@@ -514,6 +545,8 @@ export function snapshot(s: Store): State {
     customEx: s.customEx,
     muscleFix: s.muscleFix,
     goals: s.goals,
+    block: s.block,
+    pastBlocks: s.pastBlocks,
   }
 }
 
