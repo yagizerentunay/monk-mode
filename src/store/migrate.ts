@@ -127,6 +127,7 @@ export function migrateWithReport(raw: unknown): MigrateResult {
           : undefined,
       muscleTargets: migrateMuscleTargets(settings.muscleTargets),
       progressionRule: settings.progressionRule === 'fast' ? 'fast' : undefined,
+      theme: settings.theme === 'dark' || settings.theme === 'light' ? settings.theme : 'system',
       deloadSnoozedUntil: positive(settings.deloadSnoozedUntil),
     },
     ...records,

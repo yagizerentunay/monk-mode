@@ -16,3 +16,20 @@ describe('migrate: ilerleme kuralı ve deload ertelemesi', () => {
     expect(withSettings({ deloadSnoozedUntil: 'x' }).settings.deloadSnoozedUntil).toBeUndefined()
   })
 })
+
+describe('migrate: tema', () => {
+  it("ayar yoksa (eski veri) 'system' olur", () => {
+    expect(withSettings({}).settings.theme).toBe('system')
+  })
+
+  it("'dark' ve 'light' korunur", () => {
+    expect(withSettings({ theme: 'dark' }).settings.theme).toBe('dark')
+    expect(withSettings({ theme: 'light' }).settings.theme).toBe('light')
+  })
+
+  it("geçersiz değer 'system'e düşer", () => {
+    for (const theme of ['Light', 'sepia', '', 1, null, true, { v: 'light' }]) {
+      expect(withSettings({ theme }).settings.theme).toBe('system')
+    }
+  })
+})

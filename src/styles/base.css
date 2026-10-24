@@ -48,7 +48,13 @@
   --ok-ink: #05210f;
   --sage: #8daaa4;
   --warn: #f0b24a;
+  --warn-ink: #1c1100;
   --danger: #f2655b;
+  /* kartın üstünde yüzen yüzeyler (dinlenme çubuğu), vurgulu kart degradesinin başı, gölge ve sheet arkası */
+  --raised: #262c30;
+  --hero-from: #262b30;
+  --shadow: rgba(0, 0, 0, 0.6);
+  --scrim: rgba(0, 0, 0, 0.65);
   --radius: 12px;
   --radius-btn: 10px;
   --tab-h: 68px;
@@ -56,6 +62,56 @@
   --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Açık tema: Ayarlar'da "Açık" seçilince, "Sistem"de de cihaz açık tercih ediyorsa (data-theme: lib/theme.ts).
+   Bakır vurgu korunur ama koyulaşır: açık zeminde metin olarak da en az 4.5:1 okunur.
+   İki blok aynı değerleri taşır; birini değiştirirsen ötekini de değiştir. */
+html[data-theme='light'] {
+  --bg: #f3efe9;
+  --card: #ffffff;
+  --card-2: #ebe5dd;
+  --line: #d3cbc0;
+  --text: #1a1c1e;
+  --muted: #5b6166;
+  --accent: #a64a14;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(166, 74, 20, 0.1);
+  --ok: #1a6e42;
+  --ok-ink: #ffffff;
+  --sage: #4d6c66;
+  --warn: #8f5b00;
+  --warn-ink: #ffffff;
+  --danger: #bf3328;
+  --raised: #ffffff;
+  --hero-from: #fbf1ea;
+  --shadow: rgba(40, 30, 20, 0.18);
+  --scrim: rgba(20, 18, 16, 0.45);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  html:not([data-theme='dark']) {
+    --bg: #f3efe9;
+    --card: #ffffff;
+    --card-2: #ebe5dd;
+    --line: #d3cbc0;
+    --text: #1a1c1e;
+    --muted: #5b6166;
+    --accent: #a64a14;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(166, 74, 20, 0.1);
+    --ok: #1a6e42;
+    --ok-ink: #ffffff;
+    --sage: #4d6c66;
+    --warn: #8f5b00;
+    --warn-ink: #ffffff;
+    --danger: #bf3328;
+    --raised: #ffffff;
+    --hero-from: #fbf1ea;
+    --shadow: rgba(40, 30, 20, 0.18);
+    --scrim: rgba(20, 18, 16, 0.45);
+    color-scheme: light;
+  }
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -92,7 +148,7 @@ a { color: inherit; text-decoration: none; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
 :where(.card.tap) { display: block; }
 .card.tap { width: 100%; text-align: left; }
-.card.hero { border-color: rgba(235, 148, 98, 0.45); background: linear-gradient(160deg, #262b30, var(--card) 60%); }
+.card.hero { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: linear-gradient(160deg, var(--hero-from), var(--card) 60%); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--tap);
@@ -127,7 +183,7 @@ a { color: inherit; text-decoration: none; }
 /* alt tab bar */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: var(--tab-h);
-  display: flex; justify-content: center; background: rgba(17, 19, 21, 0.94);
+  display: flex; justify-content: center; background: color-mix(in srgb, var(--bg) 94%, transparent);
   backdrop-filter: blur(14px); border-top: 1px solid var(--line);
 }
 .tabbar nav { display: flex; width: 100%; max-width: 520px; align-items: center; }
@@ -141,7 +197,7 @@ a { color: inherit; text-decoration: none; }
 .tab.start .ico {
   width: 54px; height: 54px; margin-top: -22px; border-radius: 50%;
   display: grid; place-items: center; background: var(--accent); color: var(--accent-ink);
-  box-shadow: 0 6px 20px rgba(235, 148, 98, 0.35); border: 4px solid var(--bg);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 35%, transparent); border: 4px solid var(--bg);
 }
 .tab.start .ico svg { width: 26px; height: 26px; }
 .tab.start { color: var(--text); }
@@ -152,7 +208,7 @@ a { color: inherit; text-decoration: none; }
   position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + 10px); z-index: 35;
   max-width: 496px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;
   background: var(--card-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 6px 6px 14px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 28px var(--shadow);
 }
 .toast-text { min-width: 0; overflow-wrap: anywhere; }
 .toast-undo {
@@ -161,7 +217,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* bottom sheet */
-.sheet-back { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.65); display: flex; align-items: flex-end; justify-content: center; }
+.sheet-back { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; }
 .sheet {
   width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; background: var(--card);
   border: 1px solid var(--line); border-bottom: 0; border-radius: 16px 16px 0 0; padding: 16px 16px 28px;
@@ -189,7 +245,7 @@ textarea.input { resize: vertical; font: inherit; }
 /* çevrimdışı göstergesi */
 .offline {
   position: sticky; top: 0; z-index: 25; padding: 6px 12px; text-align: center; font-size: 13px;
-  background: var(--warn); color: #1c1100;
+  background: var(--warn); color: var(--warn-ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

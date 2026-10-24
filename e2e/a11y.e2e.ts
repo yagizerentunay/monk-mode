@@ -81,38 +81,45 @@ async function audit(page: Page): Promise<string[]> {
   })
 }
 
-for (const [name, route] of [
-  ['Ana sayfa', '#/'],
-  ['Plan', '#/plan'],
-  ['Rutin düzenleyici', '#/plan/r/r1'],
-  ['Analiz', '#/stats'],
-  ['Kütüphane', '#/library'],
-  ['Ayarlar', '#/settings'],
-] as const) {
-  test(`erişilebilirlik: ${name} adsız öğe, alt'sız görsel ve küçük hedef içermez`, async ({ page }) => {
-    await seed(page, JSON.stringify(richState()))
-    await page.goto(`./${route}`)
-    await page.locator('main.app').filter({ hasText: /./ }).first().waitFor()
-    await page.waitForLoadState('networkidle')
-    expect(await audit(page)).toEqual([])
+// Tarama iki temada da koşar: 'Sistem' teması cihazın açık/koyu tercihini izler (bkz. src/lib/theme.ts).
+for (const scheme of ['dark', 'light'] as const) {
+  test.describe(`${scheme} tema`, () => {
+    test.use({ colorScheme: scheme })
+
+    for (const [name, route] of [
+      ['Ana sayfa', '#/'],
+      ['Plan', '#/plan'],
+      ['Rutin düzenleyici', '#/plan/r/r1'],
+      ['Analiz', '#/stats'],
+      ['Kütüphane', '#/library'],
+      ['Ayarlar', '#/settings'],
+    ] as const) {
+      test(`erişilebilirlik: ${name} adsız öğe, alt'sız görsel ve küçük hedef içermez`, async ({ page }) => {
+        await seed(page, JSON.stringify(richState()))
+        await page.goto(`./${route}`)
+        await page.locator('main.app').filter({ hasText: /./ }).first().waitFor()
+        await page.waitForLoadState('networkidle')
+        expect(await audit(page)).toEqual([])
+      })
+    }
+
+    test('erişilebilirlik: antrenman ekranı ve özet', async ({ page }) => {
+      await seed(page, JSON.stringify(richState()))
+      page.on('dialog', (d) => void d.accept())
+      await page.goto('./#/workout')
+      await page.getByRole('button', { name: /Erişilebilirlik/ }).first().click()
+      // İlk 'Seti tamamla' ısınma setidir; çalışma setini adıyla seç (yalnız ısınma yapılan antrenman kaydedilmez).
+      await page
+        .locator('.set')
+        .filter({ has: page.getByRole('textbox', { name: 'Set 1 ağırlık', exact: true }) })
+        .first()
+        .getByRole('button', { name: 'Seti tamamla' })
+        .click()
+      await page.waitForLoadState('networkidle')
+      expect(await audit(page)).toEqual([])
+      await page.getByRole('button', { name: 'Bitir ✓' }).click()
+      await expect(page.getByText('Antrenman bitti')).toBeVisible()
+      expect(await audit(page)).toEqual([])
+    })
   })
 }
-
-test('erişilebilirlik: antrenman ekranı ve özet', async ({ page }) => {
-  await seed(page, JSON.stringify(richState()))
-  page.on('dialog', (d) => void d.accept())
-  await page.goto('./#/workout')
-  await page.getByRole('button', { name: /Erişilebilirlik/ }).first().click()
-  // İlk 'Seti tamamla' ısınma setidir; çalışma setini adıyla seç (yalnız ısınma yapılan antrenman kaydedilmez).
-  await page
-    .locator('.set')
-    .filter({ has: page.getByRole('textbox', { name: 'Set 1 ağırlık', exact: true }) })
-    .first()
-    .getByRole('button', { name: 'Seti tamamla' })
-    .click()
-  await page.waitForLoadState('networkidle')
-  expect(await audit(page)).toEqual([])
-  await page.getByRole('button', { name: 'Bitir ✓' }).click()
-  await expect(page.getByText('Antrenman bitti')).toBeVisible()
-  expect(await audit(page)).toEqual([])
-})

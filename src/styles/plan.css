@@ -77,8 +77,8 @@
 .musclefix .chip { min-height: var(--tap); padding: 8px 14px; }
 .settings .card h2, .importcard h2 { margin-bottom: 0; }
 .eyebrow.danger { color: var(--danger); }
-.dangerzone { border-color: rgba(242, 101, 91, 0.45); background: rgba(242, 101, 91, 0.06); margin-top: 28px; }
-.btn.danger { border-color: rgba(242, 101, 91, 0.6); }
+.dangerzone { border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 6%, transparent); margin-top: 28px; }
+.btn.danger { border-color: color-mix(in srgb, var(--danger) 60%, transparent); }
 .btn.danger.block { background: transparent; }
 .workouteditor .btn.small { min-width: var(--tap); }
 .workouteditor .editentry .exname { font-size: 17px; }

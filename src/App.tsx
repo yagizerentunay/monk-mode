@@ -5,6 +5,7 @@ import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { Toast } from './components/Toast.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
+import { useThemeSync } from './lib/theme.ts'
 import { useOnline } from './lib/useOnline.ts'
 import { autoFolderBackup } from './store/folderBackup.ts'
 import { Home } from './views/Home.tsx'
@@ -21,6 +22,7 @@ const Settings = lazy(() => import('./views/Settings.tsx').then((m) => ({ defaul
 
 export default function App() {
   const online = useOnline()
+  useThemeSync()
   // Klasöre otomatik yedek (Ayarlar'da açıksa): açılışta ve sekme arka plana geçerken, veri değiştiyse.
   useEffect(() => {
     autoFolderBackup()

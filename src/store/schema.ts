@@ -9,6 +9,9 @@ export type ProgressionMode = 'off' | 'linear' | 'double'
 
 export type ProgressionRule = 'cautious' | 'fast'
 
+/** Görünüm: 'system' cihazın açık/koyu tercihini izler (bkz. lib/theme.ts). */
+export type Theme = 'system' | 'dark' | 'light'
+
 /** Rutindeki bir egzersizin planı. Ağırlıklar kg cinsindendir. */
 export interface ExCfg {
   exId: string
@@ -150,6 +153,8 @@ export interface Settings {
   progressionRule?: ProgressionRule
   /** Deload önerisi "Şimdi değil" ile ertelendiyse bu zamana (epoch ms) kadar gösterilmez (bkz. lib/deload.ts). */
   deloadSnoozedUntil?: number
+  /** Renk teması; varsayılan 'system'. */
+  theme: Theme
 }
 
 export interface State {
@@ -169,7 +174,7 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14 },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14, theme: 'system' },
     routines: [],
     week: {},
     workouts: [],
