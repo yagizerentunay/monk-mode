@@ -11,6 +11,7 @@ import { HomeScreenHint } from '../components/HomeScreenHint.tsx'
 import { Wordmark } from '../components/Brand.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { locale, t } from '../i18n/index.ts'
 import { formatAxisDay } from '../lib/calendar.ts'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
 import { suggestNextRoutine } from '../lib/nextWorkout.ts'
@@ -51,10 +52,10 @@ export function Home() {
   const next = suggestion && (!todayRoutine || (doneToday && suggestion.routine.id !== todayRoutine.id)) ? suggestion : undefined
   const nextBlock = next && (
     <div className="hero-next stack">
-      <div className="eyebrow">Sıradaki</div>
+      <div className="eyebrow">{t('home.next')}</div>
       <div className="hero-next-title">{next.routine.name}</div>
       <div className="sub">
-        {next.last ? `Son: ${next.last.name} · ` : ''}{next.routine.ex.length} egzersiz
+        {next.last ? `${t('home.last', { name: next.last.name })} · ` : ''}{t('count.exercises', { n: next.routine.ex.length })}
       </div>
       <button
         className="btn primary block"
@@ -63,7 +64,7 @@ export function Home() {
           navigate('/workout')
         }}
       >
-        Başla ▶
+        {t('home.start')} ▶
       </button>
     </div>
   )
@@ -74,7 +75,7 @@ export function Home() {
 
   const workSets = todayRoutine ? todayRoutine.ex.reduce((n, e) => n + e.sets, 0) : 0
   const pad = (n: number) => String(n).padStart(2, '0')
-  const dateLine = `${DAY_NAMES[today.getDay()]} · ${today.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long' })}`
+  const dateLine = `${DAY_NAMES[today.getDay()]} · ${today.toLocaleDateString(locale(), { day: '2-digit', month: 'long' })}`
 
   return (
     <div className="stack home">
@@ -82,13 +83,13 @@ export function Home() {
         <h1 className="sr-only">monk-mode</h1>
         <Wordmark seal />
         <div className="row">
-          <button className="btn icon" aria-label="Takvim" onClick={() => setCalendar({ date: null })}>
+          <button className="btn icon" aria-label={t('home.calendar')} onClick={() => setCalendar({ date: null })}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="4" y="5" width="16" height="15" rx="2" />
               <path d="M4 10h16M9 3v4M15 3v4" />
             </svg>
           </button>
-          <Link to="/settings" className="btn icon" aria-label="Ayarlar">
+          <Link to="/settings" className="btn icon" aria-label={t('settings.title')}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 7h9M19 7h1M4 17h1M11 17h9" />
               <circle cx="16" cy="7" r="2.5" />
@@ -100,8 +101,8 @@ export function Home() {
 
       <div className="home-head">
         <div className="eyebrow">{dateLine}</div>
-        <p className="display">BUGÜN<span className="hl">GÜÇLEN.</span></p>
-        <div className="sub">Disiplin, tekrarlarla inşa edilir.</div>
+        <p className="display">{t('home.heroA')}<span className="hl">{t('home.heroB')}</span></p>
+        <div className="sub">{t('home.motto')}</div>
       </div>
 
       <BackupReminder />
@@ -117,13 +118,16 @@ export function Home() {
             <button
               key={d.key}
               className={`wday${d.key === todayKey ? ' today' : ''}${trained ? ' done' : ''}`}
-              aria-label={`${DAY_NAMES[d.dow]} ${d.date.getDate()}${trained ? ', antrenman yapıldı' : planned ? ', planlı' : ''}, gün detayını aç`}
+              aria-label={t('home.dayAria', {
+                day: `${DAY_NAMES[d.dow]} ${d.date.getDate()}`,
+                state: trained ? t('home.dayTrained') : planned ? t('home.dayPlanned') : '',
+              })}
               onClick={() => setCalendar({ date: d.key })}
             >
               <span className="sub">{DAY_SHORT[d.dow]}</span>
               <b>{d.date.getDate()}</b>
               <span className={`dot${trained ? ' on' : planned ? ' plan' : ''}`} />
-              <span className="wlabel" aria-hidden="true">{trained ? 'Yapıldı' : planned ? 'Plan' : ' '}</span>
+              <span className="wlabel" aria-hidden="true">{trained ? t('home.done') : planned ? t('home.plan') : ' '}</span>
             </button>
           )
         })}
@@ -137,15 +141,15 @@ export function Home() {
 
       {active ? (
         <div className="card hero stack">
-          <div className="eyebrow">Devam eden antrenman</div>
+          <div className="eyebrow">{t('home.activeWorkout')}</div>
           <div className="hero-title">{active.name}</div>
-          <Link to="/workout" className="btn primary block">Devam et ▶</Link>
+          <Link to="/workout" className="btn primary block">{t('home.continue')} ▶</Link>
         </div>
       ) : todayRoutine ? (
         <div className="card hero stack">
-          <div className={doneToday ? 'eyebrow ok' : 'eyebrow'}>{doneToday ? '✓ Bugün tamamlandı' : 'Bugünün antrenmanı'}</div>
+          <div className={doneToday ? 'eyebrow ok' : 'eyebrow'}>{doneToday ? `✓ ${t('home.doneToday')}` : t('home.todaysWorkout')}</div>
           <div className="hero-title">{todayRoutine.name}</div>
-          <div className="sub">{todayRoutine.ex.length} egzersiz · {workSets} çalışma seti</div>
+          <div className="sub">{t('count.exercises', { n: todayRoutine.ex.length })} · {t('home.workSets', { n: workSets })}</div>
           <button
             className={nextBlock ? 'btn block' : 'btn primary block'}
             onClick={() => {
@@ -153,34 +157,34 @@ export function Home() {
               navigate('/workout')
             }}
           >
-            {doneToday ? 'Tekrar başla' : 'Antrenmana başla'}
+            {doneToday ? t('home.startAgain') : t('home.startWorkout')}
           </button>
           {nextBlock}
         </div>
       ) : (
         <div className="card hero stack">
-          <div className="eyebrow muted">{routines.length === 0 ? 'Rutin yok' : 'Dinlenme günü'}</div>
-          <div className="hero-title">{routines.length === 0 ? 'Rutin oluştur' : 'Bugün toparlan'}</div>
+          <div className="eyebrow muted">{routines.length === 0 ? t('home.noRoutine') : t('home.restDay')}</div>
+          <div className="hero-title">{routines.length === 0 ? t('home.createRoutine') : t('home.recover')}</div>
           <div className="sub">
-            {routines.length === 0 ? 'İlk rutinini kur, günlere ata.' : 'İstersen yine de antrenman başlatabilirsin.'}
+            {routines.length === 0 ? t('home.createRoutineHint') : t('home.restDayHint')}
           </div>
           {nextBlock}
           <Link to={routines.length === 0 ? '/plan' : '/workout'} className={nextBlock ? 'btn block' : 'btn primary block'}>
-            {routines.length === 0 ? 'Plan oluştur' : 'Antrenman seç'}
+            {routines.length === 0 ? t('home.createPlan') : t('home.pickWorkout')}
           </Link>
         </div>
       )}
 
       <div className="grid3">
-        <div className="card stat"><span className="bignum">{pad(streak)}</span><span className="statlbl">hafta serisi</span></div>
-        <div className="card stat"><span className="bignum">{pad(thisMonth)}</span><span className="statlbl">bu ay</span></div>
-        <div className="card stat"><span className="bignum">{pad(workouts.length)}</span><span className="statlbl">toplam</span></div>
+        <div className="card stat"><span className="bignum">{pad(streak)}</span><span className="statlbl">{t('home.weekStreak')}</span></div>
+        <div className="card stat"><span className="bignum">{pad(thisMonth)}</span><span className="statlbl">{t('home.thisMonth')}</span></div>
+        <div className="card stat"><span className="bignum">{pad(workouts.length)}</span><span className="statlbl">{t('home.total')}</span></div>
       </div>
 
       <div className="card stack">
         <div className="row between">
           <div>
-            <div className="eyebrow muted">Vücut ağırlığı</div>
+            <div className="eyebrow muted">{t('home.bodyweight')}</div>
             <span className="bignum bw">{lastBw ? `${formatWeight(lastBw.w, unit)} ${unit}` : '—'}</span>
           </div>
           <button
@@ -190,7 +194,7 @@ export function Home() {
               setLogging(true)
             }}
           >
-            Kaydet
+            {t('home.log')}
           </button>
         </div>
         {bodyweight.length > 1 && (
@@ -202,14 +206,14 @@ export function Home() {
         <BodyweightTrend compact />
       </div>
 
-      <BottomSheet open={logging} onClose={() => setLogging(false)} title="Bugünkü tartı">
+      <BottomSheet open={logging} onClose={() => setLogging(false)} title={t('home.todaysWeighIn')}>
         <div className="stack">
           <NumberField
             value={draftW}
             toDisplay={(v) => kgToUnit(v, unit)}
             fromDisplay={(v) => unitToKg(v, unit)}
             step={0.1}
-            label={`Ağırlık (${unit})`}
+            label={t('home.weightUnit', { unit })}
             onChange={setDraftW}
           />
           <button
@@ -220,7 +224,7 @@ export function Home() {
               setLogging(false)
             }}
           >
-            {unit} olarak kaydet
+            {t('home.saveAs', { unit })}
           </button>
         </div>
       </BottomSheet>

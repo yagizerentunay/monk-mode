@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { formatDecimal } from '../lib/units.ts'
 
 export interface ChartPoint {
@@ -18,7 +19,7 @@ const PAD = { l: 8, r: 8, t: 14, b: 22 }
 
 /** Bağımlılıksız küçük çizgi grafiği. Tek nokta varsa yalnız nokta çizilir. */
 export function LineChart({ points, unit = '', height = 140, target }: Props) {
-  if (points.length === 0) return <p className="sub">Henüz veri yok.</p>
+  if (points.length === 0) return <p className="sub">{t('chart.noData')}</p>
 
   const values = points.map((p) => p.value).concat(target ? [target.value] : [])
   let min = Math.min(...values)
@@ -36,7 +37,7 @@ export function LineChart({ points, unit = '', height = 140, target }: Props) {
   const last = points[points.length - 1]
 
   return (
-    <svg viewBox={`0 0 ${W} ${height}`} width="100%" role="img" aria-label="Grafik" style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${height}`} width="100%" role="img" aria-label={t('chart.aria')} style={{ display: 'block' }}>
       <line x1={PAD.l} x2={W - PAD.r} y1={height - PAD.b} y2={height - PAD.b} stroke="var(--line)" strokeWidth="1" />
       {target && (
         <g data-testid="chart-target">

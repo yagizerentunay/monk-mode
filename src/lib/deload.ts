@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { Workout, WorkoutEntry } from '../store/schema.ts'
 import { effectiveLoad } from './load.ts'
 import { estimate1RM } from './onerm.ts'
@@ -133,7 +134,7 @@ export const DELOAD_SET_CUT_MAX = 0.5
 
 /** "%40–50": öneri metinleri sabitlerle aynı kalsın diye. */
 export function deloadCutText(): string {
-  return `%${Math.round(DELOAD_SET_CUT_MIN * 100)}–${Math.round(DELOAD_SET_CUT_MAX * 100)}`
+  return t('deload.cut', { min: Math.round(DELOAD_SET_CUT_MIN * 100), max: Math.round(DELOAD_SET_CUT_MAX * 100) })
 }
 
 /** Deload'da önerilen RIR aralığı ("4–5"): bilinçli hafif seans eşiğinden (EASY_RIR) başlar. */

@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { blockStatus, planDeloadThisWeek, withoutDeloadWeeks } from '../lib/block.ts'
@@ -45,28 +46,29 @@ function DeloadCard({ exIds, today, canPlan, inBlock }: { exIds: string[]; today
   return (
     <div className="card banner stack" role="status">
       <div>
-        <b className="banner-title">Toparlanma molası?</b>
+        <b className="banner-title">{t('deloadHint.title')}</b>
         <div className="sub">
-          Son iki antrenmanda {names.join(', ')}
-          {more > 0 ? ` ve ${more} egzersizde daha` : ''} performansın belirgin düştü. Önce uyku, beslenme ve dinlenmeyi kontrol et;
-          düşüş sürerse 5–7 gün boyunca setleri {deloadCutText()} azaltıp RIR {deloadRirText()} ile çalışmayı düşünebilirsin.
+          {t('deloadHint.body', {
+            names: names.join(', '),
+            more: more > 0 ? t('deloadHint.more', { n: more }) : '',
+            cut: deloadCutText(),
+            rir: deloadRirText(),
+          })}
         </div>
         {canPlan && (
           <div className="sub">
-            {inBlock
-              ? 'Planlarsan bloğundaki deload haftası bu haftaya taşınır.'
-              : 'Planlarsan bu hafta deload ile başlayan yeni bir blok kurulur; Plan sekmesinden düzenleyebilirsin.'}
+            {inBlock ? t('deloadHint.moveDeload') : t('deloadHint.newBlock')}
           </div>
         )}
       </div>
       <div className="row">
         {canPlan && (
           <button className="btn small primary grow" onClick={() => planDeload(today)}>
-            Deload'u bu haftaya planla
+            {t('deloadHint.plan')}
           </button>
         )}
         <button className="btn small grow" onClick={() => setSettings({ deloadSnoozedUntil: deloadSnoozeUntil(Date.now()) })}>
-          Şimdi değil
+          {t('common.notNow')}
         </button>
       </div>
     </div>
