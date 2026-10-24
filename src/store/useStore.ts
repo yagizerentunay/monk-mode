@@ -4,6 +4,7 @@ import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { MAX_SETS } from './sanitize.ts'
+import { cleanMeasurement } from '../lib/measurements.ts'
 import { newlyReached } from '../lib/goals.ts'
 import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
@@ -21,6 +22,7 @@ import {
   type BodyweightEntry,
   type CustomExercise,
   type ExCfg,
+  type MeasurementEntry,
   type Routine,
   type SetEntry,
   type Settings,
@@ -106,6 +108,8 @@ export interface Actions {
   /** Başka cihazın yedeğini hiçbir şey silmeden birleştirir (bkz. lib/mergeBackup.ts); yeni bir şey yoksa state değişmez. */
   mergeFrom(incoming: State): MergeReport
   logBodyweight(entry: BodyweightEntry): void
+  /** Günün ölçülerini kaydeder; aynı gündeki kaydın yerine geçer. Geçerli ölçüsü yoksa yok sayılır (bkz. lib/measurements.ts). */
+  logMeasurement(entry: MeasurementEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   /** Egzersizin kaslarını düzeltir (en az bir geçerli birincil kas yoksa yok sayılır, bkz. lib/muscleFix.ts). */
   setMuscleFix(exId: string, fix: MuscleFix): void
@@ -404,6 +408,7 @@ export const useStore = create<Store>((set, get) => ({
         workouts: state.workouts,
         routines: state.routines,
         bodyweight: state.bodyweight,
+        measurements: state.measurements,
         customEx: state.customEx,
         muscleFix: state.muscleFix,
         goals: state.goals,
@@ -418,6 +423,14 @@ export const useStore = create<Store>((set, get) => ({
         a.d.localeCompare(b.d),
       ),
     })),
+
+  logMeasurement: (entry) => {
+    const clean = cleanMeasurement(entry)
+    if (!clean) return
+    set((s) => ({
+      measurements: [...s.measurements.filter((m) => m.d !== clean.d), clean].sort((a, b) => a.d.localeCompare(b.d)),
+    }))
+  },
 
   addCustomExercise: (ex) => {
     const id = `custom-${newId()}`
@@ -482,6 +495,7 @@ export function snapshot(s: Store): State {
     workouts: s.workouts,
     active: s.active,
     bodyweight: s.bodyweight,
+    measurements: s.measurements,
     customEx: s.customEx,
     muscleFix: s.muscleFix,
     goals: s.goals,

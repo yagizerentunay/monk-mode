@@ -19,7 +19,7 @@ import { importBackupWithReport } from '../store/backup.ts'
 import { describeDropped } from '../store/sanitize.ts'
 import { snapshotNow } from '../store/autoSnapshot.ts'
 import { shareBackup } from '../store/downloadBackup.ts'
-import { defaultState } from '../store/schema.ts'
+import { defaultState, type Theme } from '../store/schema.ts'
 import { useStore } from '../store/useStore.ts'
 
 /** Hedef hız seçenekleri, kullanıcının biriminde (kg/hafta ya da lb/hafta); saklanırken kg'a çevrilir. */
@@ -27,6 +27,12 @@ const GOAL_CHOICES: Record<Unit, number[]> = {
   kg: [-0.5, -0.25, 0, 0.25, 0.5],
   lb: [-1, -0.5, 0, 0.5, 1],
 }
+
+const THEME_CHOICES: [Theme, string][] = [
+  ['system', 'Sistem'],
+  ['dark', 'Koyu'],
+  ['light', 'Açık'],
+]
 
 export function Settings() {
   const unit = useStore((s) => s.settings.unit)
@@ -36,6 +42,7 @@ export function Settings() {
   const backupRemindDays = useStore((s) => s.settings.backupRemindDays)
   const lastBackupAt = useStore((s) => s.settings.lastBackupAt)
   const bodyweightGoal = useStore((s) => s.settings.bodyweightGoal)
+  const theme = useStore((s) => s.settings.theme)
   const setSettings = useStore((s) => s.setSettings)
   const replaceAll = useStore((s) => s.replaceAll)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -149,6 +156,16 @@ export function Settings() {
               <option key={d} value={d}>{DAY_NAMES[d]}</option>
             ))}
           </select>
+        </div>
+        <div className="row between">
+          <span>Tema</span>
+          <ChipRow>
+            {THEME_CHOICES.map(([t, label]) => (
+              <button key={t} className={`chip${theme === t ? ' on' : ''}`} aria-pressed={theme === t} onClick={() => setSettings({ theme: t })}>
+                {label}
+              </button>
+            ))}
+          </ChipRow>
         </div>
       </div>
 

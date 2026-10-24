@@ -3,6 +3,7 @@ import { BodyweightCard } from '../components/BodyweightCard.tsx'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { FrequencyCard } from '../components/FrequencyCard.tsx'
+import { MeasurementsCard } from '../components/MeasurementsCard.tsx'
 import { GoalsCard } from '../components/GoalsCard.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
 import { RecordsCard } from '../components/RecordsCard.tsx'
@@ -120,6 +121,8 @@ export function Stats() {
       <FrequencyCard />
 
       <BodyweightCard />
+
+      <MeasurementsCard />
 
       <MuscleCard />
 

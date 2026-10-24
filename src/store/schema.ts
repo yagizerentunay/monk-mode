@@ -9,6 +9,9 @@ export type ProgressionMode = 'off' | 'linear' | 'double'
 
 export type ProgressionRule = 'cautious' | 'fast'
 
+/** Görünüm: 'system' cihazın açık/koyu tercihini izler (bkz. lib/theme.ts). */
+export type Theme = 'system' | 'dark' | 'light'
+
 /** Rutindeki bir egzersizin planı. Ağırlıklar kg cinsindendir. */
 export interface ExCfg {
   exId: string
@@ -115,6 +118,19 @@ export interface BodyweightEntry {
   w: number
 }
 
+/**
+ * Bir günün vücut ölçüleri. Çevreler cm, yağ oranı yüzdedir; alanlar isteğe bağlıdır ama en az biri
+ * bulunur (bkz. lib/measurements.ts). Birim ayarı (kg/lb) ölçülere uygulanmaz.
+ */
+export interface MeasurementEntry {
+  d: string
+  waist?: number
+  chest?: number
+  arm?: number
+  hip?: number
+  fat?: number
+}
+
 export interface CustomExercise {
   id: string
   name: string
@@ -167,6 +183,8 @@ export interface Settings {
   progressionRule?: ProgressionRule
   /** Deload önerisi "Şimdi değil" ile ertelendiyse bu zamana (epoch ms) kadar gösterilmez (bkz. lib/deload.ts). */
   deloadSnoozedUntil?: number
+  /** Renk teması; varsayılan 'system'. */
+  theme: Theme
 }
 
 export interface State {
@@ -178,6 +196,8 @@ export interface State {
   workouts: Workout[]
   active: Workout | null
   bodyweight: BodyweightEntry[]
+  /** Vücut ölçüleri, tarih sırasında; her güne en çok bir kayıt. */
+  measurements: MeasurementEntry[]
   customEx: CustomExercise[]
   /** Egzersiz kimliği → kullanıcının kas düzeltmesi (bkz. lib/muscleFix.ts); yoksa kütüphane verisi geçerli. */
   muscleFix: Record<string, MuscleFix>
@@ -188,12 +208,13 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14 },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14, theme: 'system' },
     routines: [],
     week: {},
     workouts: [],
     active: null,
     bodyweight: [],
+    measurements: [],
     customEx: [],
     muscleFix: {},
     goals: [],
