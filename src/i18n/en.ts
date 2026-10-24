@@ -910,5 +910,9 @@ export const en: Messages = {
   'update.title': 'New version ready',
   'update.body': 'Reload to update; your records and workout in progress stay where they are.',
   'update.later': 'Later',
+  'csvRow.date': 'Date',
+  'csvRow.warmup': 'Warm-up',
+  'csvRow.work': 'Working',
+  'csvRow.drop': 'Drop',
   // @end
 }

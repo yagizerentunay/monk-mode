@@ -903,6 +903,10 @@ export const tr = {
   'update.title': 'Yeni sürüm hazır',
   'update.body': 'Yenileyince güncellenir; kayıtların ve devam eden antrenmanın yerinde kalır.',
   'update.later': 'Sonra',
+  'csvRow.date': 'Tarih',
+  'csvRow.warmup': 'Isınma',
+  'csvRow.work': 'Çalışma',
+  'csvRow.drop': 'Drop',
   // @end
 } as const
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
-import { CSV_HEADERS, MEASUREMENT_CSV_HEADERS, measurementsToCsv, workoutsToCsv } from './exportCsv.ts'
+import { CSV_HEADERS, CSV_HEADERS_EN, MEASUREMENT_CSV_HEADERS, measurementsToCsv, workoutsToCsv } from './exportCsv.ts'
 
 const names = (id: string) => ({ bench: 'Bench Press', curl: 'Biceps Curl', pullup: 'Barfiks' })[id] ?? id
 const kg = { unit: 'kg' as const, names }
@@ -235,5 +235,43 @@ describe('measurementsToCsv', () => {
 
   it('kayıt yoksa yalnız başlık', () => {
     expect(rows(measurementsToCsv([]))).toEqual([[...MEASUREMENT_CSV_HEADERS]])
+  })
+})
+
+describe('CSV: İngilizce dosya', () => {
+  const en = { ...kg, lang: 'en' as const }
+  const enRows = (csv: string) => csv.replace(/^﻿/, '').split('\r\n').filter(Boolean).map((l) => l.split(','))
+
+  it('İngilizce başlık, virgül ayraç ve nokta ondalık kullanır', () => {
+    const csv = workoutsToCsv([workout([entry('bench', [set(102.5, 5), set(20, 8, { warmup: true })])])], en)
+    expect(csv.startsWith('﻿')).toBe(true)
+    expect(csv.split('\r\n')[0]).toBe('﻿' + CSV_HEADERS_EN.join(','))
+    expect(CSV_HEADERS_EN).toHaveLength(CSV_HEADERS.length)
+    const [, work, warm] = enRows(csv)
+    expect(warm.slice(3, 5)).toEqual(['Warm-up', '1'])
+    expect(work).toEqual(['2026-10-05', 'Push', 'Bench Press', 'Working', '1', '', '102.5', '', '102.5', '5', '', '', '', '', ''])
+  })
+
+  it('virgül içeren alanı tırnaklar, noktalı virgülü olduğu gibi bırakır', () => {
+    const csv = workoutsToCsv([workout([entry('x', [set(10, 5)])], { name: 'Push, heavy; A' })], en)
+    expect(csv.split('\r\n')[1]).toBe('2026-10-05,"Push, heavy; A",x,Working,1,,10,,10,5,,,,,')
+  })
+
+  it('tek taraflı satırlarda İngilizce taraf adı', () => {
+    const sides = { L: { r: 8, done: true }, R: { r: 7, done: true } }
+    const csv = workoutsToCsv([workout([entry('curl', [set(12.5, 7, { sides })], { unilateral: true })])], en)
+    expect(enRows(csv).slice(1).map((r) => r[5])).toEqual(['Left', 'Right'])
+  })
+
+  it('ölçü dosyası: İngilizce başlık ve nokta ondalık', () => {
+    const csv = measurementsToCsv([{ d: '2026-10-05', waist: 82.5, fat: 14 }], 'en')
+    expect(csv.split('\r\n')[0]).toBe('﻿Date,Waist (cm),Chest (cm),Arm (cm),Hips (cm),Body fat (%)')
+    expect(csv.split('\r\n')[1]).toBe('2026-10-05,82.5,,,,14')
+  })
+
+  it('Türkçe dosya dil açıkça verilse de aynı kalır', () => {
+    const w = [workout([entry('bench', [set(102.5, 5)])])]
+    expect(workoutsToCsv(w, { ...kg, lang: 'tr' })).toBe(workoutsToCsv(w, kg))
+    expect(measurementsToCsv([{ d: '2026-10-05', waist: 82.5 }], 'tr').split('\r\n')[1]).toBe('2026-10-05;82,5;;;;')
   })
 })
