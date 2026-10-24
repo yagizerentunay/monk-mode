@@ -304,7 +304,7 @@ export const en: Messages = {
   'workout.newRecords': 'New records',
   'workout.backHome': 'Back to Home',
   'workout.finishConfirm': '{sets} not completed. Finish anyway?',
-  'workout.back': 'Back to workout',
+  'workout.back': 'Back',
   'workout.live': 'Live',
   'workout.menu': 'Menu',
   'workout.workSetsLabel': 'working sets',
