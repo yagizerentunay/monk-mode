@@ -1,4 +1,4 @@
-import type { CustomExercise, PastBlock, State, Workout } from '../store/schema.ts'
+import type { CustomExercise, PastBlock, State, StrengthGoal, Workout } from '../store/schema.ts'
 import { MAX_PAST_BLOCKS } from './block.ts'
 import { mergeRoutines } from './mergeRoutines.ts'
 import { sameMuscleFix, type MuscleFix } from './muscleFix.ts'
@@ -17,8 +17,10 @@ export interface MergeReport {
   workouts: MergeCount
   routines: MergeCount
   bodyweight: MergeCount
+  measurements: MergeCount
   customEx: MergeCount
   muscleFix: MergeCount
+  goals: MergeCount
   /** Antrenman blokları: geçmiş bloklar ve (yerelde yoksa) süren blok. */
   blocks: MergeCount
   /** `workouts.identical` içinden: kimliği farklı ama içeriği aynı olduğu için atlananlar (CSV içe aktarma kopyası). */
@@ -29,7 +31,16 @@ const count = (): MergeCount => ({ added: 0, identical: 0, conflicting: 0 })
 
 /** Toplam eklenen kayıt sayısı; 0 ise birleştirme veriyi değiştirmez. */
 export function totalAdded(r: MergeReport): number {
-  return r.workouts.added + r.routines.added + r.bodyweight.added + r.customEx.added + r.muscleFix.added + r.blocks.added
+  return (
+    r.workouts.added +
+    r.routines.added +
+    r.bodyweight.added +
+    r.measurements.added +
+    r.customEx.added +
+    r.muscleFix.added +
+    r.goals.added +
+    r.blocks.added
+  )
 }
 
 /** Derin eşitlik: anahtar sırasından bağımsız (iki cihazda JSON anahtar sırası farklı olabilir). */
@@ -69,7 +80,10 @@ const names = (customEx: readonly CustomExercise[]): Map<string, string> =>
  * - rutinler: kimliğe göre; yeni gelenler mergeRoutines kurallarıyla eklenir (aynı adlı farklı kimlikli
  *   rutin "(2)" ekiyle gelir).
  * - kilo: güne göre; aynı günde yerel kalır. Tarihe göre sıralı.
+ * - ölçüler: kilo gibi güne göre; aynı günde yerel kayıt bütün olarak kalır (alanlar karıştırılmaz).
  * - özel egzersiz: kimliğe göre. Kas düzeltmesi: yalnız yerelde olmayan egzersizler için eklenir.
+ * - hedefler: kimliğe göre. Kimliği farklı ama egzersiz + hedef + gün aynıysa (iki cihazda ayrı girilmiş
+ *   aynı hedef) zaten var sayılır. Yeni gelenler sona eklenir.
  * - blok geçmişi: kimliğe göre; bitişe göre sıralı, en çok MAX_PAST_BLOCKS. Süren blok yereldeyse yerel
  *   kalır; yerelde süren blok yoksa ve gelen blok yerelde bitirilmemişse gelen blok süren blok olur.
  * - ayarlar, haftalık program, aktif antrenman: yerel aynen kalır.
@@ -79,8 +93,10 @@ export function mergeState(local: State, incoming: State): { state: State; repor
     workouts: count(),
     routines: count(),
     bodyweight: count(),
+    measurements: count(),
     customEx: count(),
     muscleFix: count(),
+    goals: count(),
     blocks: count(),
     contentDuplicates: 0,
   }
@@ -139,6 +155,20 @@ export function mergeState(local: State, incoming: State): { state: State; repor
   }
   const bodyweight = [...local.bodyweight, ...addedBw].sort((a, b) => a.d.localeCompare(b.d))
 
+  // Vücut ölçüleri
+  const localMeasureDays = new Map(local.measurements.map((m) => [m.d, m]))
+  const addedMeasures = []
+  for (const m of incoming.measurements) {
+    const mine = localMeasureDays.get(m.d)
+    if (!mine) {
+      localMeasureDays.set(m.d, m)
+      addedMeasures.push(m)
+      report.measurements.added++
+    } else if (same(mine, m)) report.measurements.identical++
+    else report.measurements.conflicting++
+  }
+  const measurements = [...local.measurements, ...addedMeasures].sort((a, b) => a.d.localeCompare(b.d))
+
   // Özel egzersizler
   const localCustom = new Map(local.customEx.map((c) => [c.id, c]))
   const addedCustom: CustomExercise[] = []
@@ -163,6 +193,25 @@ export function mergeState(local: State, incoming: State): { state: State; repor
   }
   // fromEntries: `__proto__` gibi anahtarlar prototipi değiştirmez.
   const muscleFix = Object.fromEntries([...Object.entries(local.muscleFix), ...addedFix])
+
+  // Hedefler
+  const goalKey = (g: StrengthGoal): string => `${g.exId}|${g.target}|${g.by}`
+  const localGoals = new Map(local.goals.map((g) => [g.id, g]))
+  const goalKeys = new Set(local.goals.map(goalKey))
+  const addedGoals: StrengthGoal[] = []
+  for (const g of incoming.goals) {
+    const mine = localGoals.get(g.id)
+    if (mine) {
+      if (same(mine, g)) report.goals.identical++
+      else report.goals.conflicting++
+    } else if (goalKeys.has(goalKey(g))) report.goals.identical++
+    else {
+      localGoals.set(g.id, g)
+      goalKeys.add(goalKey(g))
+      addedGoals.push(g)
+      report.goals.added++
+    }
+  }
 
   // Antrenman blokları. Gelen geçmiş blok yerelde hâlâ sürüyorsa (öbür cihazda bitirilmiş) yerel kazanır.
   const localPast = new Map(local.pastBlocks.map((b) => [b.id, b]))
@@ -201,8 +250,10 @@ export function mergeState(local: State, incoming: State): { state: State; repor
     workouts,
     routines: merged.routines,
     bodyweight,
+    measurements,
     customEx: [...local.customEx, ...addedCustom],
     muscleFix,
+    goals: [...local.goals, ...addedGoals],
     block,
     pastBlocks,
   }
@@ -215,11 +266,13 @@ export function describeMerge(r: MergeReport): string {
     r.workouts.added && `${r.workouts.added} antrenman`,
     r.routines.added && `${r.routines.added} rutin`,
     r.bodyweight.added && `${r.bodyweight.added} kilo kaydı`,
+    r.measurements.added && `${r.measurements.added} ölçü kaydı`,
     r.customEx.added && `${r.customEx.added} özel egzersiz`,
     r.muscleFix.added && `${r.muscleFix.added} kas düzeltmesi`,
+    r.goals.added && `${r.goals.added} hedef`,
     r.blocks.added && `${r.blocks.added} antrenman bloğu`,
   ].filter(Boolean)
-  const kinds = [r.workouts, r.routines, r.bodyweight, r.customEx, r.muscleFix, r.blocks]
+  const kinds = [r.workouts, r.routines, r.bodyweight, r.measurements, r.customEx, r.muscleFix, r.goals, r.blocks]
   const identical = kinds.reduce((n, c) => n + c.identical, 0)
   const conflicting = kinds.reduce((n, c) => n + c.conflicting, 0)
   const parts = [

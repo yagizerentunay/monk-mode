@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { defaultState, type CustomExercise, type PastBlock, type Routine, type State, type TrainingBlock, type Workout } from '../store/schema.ts'
+import {
+  defaultState,
+  type CustomExercise,
+  type PastBlock,
+  type Routine,
+  type State,
+  type StrengthGoal,
+  type TrainingBlock,
+  type Workout,
+} from '../store/schema.ts'
 import { MAX_PAST_BLOCKS } from './block.ts'
 import { describeMerge, mergeState, totalAdded } from './mergeBackup.ts'
 
@@ -92,6 +101,7 @@ describe('mergeState: antrenmanlar', () => {
       workouts: [wk('b', '2026-01-03', 300), wk('c', '2026-01-04', 400)],
       routines: [routine('r2', 'Pull')],
       bodyweight: [{ d: '2026-01-02', w: 81 }],
+      measurements: [{ d: '2026-01-02', waist: 84 }],
       customEx: [custom('custom-1', 'X')],
       muscleFix: { bench: { primary: ['chest'], secondary: [] } },
     })
@@ -151,6 +161,39 @@ describe('mergeState: diğer veriler', () => {
     expect(report.bodyweight).toEqual({ added: 1, identical: 1, conflicting: 1 })
   })
 
+  it('ölçüler güne göre: aynı günde yerel kayıt bütün olarak kalır, sonuç tarihe göre sıralı', () => {
+    const local = st({
+      measurements: [
+        { d: '2026-01-01', waist: 84 },
+        { d: '2026-01-05', waist: 83, fat: 18 },
+      ],
+    })
+    const incoming = st({
+      measurements: [
+        // Aynı gün, farklı içerik (yerelde olmayan alan dahil): alanlar karıştırılmaz.
+        { d: '2026-01-05', waist: 90, arm: 36 },
+        { d: '2026-01-03', chest: 101 },
+        // Anahtar sırası farklı ama içerik aynı.
+        JSON.parse('{"waist":84,"d":"2026-01-01"}') as { d: string; waist: number },
+      ],
+    })
+    const { state, report } = mergeState(local, incoming)
+    expect(state.measurements).toEqual([
+      { d: '2026-01-01', waist: 84 },
+      { d: '2026-01-03', chest: 101 },
+      { d: '2026-01-05', waist: 83, fat: 18 },
+    ])
+    expect(report.measurements).toEqual({ added: 1, identical: 1, conflicting: 1 })
+    expect(totalAdded(report)).toBe(1)
+  })
+
+  it('yedekte aynı gün iki kez varsa yalnız ilki eklenir', () => {
+    const incoming = st({ measurements: [{ d: '2026-01-02', hip: 98 }, { d: '2026-01-02', hip: 99 }] })
+    const { state, report } = mergeState(st(), incoming)
+    expect(state.measurements).toEqual([{ d: '2026-01-02', hip: 98 }])
+    expect(report.measurements).toEqual({ added: 1, identical: 0, conflicting: 1 })
+  })
+
   it('özel egzersiz kimliğe göre, yerel kazanır', () => {
     const local = st({ customEx: [custom('c1', 'Yerel ad')] })
     const incoming = st({ customEx: [custom('c1', 'Uzak ad'), custom('c2', 'Yeni')] })
@@ -184,6 +227,36 @@ describe('mergeState: diğer veriler', () => {
     const { state } = mergeState(st(), incoming)
     expect(Object.getPrototypeOf(state.muscleFix)).toBe(Object.prototype)
     expect(({} as Record<string, unknown>).primary).toBeUndefined()
+  })
+
+  it('hedefler kimliğe göre; aynı egzersiz + hedef + gün ayrı kimlikle gelse de kopya sayılır', () => {
+    const g = (id: string, over: Partial<StrengthGoal> = {}): StrengthGoal => ({
+      id,
+      exId: 'bench',
+      target: 100,
+      by: '2027-03-01',
+      created: '2026-10-01',
+      ...over,
+    })
+    const local = st({ goals: [g('g1'), g('g2', { exId: 'squat', target: 140 })] })
+    const incoming = st({
+      goals: [
+        g('g1'),
+        g('g2', { exId: 'squat', target: 150 }),
+        g('other-device', { created: '2026-10-05' }),
+        g('g3', { exId: 'deadlift', target: 180, done: '2026-10-20' }),
+      ],
+    })
+    const { state, report } = mergeState(local, incoming)
+    expect(state.goals.map((x) => [x.id, x.target])).toEqual([
+      ['g1', 100],
+      ['g2', 140],
+      ['g3', 180],
+    ])
+    expect(state.goals[2].done).toBe('2026-10-20')
+    expect(report.goals).toEqual({ added: 1, identical: 2, conflicting: 1 })
+    expect(totalAdded(report)).toBe(1)
+    expect(describeMerge(report)).toBe('1 hedef eklendi; 2 kayıt zaten vardı; 1 kayıt farklı, yereldeki korundu.')
   })
 
   it('ayarlar, hafta ve aktif antrenman yerelde aynen kalır', () => {
@@ -221,6 +294,14 @@ describe('describeMerge', () => {
       }),
     ).report
     expect(describeMerge(r)).toBe('1 antrenman, 1 kilo kaydı eklendi; 1 kayıt zaten vardı; 1 kayıt farklı, yereldeki korundu.')
+  })
+
+  it('eklenen ölçü kayıtlarını sayar', () => {
+    const r = mergeState(
+      st({ measurements: [{ d: '2026-01-01', waist: 84 }] }),
+      st({ measurements: [{ d: '2026-01-01', waist: 84 }, { d: '2026-01-02', fat: 17 }, { d: '2026-01-03', arm: 36 }] }),
+    ).report
+    expect(describeMerge(r)).toBe('2 ölçü kaydı eklendi; 1 kayıt zaten vardı.')
   })
 
   it('hiçbir şey eklenmediyse bunu söyler', () => {

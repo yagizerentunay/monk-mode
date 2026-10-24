@@ -21,6 +21,16 @@ describe('veri parmak izi', () => {
     )
   })
 
+  it('vücut ölçüsü yoksa eski iz değişmez, ölçü değişince iz değişir', () => {
+    const s = state()
+    const { measurements: _drop, ...withoutField } = s
+    expect(fingerprint(s)).toBe(fingerprint(withoutField))
+    const a = fingerprint({ ...s, measurements: [{ d: '2026-10-01', waist: 84 }] })
+    const b = fingerprint({ ...s, measurements: [{ d: '2026-10-01', waist: 83 }] })
+    expect(a).not.toBe(fingerprint(s))
+    expect(a).not.toBe(b)
+  })
+
   it('ayarlara ve devam eden antrenmana duyarsızdır', () => {
     const a = state({ workouts: [wk('a', 1)] })
     const b = state({ workouts: [wk('a', 1)], active: wk('x', 5) }, { unit: 'lb', backupRemindDays: 7 })
@@ -43,6 +53,11 @@ describe('yedek hatırlatma', () => {
     expect(backupStatus(state(), NOW).due).toBe(false)
     const onlyRoutine = state({ routines: [{ id: 'r', name: 'x', ex: [] }] })
     expect(backupStatus(onlyRoutine, NOW)).toMatchObject({ due: false, days: null })
+  })
+
+  it('yalnız vücut ölçüsü kaydı varsa da hatırlatır', () => {
+    const only = state({ measurements: [{ d: '2026-10-01', waist: 84 }] })
+    expect(backupStatus(only, NOW)).toMatchObject({ due: true, never: true, days: 19 })
   })
 
   it('hiç yedek yoksa süreyi en eski kayıttan sayar', () => {

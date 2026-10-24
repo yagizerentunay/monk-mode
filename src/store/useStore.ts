@@ -5,6 +5,8 @@ import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
 import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { MAX_SETS } from './sanitize.ts'
+import { cleanMeasurement } from '../lib/measurements.ts'
+import { newlyReached } from '../lib/goals.ts'
 import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
@@ -21,12 +23,14 @@ import {
   type BodyweightEntry,
   type CustomExercise,
   type ExCfg,
+  type MeasurementEntry,
   type PastBlock,
   type Routine,
   type SetEntry,
   type Settings,
   type SideSet,
   type State,
+  type StrengthGoal,
   type TrainingBlock,
   type Workout,
 } from './schema.ts'
@@ -107,11 +111,23 @@ export interface Actions {
   /** Başka cihazın yedeğini hiçbir şey silmeden birleştirir (bkz. lib/mergeBackup.ts); yeni bir şey yoksa state değişmez. */
   mergeFrom(incoming: State): MergeReport
   logBodyweight(entry: BodyweightEntry): void
+  /** Günün ölçülerini kaydeder; aynı gündeki kaydın yerine geçer. Geçerli ölçüsü yoksa yok sayılır (bkz. lib/measurements.ts). */
+  logMeasurement(entry: MeasurementEntry): void
   addCustomExercise(ex: Omit<CustomExercise, 'id'>): string
   /** Egzersizin kaslarını düzeltir (en az bir geçerli birincil kas yoksa yok sayılır, bkz. lib/muscleFix.ts). */
   setMuscleFix(exId: string, fix: MuscleFix): void
   /** Düzeltmeyi kaldırır; egzersiz kütüphanedeki kaslarına döner. */
   clearMuscleFix(exId: string): void
+  /** Hedefi ekler ya da aynı kimlikliyi değiştirir (sıra korunur). */
+  saveGoal(goal: StrengthGoal): void
+  deleteGoal(id: string): void
+  /** Silinen hedefi eski sırasına koyar (silme geri alma); aynı kimlik varsa dokunmaz. */
+  restoreGoal(goal: StrengthGoal, index: number): void
+  /**
+   * Geçmişe göre ulaşılmış ama henüz işaretlenmemiş hedeflere ulaşma gününü yazar ve yalnız bu çağrıda
+   * işaretlenenleri döner: kutlama bir kez gösterilsin diye.
+   */
+  settleGoals(): StrengthGoal[]
   /** Yeni antrenman bloğu başlatır (bkz. lib/block.ts); süren blok varsa dokunmaz. */
   startBlock(start: string, weeks: number, deload?: number): void
   /** Süren bloğun başlangıcını, hafta sayısını ya da deload haftasını değiştirir. */
@@ -406,8 +422,10 @@ export const useStore = create<Store>((set, get) => ({
         workouts: state.workouts,
         routines: state.routines,
         bodyweight: state.bodyweight,
+        measurements: state.measurements,
         customEx: state.customEx,
         muscleFix: state.muscleFix,
+        goals: state.goals,
       }))
     }
     return report
@@ -419,6 +437,14 @@ export const useStore = create<Store>((set, get) => ({
         a.d.localeCompare(b.d),
       ),
     })),
+
+  logMeasurement: (entry) => {
+    const clean = cleanMeasurement(entry)
+    if (!clean) return
+    set((s) => ({
+      measurements: [...s.measurements.filter((m) => m.d !== clean.d), clean].sort((a, b) => a.d.localeCompare(b.d)),
+    }))
+  },
 
   addCustomExercise: (ex) => {
     const id = `custom-${newId()}`
@@ -437,6 +463,30 @@ export const useStore = create<Store>((set, get) => ({
       if (!Object.hasOwn(s.muscleFix, exId)) return {}
       return { muscleFix: Object.fromEntries(Object.entries(s.muscleFix).filter(([id]) => id !== exId)) }
     }),
+
+  saveGoal: (goal) =>
+    set((s) => ({
+      goals: s.goals.some((g) => g.id === goal.id) ? s.goals.map((g) => (g.id === goal.id ? goal : g)) : [...s.goals, goal],
+    })),
+
+  deleteGoal: (id) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+
+  restoreGoal: (goal, index) =>
+    set((s) => {
+      if (s.goals.some((g) => g.id === goal.id)) return {}
+      const goals = [...s.goals]
+      goals.splice(Math.min(Math.max(index, 0), goals.length), 0, goal)
+      return { goals }
+    }),
+
+  settleGoals: () => {
+    const { goals, workouts } = get()
+    const reached = new Map(newlyReached(goals, workouts).map((r) => [r.id, r.d]))
+    if (reached.size === 0) return []
+    const next = goals.map((g) => (reached.has(g.id) ? { ...g, done: reached.get(g.id) } : g))
+    set(() => ({ goals: next }))
+    return next.filter((g) => reached.has(g.id))
+  },
 
   startBlock: (start, weeks, deload) =>
     set((s) => (s.block ? {} : { block: newBlock(newId(), start, weeks, deload) })),
@@ -476,8 +526,10 @@ export function snapshot(s: Store): State {
     workouts: s.workouts,
     active: s.active,
     bodyweight: s.bodyweight,
+    measurements: s.measurements,
     customEx: s.customEx,
     muscleFix: s.muscleFix,
+    goals: s.goals,
     block: s.block,
     pastBlocks: s.pastBlocks,
   }

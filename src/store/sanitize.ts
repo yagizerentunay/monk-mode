@@ -2,15 +2,18 @@ import type {
   BodyweightEntry,
   CustomExercise,
   ExCfg,
+  MeasurementEntry,
   PastBlock,
   ProgressionMode,
   Routine,
   SetEntry,
   SideSet,
+  StrengthGoal,
   TrainingBlock,
   Workout,
   WorkoutEntry,
 } from './schema.ts'
+import { cleanMeasure, hasMeasure, MEASURE_KEYS, type MeasureKey } from '../lib/measurements.ts'
 import { clampWeeks, MAX_BLOCK_WEEKS, MAX_PAST_BLOCKS, MIN_BLOCK_WEEKS } from '../lib/block.ts'
 import { clampSec, MAX_TIMED_SEC } from '../lib/timed.ts'
 
@@ -38,8 +41,10 @@ export const KINDS = [
   'routineEx',
   'week',
   'bodyweight',
+  'measurement',
   'customEx',
   'muscleFix',
+  'goal',
   'block',
 ] as const
 export type Kind = (typeof KINDS)[number]
@@ -338,6 +343,29 @@ function sanitizeBodyweight(raw: unknown): BodyweightEntry | null {
   return Object.hasOwn(out, 'd') && Object.hasOwn(out, 'w') ? (out as unknown as BodyweightEntry) : null
 }
 
+const MEASURE_SET: ReadonlySet<string> = new Set(MEASURE_KEYS)
+
+/**
+ * Ölçü kaydı: gün gerekli, ölçüler isteğe bağlı. Geçersiz ölçü alanı atılır, fazla ondalık bire yuvarlanır
+ * (ikisi de onarım sayılır). Geçerli günü ya da hiç geçerli ölçüsü kalmayan kayıt atılır.
+ */
+function sanitizeMeasurement(raw: unknown, rep: SanitizeReport): MeasurementEntry | null {
+  if (!isRecord(raw) || !isDay(raw.d)) return null
+  const out: Record<string, unknown> = {}
+  let fixed = false
+  for (const key of Object.keys(raw)) {
+    if (key === 'd') out.d = raw.d
+    else if (MEASURE_SET.has(key)) {
+      const v = cleanMeasure(key as MeasureKey, raw[key])
+      if (v !== raw[key]) fixed = true
+      if (v !== undefined) out[key] = v
+    }
+  }
+  if (!hasMeasure(out)) return null
+  if (fixed) rep.repaired.measurement++
+  return out as unknown as MeasurementEntry
+}
+
 function sanitizeCustom(raw: unknown, rep: SanitizeReport): CustomExercise | null {
   if (!isRecord(raw) || id(raw.id) === BAD || str(raw.name) === BAD) return null
   const { out, bad } = pick(raw, {
@@ -351,6 +379,25 @@ function sanitizeCustom(raw: unknown, rep: SanitizeReport): CustomExercise | nul
   fixed = fill(out, 'equipment', '') || fixed
   if (fixed) rep.repaired.customEx++
   return out as unknown as CustomExercise
+}
+
+/** Hedef 1RM'in makul üst sınırı (kg); üstü yazım hatası sayılır. */
+export const MAX_GOAL_KG = 1000
+
+/** Kimlik, egzersiz, hedef, hedef gün ve oluşturma günü zorunludur; biri kullanılamazsa hedef atılır. */
+function sanitizeGoal(raw: unknown): StrengthGoal | null {
+  if (!isRecord(raw)) return null
+  const { out } = pick(raw, {
+    id,
+    exId: id,
+    target: (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= MAX_GOAL_KG ? v : BAD),
+    by: day,
+    created: day,
+    done: day,
+  })
+  return ['id', 'exId', 'target', 'by', 'created'].every((k) => Object.hasOwn(out, k))
+    ? (out as unknown as StrengthGoal)
+    : null
 }
 
 // --- blok --------------------------------------------------------------------------------------
@@ -421,7 +468,9 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
   const routines = list(raw, 'routines', 'routine', rep, (v) => sanitizeRoutine(v, rep))
   const workouts = list(raw, 'workouts', 'workout', rep, (v) => sanitizeWorkout(v, rep))
   const bodyweight = list(raw, 'bodyweight', 'bodyweight', rep, sanitizeBodyweight)
+  const measurements = list(raw, 'measurements', 'measurement', rep, (v) => sanitizeMeasurement(v, rep))
   const customEx = list(raw, 'customEx', 'customEx', rep, (v) => sanitizeCustom(v, rep))
+  const goals = list(raw, 'goals', 'goal', rep, sanitizeGoal)
 
   let week: Record<number, string> = {}
   if (isRecord(raw.week)) week = sanitizeWeek(raw.week, rep)
@@ -443,5 +492,5 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
   rep.dropped.block += Math.max(0, allPast.length - MAX_PAST_BLOCKS)
   const pastBlocks = allPast.slice(-MAX_PAST_BLOCKS)
 
-  return { routines, week, workouts, active, bodyweight, customEx, block, pastBlocks }
+  return { routines, week, workouts, active, bodyweight, measurements, customEx, goals, block, pastBlocks }
 }

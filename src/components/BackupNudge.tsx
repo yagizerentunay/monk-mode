@@ -17,6 +17,7 @@ export function BackupNudge() {
   const routines = useStore((s) => s.routines)
   const week = useStore((s) => s.week)
   const bodyweight = useStore((s) => s.bodyweight)
+  const measurements = useStore((s) => s.measurements)
   const customEx = useStore((s) => s.customEx)
   const settings = useStore((s) => s.settings)
   const [now] = useState(() => Date.now())
@@ -24,8 +25,8 @@ export function BackupNudge() {
   const [hidden, setHidden] = useState(false)
 
   const due = useMemo(
-    () => backupStatus({ workouts, routines, week, bodyweight, customEx, settings }, now).due,
-    [workouts, routines, week, bodyweight, customEx, settings, now],
+    () => backupStatus({ workouts, routines, week, bodyweight, measurements, customEx, settings }, now).due,
+    [workouts, routines, week, bodyweight, measurements, customEx, settings, now],
   )
 
   if (result && result !== 'cancelled') return <div className="card banner ok" role="status">{DONE_TEXT[result]}</div>

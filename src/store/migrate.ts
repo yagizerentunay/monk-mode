@@ -88,8 +88,9 @@ export function migrateWithReport(raw: unknown): MigrateResult {
   }
 
   const settings = isRecord(raw.settings) ? raw.settings : {}
-  // Blok alanları State'te kas düzeltmelerinden sonra gelir (defaultState ile aynı anahtar sırası).
-  const { block, pastBlocks, ...records } = sanitizeRecords(raw, report)
+  // Hedefler ve blok alanları State'teki sırasıyla (kas düzeltmesinden sonra) yazılır: geçerli veri bayt
+  // bayt aynı kalsın (defaultState ile aynı anahtar sırası).
+  const { goals, block, pastBlocks, ...records } = sanitizeRecords(raw, report)
 
   const state: State = {
     version: SCHEMA_VERSION,
@@ -128,10 +129,12 @@ export function migrateWithReport(raw: unknown): MigrateResult {
           : undefined,
       muscleTargets: migrateMuscleTargets(settings.muscleTargets),
       progressionRule: settings.progressionRule === 'fast' ? 'fast' : undefined,
+      theme: settings.theme === 'dark' || settings.theme === 'light' ? settings.theme : 'system',
       deloadSnoozedUntil: positive(settings.deloadSnoozedUntil),
     },
     ...records,
     muscleFix: migrateMuscleFix(raw.muscleFix, report),
+    goals,
     block,
     pastBlocks,
   }

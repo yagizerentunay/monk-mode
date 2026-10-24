@@ -77,12 +77,15 @@
 .musclefix .chip { min-height: var(--tap); padding: 8px 14px; }
 .settings .card h2, .importcard h2 { margin-bottom: 0; }
 .eyebrow.danger { color: var(--danger); }
-.dangerzone { border-color: rgba(242, 101, 91, 0.45); background: rgba(242, 101, 91, 0.06); margin-top: 28px; }
-.btn.danger { border-color: rgba(242, 101, 91, 0.6); }
+.dangerzone { border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 6%, transparent); margin-top: 28px; }
+.btn.danger { border-color: color-mix(in srgb, var(--danger) 60%, transparent); }
 .btn.danger.block { background: transparent; }
 .workouteditor .btn.small { min-width: var(--tap); }
 .workouteditor .editentry .exname { font-size: 17px; }
 
+/* rutin paylaşımı */
+.qr { display: block; width: min(100%, 280px); height: auto; margin: 0 auto; border-radius: 10px; }
+.sharelist { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 /* antrenman bloğu (components/BlockCard.tsx) */
 .blockhistory ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 .blockhistory .ok { color: var(--ok); }

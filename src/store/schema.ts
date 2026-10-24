@@ -9,6 +9,9 @@ export type ProgressionMode = 'off' | 'linear' | 'double'
 
 export type ProgressionRule = 'cautious' | 'fast'
 
+/** Görünüm: 'system' cihazın açık/koyu tercihini izler (bkz. lib/theme.ts). */
+export type Theme = 'system' | 'dark' | 'light'
+
 /** Rutindeki bir egzersizin planı. Ağırlıklar kg cinsindendir. */
 export interface ExCfg {
   exId: string
@@ -115,11 +118,41 @@ export interface BodyweightEntry {
   w: number
 }
 
+/**
+ * Bir günün vücut ölçüleri. Çevreler cm, yağ oranı yüzdedir; alanlar isteğe bağlıdır ama en az biri
+ * bulunur (bkz. lib/measurements.ts). Birim ayarı (kg/lb) ölçülere uygulanmaz.
+ */
+export interface MeasurementEntry {
+  d: string
+  waist?: number
+  chest?: number
+  arm?: number
+  hip?: number
+  fat?: number
+}
+
 export interface CustomExercise {
   id: string
   name: string
   primaryMuscles: string[]
   equipment: string
+}
+
+/**
+ * Kuvvet hedefi: bir egzersizde belli bir güne kadar ulaşılacak tahmini 1RM (bkz. lib/goals.ts).
+ * Ağırlık kg tutulur; birim yalnız gösterimde uygulanır.
+ */
+export interface StrengthGoal {
+  id: string
+  exId: string
+  /** Hedef tahmini 1RM (kg). */
+  target: number
+  /** Hedef gün, YYYY-MM-DD. */
+  by: string
+  /** Hedefin oluşturulduğu gün, YYYY-MM-DD; ulaşma bu günden itibaren yapılan seanslara bakar. */
+  created: string
+  /** Hedefe ulaşılan gün; ulaşılmadıysa yok. Kutlama yalnız bu alan ilk kez yazılırken gösterilir. */
+  done?: string
 }
 
 /**
@@ -171,6 +204,8 @@ export interface Settings {
   progressionRule?: ProgressionRule
   /** Deload önerisi "Şimdi değil" ile ertelendiyse bu zamana (epoch ms) kadar gösterilmez (bkz. lib/deload.ts). */
   deloadSnoozedUntil?: number
+  /** Renk teması; varsayılan 'system'. */
+  theme: Theme
 }
 
 export interface State {
@@ -182,9 +217,13 @@ export interface State {
   workouts: Workout[]
   active: Workout | null
   bodyweight: BodyweightEntry[]
+  /** Vücut ölçüleri, tarih sırasında; her güne en çok bir kayıt. */
+  measurements: MeasurementEntry[]
   customEx: CustomExercise[]
   /** Egzersiz kimliği → kullanıcının kas düzeltmesi (bkz. lib/muscleFix.ts); yoksa kütüphane verisi geçerli. */
   muscleFix: Record<string, MuscleFix>
+  /** Kuvvet hedefleri, eklenme sırasında. */
+  goals: StrengthGoal[]
   /** Süren antrenman bloğu; yoksa null. */
   block: TrainingBlock | null
   /** Biten ve iptal edilen bloklar, bitişe göre eski→yeni (en çok MAX_PAST_BLOCKS, bkz. lib/block.ts). */
@@ -194,14 +233,16 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14 },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14, theme: 'system' },
     routines: [],
     week: {},
     workouts: [],
     active: null,
     bodyweight: [],
+    measurements: [],
     customEx: [],
     muscleFix: {},
+    goals: [],
     block: null,
     pastBlocks: [],
   }

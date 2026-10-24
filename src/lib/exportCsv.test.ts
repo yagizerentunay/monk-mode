@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
-import { CSV_HEADERS, workoutsToCsv } from './exportCsv.ts'
+import { CSV_HEADERS, MEASUREMENT_CSV_HEADERS, measurementsToCsv, workoutsToCsv } from './exportCsv.ts'
 
 const names = (id: string) => ({ bench: 'Bench Press', curl: 'Biceps Curl', pullup: 'Barfiks' })[id] ?? id
 const kg = { unit: 'kg' as const, names }
@@ -194,5 +194,26 @@ describe('workoutsToCsv süreli setler', () => {
     const [, l, r] = rows(workoutsToCsv([workout([side])], kg))
     expect([l[5], l[10], l[0] && l[l.length - 1]]).toEqual(['Sol', '', '35'])
     expect([r[5], r[r.length - 1]]).toEqual(['Sağ', '30'])
+  })
+})
+
+describe('measurementsToCsv', () => {
+  it('BOM, Türkçe başlık; her gün bir satır, boş ölçü boş hücre, ondalık virgül', () => {
+    const csv = measurementsToCsv([
+      { d: '2026-10-08', waist: 83.5 },
+      { d: '2026-10-01', waist: 84, chest: 102, arm: 36.5, hip: 98, fat: 17.5 },
+    ])
+    expect(csv.startsWith('﻿')).toBe(true)
+    expect(MEASUREMENT_CSV_HEADERS.join(';')).toBe('Tarih;Bel (cm);Göğüs (cm);Kol (cm);Kalça (cm);Yağ (%)')
+    expect(csv.endsWith('\r\n')).toBe(true)
+    expect(rows(csv)).toEqual([
+      [...MEASUREMENT_CSV_HEADERS],
+      ['2026-10-01', '84', '102', '36,5', '98', '17,5'],
+      ['2026-10-08', '83,5', '', '', '', ''],
+    ])
+  })
+
+  it('kayıt yoksa yalnız başlık', () => {
+    expect(rows(measurementsToCsv([]))).toEqual([[...MEASUREMENT_CSV_HEADERS]])
   })
 })

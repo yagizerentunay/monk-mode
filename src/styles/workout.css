@@ -3,7 +3,7 @@
 
 /* başlatıcı */
 .starter { padding: 16px; min-height: 72px; }
-.starter.today { border-color: rgba(235, 148, 98, 0.55); background: linear-gradient(160deg, #262b30, var(--card) 60%); }
+.starter.today { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: linear-gradient(160deg, var(--hero-from), var(--card) 60%); }
 .starter .exname { font-family: var(--display); font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
 
 /* aktif seans üst bölümü */
@@ -15,7 +15,7 @@
 }
 .wk-live {
   display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px;
-  background: rgba(95, 192, 138, 0.14); color: var(--ok); font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+  background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .wk-live i { font-style: normal; font-size: 9px; }
@@ -28,7 +28,7 @@
 .wk-done-head .display { font-size: 36px; }
 .wk-done-head .seal { color: var(--ok); }
 .wk-stats b { font-family: var(--display); font-size: 24px; font-weight: 800; }
-.wk-pr { border-color: rgba(235, 148, 98, 0.5); background: var(--accent-soft); }
+.wk-pr { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: var(--accent-soft); }
 .wk-pr-item { font-family: var(--display); font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
 .wk-finish { margin-top: 20px; }
 
@@ -88,7 +88,7 @@
 
 /* antrenman özeti: RIR kapsaması ve eksikleri toplu doldurma kartı */
 .rir-coverage { margin-top: 2px; }
-.rir-card { border-color: rgba(235, 148, 98, 0.5); }
+.rir-card { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 .rir-exname { min-width: 0; overflow-wrap: anywhere; }
 .rir-exrow { display: grid; gap: 6px; }
 .rir-chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -99,8 +99,8 @@
 .rest {
   position: fixed; left: 12px; right: 12px; bottom: calc(var(--tab-h) + 10px); z-index: 30;
   max-width: 496px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  background: #262c30; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+  background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px;
+  box-shadow: 0 8px 28px var(--shadow);
 }
 .rest.done { border-color: var(--ok); }
 .rest.done .rest-time { color: var(--ok); }

@@ -176,7 +176,7 @@ describe('rastgele bozuk veri', () => {
       case 7: return Array.from({ length: r.int(0, 4) }, () => junk(r, depth + 1))
       default: {
         const o: Record<string, unknown> = {}
-        for (const k of ['id', 'd', 'start', 'end', 'name', 'entries', 'sets', 'w', 'r', 'rir', 'done', 'exId', 'sides', 'L', 'R', 'routines', 'workouts', 'settings', 'unit', 'week', 'bodyweight', 'customEx', 'muscleFix', 'ex', 'restSec', '__proto__'])
+        for (const k of ['id', 'd', 'start', 'end', 'name', 'entries', 'sets', 'w', 'r', 'rir', 'done', 'exId', 'sides', 'L', 'R', 'routines', 'workouts', 'settings', 'unit', 'week', 'bodyweight', 'measurements', 'waist', 'fat', 'customEx', 'muscleFix', 'goals', 'target', 'by', 'created', 'ex', 'restSec', '__proto__'])
           if (r.chance(0.25)) o[k] = junk(r, depth + 1)
         return o
       }
