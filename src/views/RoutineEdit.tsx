@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { NumberField } from '../components/NumberField.tsx'
+import { ShareRoutine } from '../components/ShareRoutine.tsx'
 import { MAX_DROPS, MAX_ROUTINE_SETS, MAX_WARMUPS } from '../lib/intensity.ts'
 import { defaultExCfg } from '../lib/routineAdd.ts'
 import { duplicateRoutine } from '../lib/routineCopy.ts'
@@ -74,6 +75,7 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
   const existing = useMemo(() => routines.find((r) => r.id === id), [routines, id])
   const [draft, setDraft] = useState<Routine>(() => existing ?? blankRoutine())
   const [picking, setPicking] = useState(false)
+  const [sharing, setSharing] = useState(false)
 
   const patchEx = (i: number, patch: Partial<ExCfg>) =>
     setDraft((d) => ({ ...d, ex: d.ex.map((e, j) => (j === i ? { ...e, ...patch } : e)) }))
@@ -303,6 +305,12 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
       <button className="btn primary block" onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
 
       {existing && (
+        <button className="btn block" onClick={() => setSharing(true)}>
+          Rutini paylaş
+        </button>
+      )}
+
+      {existing && (
         <button
           className="btn block"
           onClick={() => {
@@ -329,6 +337,13 @@ function RoutineEditForm({ id }: { id: string | undefined }) {
         >
           Rutini sil
         </button>
+      )}
+
+      {/* Kaydedilmiş hâli paylaşılır (kopyalamadaki gibi); kaydedilmemiş düzenlemeler linke girmez. */}
+      {existing && (
+        <BottomSheet open={sharing} onClose={() => setSharing(false)} title="Rutini paylaş">
+          {sharing && <ShareRoutine routine={existing} />}
+        </BottomSheet>
       )}
 
       <BottomSheet open={picking} onClose={() => setPicking(false)} title="Egzersiz seç">
