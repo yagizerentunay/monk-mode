@@ -88,7 +88,8 @@ export function migrateWithReport(raw: unknown): MigrateResult {
   }
 
   const settings = isRecord(raw.settings) ? raw.settings : {}
-  const records = sanitizeRecords(raw, report)
+  // Hedefler State'teki sırasıyla (kas düzeltmesinden sonra) yazılır: geçerli veri bayt bayt aynı kalsın.
+  const { goals, ...records } = sanitizeRecords(raw, report)
 
   const state: State = {
     version: SCHEMA_VERSION,
@@ -132,6 +133,7 @@ export function migrateWithReport(raw: unknown): MigrateResult {
     },
     ...records,
     muscleFix: migrateMuscleFix(raw.muscleFix, report),
+    goals,
   }
   return { state, report }
 }

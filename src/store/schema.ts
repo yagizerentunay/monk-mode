@@ -138,6 +138,23 @@ export interface CustomExercise {
   equipment: string
 }
 
+/**
+ * Kuvvet hedefi: bir egzersizde belli bir güne kadar ulaşılacak tahmini 1RM (bkz. lib/goals.ts).
+ * Ağırlık kg tutulur; birim yalnız gösterimde uygulanır.
+ */
+export interface StrengthGoal {
+  id: string
+  exId: string
+  /** Hedef tahmini 1RM (kg). */
+  target: number
+  /** Hedef gün, YYYY-MM-DD. */
+  by: string
+  /** Hedefin oluşturulduğu gün, YYYY-MM-DD; ulaşma bu günden itibaren yapılan seanslara bakar. */
+  created: string
+  /** Hedefe ulaşılan gün; ulaşılmadıysa yok. Kutlama yalnız bu alan ilk kez yazılırken gösterilir. */
+  done?: string
+}
+
 export interface Settings {
   unit: Unit
   restSec: number
@@ -184,6 +201,8 @@ export interface State {
   customEx: CustomExercise[]
   /** Egzersiz kimliği → kullanıcının kas düzeltmesi (bkz. lib/muscleFix.ts); yoksa kütüphane verisi geçerli. */
   muscleFix: Record<string, MuscleFix>
+  /** Kuvvet hedefleri, eklenme sırasında. */
+  goals: StrengthGoal[]
 }
 
 export function defaultState(): State {
@@ -198,5 +217,6 @@ export function defaultState(): State {
     measurements: [],
     customEx: [],
     muscleFix: {},
+    goals: [],
   }
 }
