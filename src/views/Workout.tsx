@@ -13,7 +13,8 @@ import { SwapSheet } from '../components/SwapSheet.tsx'
 import { WorkoutClock } from '../components/WorkoutClock.tsx'
 import { formatShortDay } from '../lib/calendar.ts'
 import { DAY_NAMES } from '../lib/dates.ts'
-import { isBodyOnly, isTimedName, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
+import { formatDistanceSet, setMeters } from '../lib/distance.ts'
+import { isBodyOnly, isDistanceName, isTimedName, isUnilateralName, nameLang, thumbSource } from '../lib/exercises.ts'
 import { ExerciseThumb } from '../components/ExerciseThumb.tsx'
 import { describeSets, MAX_WARMUPS } from '../lib/intensity.ts'
 import { formatLoadWithUnit, formatTimedLoad } from '../lib/load.ts'
@@ -102,6 +103,7 @@ export function Workout() {
     updateSide,
     toggleUnilateral,
     toggleTimed,
+    toggleDistance,
     toggleSuperset,
     setEntryNote,
     setWorkoutNote,
@@ -158,7 +160,7 @@ export function Workout() {
     return exIds.split('|').map((exId) => {
       const cfg = routine?.ex.find((c) => c.exId === exId)
       if (!cfg) return null
-      const { last, prev } = lastTwoEntriesFor(workouts, exId, !!cfg.bw, !!cfg.timed)
+      const { last, prev } = lastTwoEntriesFor(workouts, exId, !!cfg.bw, !!cfg.timed, !!cfg.distance)
       return prescriptionHint(nextPrescription(cfg, last, { prev, rule }).reason, rule)
     })
   }, [routines, routineId, exIds, workouts, rule])
@@ -268,10 +270,12 @@ export function Workout() {
       {active.entries.map((entry, ei) => {
         const ex = byId.get(entry.exId)
         const last = lastEntryFor(workouts, entry.exId)
-        // Süreli kayıtta "en iyi set" en uzun tutuştur (aynıysa en ağır ek yük).
+        // Süreli kayıtta "en iyi set" en uzun tutuştur (aynıysa en ağır ek yük); mesafede en uzun mesafe.
         const lastTop = last?.sets
           .filter((s) => s.done && !s.warmup && !s.drop)
-          .sort((a, b) => (last.timed ? b.r - a.r || b.w - a.w : b.w - a.w))[0]
+          .sort((a, b) =>
+            last.distance ? setMeters(b) - setMeters(a) : last.timed ? b.r - a.r || b.w - a.w : b.w - a.w,
+          )[0]
         const lastNote = lastNoteFor(workouts, entry.exId)
         // Hedef: ilk yapılmamış çalışma setinin (ilerleme önerisi dahil) ağırlık × tekrarı.
         const targetSet = entry.sets.find((s) => !s.done && !s.warmup && !s.drop)
@@ -291,7 +295,9 @@ export function Workout() {
                 <div className="sub">
                   {lastTop
                     ? `Önceki seans: ${
-                        last?.timed
+                        last?.distance
+                          ? formatDistanceSet(lastTop)
+                          : last?.timed
                           ? formatSet(lastTop, formatTimedLoad(last.bw, lastTop.w, unit), true)
                           : formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit))
                       }`
@@ -299,7 +305,9 @@ export function Workout() {
                 </div>
                 {targetSet && lastTop && (
                   <div className="extarget">
-                    {entry.timed
+                    {entry.distance
+                      ? `Hedef ${formatDistanceSet(targetSet)}`
+                      : entry.timed
                       ? `Hedef ${[
                           formatTimedLoad(entry.bw, targetSet.w, unit),
                           targetSet.sides
@@ -330,7 +338,14 @@ export function Workout() {
               />
             )}
 
-            {entry.unilateral ? (
+            {entry.distance ? (
+              <div className="setcols" aria-hidden="true">
+                <span>Set</span>
+                <span>Mesafe (km)</span>
+                <span>Süre</span>
+                <span>Sonuç</span>
+              </div>
+            ) : entry.unilateral ? (
               <div className="setcols side" aria-hidden="true">
                 <span>Set</span>
                 <span>
@@ -366,6 +381,7 @@ export function Workout() {
                   bw={entry.bw}
                   bwKg={entry.bwKg}
                   timed={entry.timed}
+                  distance={entry.distance}
                   onChange={(patch) => updateSet(ei, si, patch)}
                   onSide={(side, patch) => updateSide(ei, si, side, patch)}
                   onDrop={() => addDrop(ei, si)}
@@ -382,12 +398,12 @@ export function Workout() {
               <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
               <button
                 className="btn small"
-                disabled={entry.timed || entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
+                disabled={entry.timed || entry.distance || entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
                 onClick={() => addWarmup(ei)}
               >
                 + Isınma
               </button>
-              <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>
+              {!entry.distance && <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>}
               {ex && !hasCompletedWork(entry) && (
                 <button className="btn small" onClick={() => setSwapEntryIdx(ei)}>Değiştir</button>
               )}
@@ -419,6 +435,7 @@ export function Workout() {
               <button
                 className={`chip${entry.unilateral ? ' on' : ''}`}
                 aria-pressed={!!entry.unilateral}
+                disabled={!!entry.distance}
                 onClick={() => toggleUnilateral(ei)}
               >
                 Tek taraflı (sol/sağ)
@@ -426,10 +443,18 @@ export function Workout() {
               <button
                 className={`chip${entry.timed ? ' on' : ''}`}
                 aria-pressed={!!entry.timed}
-                disabled={hasCompletedWork(entry)}
+                disabled={hasCompletedWork(entry) || !!entry.distance}
                 onClick={() => toggleTimed(ei)}
               >
                 Süreli (sn)
+              </button>
+              <button
+                className={`chip${entry.distance ? ' on' : ''}`}
+                aria-pressed={!!entry.distance}
+                disabled={hasCompletedWork(entry)}
+                onClick={() => toggleDistance(ei)}
+              >
+                Mesafe (km)
               </button>
               <button
                 className={`chip${entry.note ? ' on' : ''}`}
@@ -472,6 +497,8 @@ export function Workout() {
               bw: isBodyOnly(ex),
               // Adı süreliyse süreli; değilse undefined: egzersizin son seansı süreliyse oradan miras alınır.
               timed: isTimedName(ex.name) || undefined,
+              // Koşu, bisiklet, kürek gibi adlar mesafe egzersizi gelir; değilse son seansa bakılır.
+              distance: isDistanceName(ex.name) || undefined,
             })
             setPicking(false)
           }}
@@ -484,7 +511,14 @@ export function Workout() {
             current={byId.get(active.entries[swapEntryIdx].exId)!}
             excludeIds={new Set(active.entries.map((e) => e.exId))}
             onSelect={(next) => {
-              swapExercise(swapEntryIdx, next.id, isUnilateralName(next.name), isBodyOnly(next), isTimedName(next.name) || undefined)
+              swapExercise(
+                swapEntryIdx,
+                next.id,
+                isUnilateralName(next.name),
+                isBodyOnly(next),
+                isTimedName(next.name) || undefined,
+                isDistanceName(next.name) || undefined,
+              )
               setSwapEntryIdx(null)
             }}
           />
