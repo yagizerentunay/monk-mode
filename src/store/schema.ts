@@ -35,6 +35,14 @@ export interface ExCfg {
    * mantığı aynen çalışır. Hedef süre 1-3600 sn; açıldığında varsayılan 30 sn.
    */
   timed?: boolean
+  /**
+   * Mesafe egzersizi (koşu, bisiklet, kürek, yürüyüş). `reps` (ve `repsMax`) hedef süredir (sn, 0 = hedef
+   * yok), `meters` hedef mesafedir; ağırlık, ısınma, drop ve ilerleme kullanılmaz (bkz. lib/distance.ts).
+   * `timed` ile birlikte olmaz.
+   */
+  distance?: boolean
+  /** Mesafe egzersizinde set başına hedef mesafe (m, 0-1.000.000); diğer egzersizlerde yoktur. */
+  meters?: number
   /** Her başarılı seansta eklenecek kg. */
   inc: number
   /** Double progression için tekrar aralığının üst sınırı. */
@@ -61,8 +69,11 @@ export interface SetEntry {
    * Tekrar. Tek taraflı sette taraf başına tekrardır: iki tarafın düşüğü (zayıf taraf belirler).
    * Süreli girdide (`WorkoutEntry.timed`) tekrar değil tutulan saniyedir; tek taraflıda da aynı kural
    * geçerlidir (sol/sağ saniye, `r` düşüğü). Hacim ve 1RM süreli girdiyi hiç görmez (bkz. lib/timed.ts).
+   * Mesafe girdisinde (`WorkoutEntry.distance`) setin süresidir (sn, 0 = girilmedi).
    */
   r: number
+  /** Mesafe girdisinde setin mesafesi (m, tam sayı); diğer girdilerde yoktur (bkz. lib/distance.ts). */
+  m?: number
   rir?: number
   /** Tek taraflı sette iki taraf da tamamlanmışsa true. */
   done: boolean
@@ -95,6 +106,11 @@ export interface WorkoutEntry {
   bwKg?: number
   /** Süreli egzersiz: `SetEntry.r` ve `SideSet.r` saniyedir; hacim, 1RM ve plato/deload hesabına girmez (bkz. lib/timed.ts). */
   timed?: boolean
+  /**
+   * Mesafe egzersizi: `SetEntry.m` metre, `SetEntry.r` saniyedir; hacim, 1RM, RIR ve plato/deload hesabına
+   * girmez, ilerleme toplam mesafe ve tempoyla izlenir (bkz. lib/distance.ts). `timed` ile birlikte olmaz.
+   */
+  distance?: boolean
   /** Kısa not (ağrı, takılma, enerji…); aynı egzersizin sonraki seansında hatırlatılır (lib/notes.ts). */
   note?: string
   /** Bu egzersize özel dinlenme süresi (sn); rutindeki `ExCfg.restSec`'ten gelir, yoksa ayardaki süre geçerlidir. */

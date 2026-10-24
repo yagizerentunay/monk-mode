@@ -10,6 +10,7 @@ import { RecordsCard } from '../components/RecordsCard.tsx'
 import { WeeklyTrendCard } from '../components/WeeklyTrendCard.tsx'
 import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
+import { formatLongClock } from '../lib/distance.ts'
 import { goalFor } from '../lib/goals.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -41,21 +42,28 @@ export function Stats() {
 
   const selected = chosen && exIds.includes(chosen) ? chosen : exIds[0]
   const history = selected ? exerciseHistory(workouts, selected) : []
-  // Grafik son seansın türünü izler (bkz. ExerciseHistory): süreliyse en uzun tutuş, saniye olarak.
-  const timedSel = !!history[history.length - 1]?.timed
+  // Grafik son seansın türünü izler (bkz. ExerciseHistory): süreliyse en uzun tutuş, saniye olarak; mesafe
+  // egzersizinde seansın toplam mesafesi (km), son seansın en iyi temposu altta yazılır.
+  const lastHist = history[history.length - 1]
+  const distSel = !!lastHist?.distance
+  const timedSel = !distSel && !!lastHist?.timed
   const points = history
-    .filter((p) => !!p.timed === timedSel)
+    .filter((p) => !!p.distance === distSel && !!p.timed === timedSel)
     .map((p) => ({
       label: formatAxisDay(p.d),
-      value: timedSel ? (p.topSec ?? 0) : Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
+      value: distSel
+        ? Math.round((p.totalM ?? 0) / 10) / 100
+        : timedSel
+          ? (p.topSec ?? 0)
+          : Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
     }))
   // Hedef çizgisi yalnız tahmini 1RM grafiğinde: en ağır set başka bir ölçüdür.
-  const goal = selected && !timedSel && metric === 'e1rm' ? goalFor(goals, selected) : undefined
+  const goal = selected && !timedSel && !distSel && metric === 'e1rm' ? goalFor(goals, selected) : undefined
   const open = workouts.find((w) => w.id === openId) ?? null
   const recent = [...workouts].reverse().slice(0, 30)
 
-  const metricLabel = timedSel ? 'en uzun tutuş' : metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
-  const valueUnit = timedSel ? 'sn' : unit
+  const metricLabel = distSel ? 'toplam mesafe' : timedSel ? 'en uzun tutuş' : metric === 'e1rm' ? 'tahmini 1RM' : 'en ağır set'
+  const valueUnit = distSel ? 'km' : timedSel ? 'sn' : unit
   const lastPt = points[points.length - 1]
   const prevPt = points.length >= 2 ? points[points.length - 2] : null
   // Değişim yalnız iki seans varsa hesaplanır; veri yoksa uydurulmaz.
@@ -88,6 +96,9 @@ export function Stats() {
                   <span className="bignum">{fmtNum(lastPt.value)}</span>
                   <span className="statunit">{valueUnit} · {metricLabel}</span>
                 </div>
+                {distSel && lastHist?.pace !== undefined && (
+                  <div className="sub">Son seans en iyi tempo: {formatLongClock(lastHist.pace)} /km</div>
+                )}
                 {delta === null ? (
                   <div className="sub">Karşılaştırma için bir seans daha gerekli.</div>
                 ) : (
@@ -102,7 +113,7 @@ export function Stats() {
               unit={valueUnit}
               target={goal ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: `Hedef ${formatWeight(goal.target, unit)} ${unit}` } : undefined}
             />
-            {!timedSel && (
+            {!timedSel && !distSel && (
               <div className="chips statseg" role="group" aria-label="Ölçü">
                 <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
                 <button className={`chip${metric === 'topW' ? ' on' : ''}`} aria-pressed={metric === 'topW'} onClick={() => setMetric('topW')}>En ağır set</button>

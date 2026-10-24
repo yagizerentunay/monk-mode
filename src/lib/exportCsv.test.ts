@@ -27,11 +27,11 @@ describe('workoutsToCsv biçimi', () => {
     expect(csv.startsWith('﻿')).toBe(true)
     expect(csv.split('\r\n')[0]).toBe('﻿' + CSV_HEADERS.join(';'))
     expect(CSV_HEADERS.join(';')).toBe(
-      'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu;Süre (sn)',
+      'Tarih;Antrenman;Egzersiz;Set türü;Set no;Taraf;Ağırlık;Vücut ağırlığı;Toplam yük;Tekrar;RIR;Egzersiz notu;Antrenman notu;Süre (sn);Mesafe (m)',
     )
     expect(csv.endsWith('\r\n')).toBe(true)
     expect(csv.replace(/\r\n/g, '')).not.toMatch(/[\r\n]/)
-    expect(rows(csv)[1]).toEqual(['2026-10-05', 'Push', 'Bench Press', 'Çalışma', '1', '', '60', '', '60', '5', '', '', '', ''])
+    expect(rows(csv)[1]).toEqual(['2026-10-05', 'Push', 'Bench Press', 'Çalışma', '1', '', '60', '', '60', '5', '', '', '', '', ''])
   })
 
   it('ondalıkta virgül kullanır, binlik ayracı koymaz', () => {
@@ -51,7 +51,7 @@ describe('workoutsToCsv biçimi', () => {
       [workout([entry('bench', [set(60, 5)], { note: 'omuz; "sızı"\nikinci satır' })], { note: 'düz not' })],
       kg,
     )
-    expect(csv).toContain('"omuz; ""sızı""\nikinci satır";düz not;\r\n')
+    expect(csv).toContain('"omuz; ""sızı""\nikinci satır";düz not;;\r\n')
   })
 
   it('antrenman ve egzersiz adındaki ayracı da tırnaklar', () => {
@@ -61,7 +61,7 @@ describe('workoutsToCsv biçimi', () => {
 
   it('formül gibi başlayan notu metin olarak bırakır', () => {
     const csv = workoutsToCsv([workout([entry('bench', [set(60, 5)], { note: '=1+1' })], { note: '@x' })], kg)
-    expect(csv).toContain(";'=1+1;'@x;\r\n")
+    expect(csv).toContain(";'=1+1;'@x;;\r\n")
   })
 })
 
@@ -191,9 +191,29 @@ describe('workoutsToCsv süreli setler', () => {
       [{ w: 0, r: 30, done: true, sides: { L: { r: 35, done: true }, R: { r: 30, done: true } } }],
       { timed: true, unilateral: true },
     )
-    const [, l, r] = rows(workoutsToCsv([workout([side])], kg))
-    expect([l[5], l[10], l[0] && l[l.length - 1]]).toEqual(['Sol', '', '35'])
-    expect([r[5], r[r.length - 1]]).toEqual(['Sağ', '30'])
+    const [header, l, r] = rows(workoutsToCsv([workout([side])], kg))
+    const sec = header.indexOf('Süre (sn)')
+    expect([l[5], l[10], l[sec]]).toEqual(['Sol', '', '35'])
+    expect([r[5], r[sec]]).toEqual(['Sağ', '30'])
+  })
+})
+
+describe('workoutsToCsv mesafe setleri', () => {
+  it('mesafeyi metre, süreyi saniye yazar; ağırlık ve tekrar boş kalır', () => {
+    const run = entry('run', [{ w: 0, r: 1650, m: 5000, done: true }, { w: 0, r: 0, m: 800, done: true }], { distance: true })
+    const csv = workoutsToCsv([workout([run, entry('bench', [set(60, 5)])])], kg)
+    const [header, a, b, c] = rows(csv)
+    const col = (name: string) => header.indexOf(name)
+    expect(col('Mesafe (m)')).toBe(header.length - 1)
+    expect([a[col('Ağırlık')], a[col('Toplam yük')], a[col('Tekrar')], a[col('Süre (sn)')], a[col('Mesafe (m)')]]).toEqual(['', '', '', '1650', '5000'])
+    expect([b[col('Süre (sn)')], b[col('Mesafe (m)')]]).toEqual(['0', '800'])
+    // Mesafe olmayan egzersizde mesafe sütunu boş.
+    expect([c[col('Tekrar')], c[col('Mesafe (m)')]]).toEqual(['5', ''])
+  })
+
+  it('tamamlanmamış mesafe setini yazmaz', () => {
+    const run = entry('run', [{ w: 0, r: 1650, m: 5000, done: false }], { distance: true })
+    expect(rows(workoutsToCsv([workout([run])], kg))).toHaveLength(1)
   })
 })
 

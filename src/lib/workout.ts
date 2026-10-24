@@ -1,4 +1,5 @@
 import type { BodyweightEntry, ProgressionRule, Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
+import { countsForPace, paceSecPerKm, setMeters } from './distance.ts'
 import { dropChain, warmupSets } from './intensity.ts'
 import { bodyweightOn, comparableLast, effectiveLoad } from './load.ts'
 import { estimate1RM } from './onerm.ts'
@@ -34,21 +35,22 @@ export function lastEntryFor(workouts: Workout[], exId: string): WorkoutEntry | 
  * Egzersizin son iki karşılaştırılabilir kaydı. `last`, `lastEntryFor` ile aynıdır ve `comparableLast`
  * gibi yalnız aynı ağırlık anlamındaysa (`bw`) ve aynı türdeyse (`timed`: saniye mi tekrar mı) döner;
  * `prev` bir önceki kayıttır ve farklı anlamdaysa yoktur (ek yükle girilmiş ile mutlak yükle girilmiş
- * seans onay sayılmaz).
+ * seans onay sayılmaz). Mesafe kaydı (`distance`) yalnız mesafe kaydıyla eşleşir.
  */
 export function lastTwoEntriesFor(
   workouts: Workout[],
   exId: string,
   bw: boolean,
   timed = false,
+  distance = false,
 ): { last?: WorkoutEntry; prev?: WorkoutEntry } {
   const found: WorkoutEntry[] = []
   for (let i = workouts.length - 1; i >= 0 && found.length < 2; i--) {
     const entry = workouts[i].entries.find((e) => e.exId === exId)
     if (entry && workSets(entry.sets).length > 0) found.push(entry)
   }
-  const last = comparableLast(found[0], bw, timed)
-  return { last, prev: last ? comparableLast(found[1], bw, timed) : undefined }
+  const last = comparableLast(found[0], bw, timed, distance)
+  return { last, prev: last ? comparableLast(found[1], bw, timed, distance) : undefined }
 }
 
 /**
@@ -71,18 +73,26 @@ export function buildWorkout(
     routineId: routine.id,
     name: routine.name,
     entries: routine.ex.map((cfg, i) => {
-      const bw = !!cfg.bw
-      const timed = !!cfg.timed
-      const { last, prev } = lastTwoEntriesFor(history, cfg.exId, bw, timed)
+      // Mesafe egzersizinde ağırlık anlamı, tek taraf, ısınma ve drop yoktur (bkz. lib/distance.ts).
+      const distance = !!cfg.distance
+      const bw = !distance && !!cfg.bw
+      const timed = !distance && !!cfg.timed
+      const { last, prev } = lastTwoEntriesFor(history, cfg.exId, bw, timed, distance)
       const p = nextPrescription(cfg, last, { prev, rule })
-      const work: SetEntry[] = Array.from({ length: cfg.sets }, () => ({ w: p.w, r: p.r, done: false }))
+      const work: SetEntry[] = Array.from({ length: cfg.sets }, () =>
+        distance ? { w: 0, r: p.r, m: p.m ?? 0, done: false } : { w: p.w, r: p.r, done: false },
+      )
       const bwKg = bw ? bodyweightOn(bodyweight, d) : undefined
       // Süreli egzersizde ısınma rampası anlamsızdır (tekrar yok); rutinde sayı kalsa da atlanır.
-      const warmups = timed ? [] : warmupSets(p.w, cfg.warmups ?? 0, bwKg)
+      const warmups = timed || distance ? [] : warmupSets(p.w, cfg.warmups ?? 0, bwKg)
       const entry: WorkoutEntry = { exId: cfg.exId, sets: [...warmups, ...work] }
       if (cfg.superset && i > 0) entry.linked = true
       if (cfg.restSec && cfg.restSec > 0) entry.restSec = cfg.restSec
       if (timed) entry.timed = true
+      if (distance) {
+        entry.distance = true
+        return entry
+      }
       if (bw) {
         entry.bw = true
         if (bwKg !== undefined) entry.bwKg = bwKg
@@ -113,7 +123,8 @@ const MAX_PREFILL_SETS = 6
 /**
  * Egzersizin son karşılaştırılabilir seansındaki kurulum: tamamlanan çalışma seti sayısı, en ağır set
  * ağırlığı ve en düşük tekrar ("son seansındaki gibi"; süreli egzersizde en kısa süre, sn). Isınma ve
- * dropset sayılmaz; geçmiş yoksa null.
+ * dropset sayılmaz; geçmiş yoksa null. Mesafe egzersizinde (`distance`) ilk çalışma setinin mesafesi
+ * (`m`) ve süresi (`r`, sn) döner.
  * Rutin planı ve ilerleme kuralı yerine, rutinsiz eklenen egzersizlerde başlangıç değeri olarak kullanılır.
  */
 export function lastSetup(
@@ -121,11 +132,13 @@ export function lastSetup(
   exId: string,
   bw: boolean,
   timed = false,
-): { sets: number; w: number; r: number } | null {
-  const { last } = lastTwoEntriesFor(history, exId, bw, timed)
+  distance = false,
+): { sets: number; w: number; r: number; m?: number } | null {
+  const { last } = lastTwoEntriesFor(history, exId, bw, timed, distance)
   if (!last) return null
   const work = workSets(last.sets).filter((s) => !s.drop)
   if (work.length === 0) return null
+  if (distance) return { sets: Math.min(work.length, MAX_PREFILL_SETS), w: 0, r: work[0].r, m: setMeters(work[0]) }
   return {
     sets: Math.min(work.length, MAX_PREFILL_SETS),
     w: Math.max(...work.map((s) => s.w)),
@@ -139,11 +152,12 @@ export function lastSetup(
  * Vücut ağırlığı egzersizlerinde yük, vücut ağırlığı + ek yüktür (bkz. `effectiveLoad`); asist yükü
  * vücut ağırlığını aşarsa hacim negatife inmez. Süreli egzersizler (`timed`) hacme girmez: `r` saniyedir,
  * kg × saniye anlamsız bir sayı olurdu; yine de çalışma seti olarak sayılırlar (doneSetCount, kas haritası).
+ * Mesafe egzersizleri (`distance`) de aynı nedenle hacme girmez.
  */
 export function workoutVolume(workout: Workout): number {
   return workout.entries.reduce(
     (sum, e) =>
-      e.timed
+      e.timed || e.distance
         ? sum
         : sum +
           e.sets
@@ -153,9 +167,9 @@ export function workoutVolume(workout: Workout): number {
   )
 }
 
-/** Antrenmanda hacme giren (süreli olmayan) en az bir egzersiz var mı? Yoksa hacim satırı gösterilmez. */
+/** Antrenmanda hacme giren (süreli ya da mesafe olmayan) en az bir egzersiz var mı? Yoksa hacim satırı gösterilmez. */
 export function hasVolume(workout: Workout): boolean {
-  return workout.entries.some((e) => !e.timed)
+  return workout.entries.some((e) => !e.timed && !e.distance)
 }
 
 /** Kaydedilmiş antrenmandaki yarım (tek tarafı yapılmış) set sayısı. */
@@ -199,6 +213,20 @@ export interface ExercisePoint {
   /** Süreli seans: `topSec` o seanstaki en uzun tutuş (sn). */
   timed?: true
   topSec?: number
+  /**
+   * Mesafe seansı (1RM ve topW 0): `topM` en uzun set (m), `totalM` seansın toplam mesafesi (m), `pace` en
+   * az PACE_MIN_M olan setlerin en iyi temposu (sn/km; yoksa tanımsız).
+   */
+  distance?: true
+  topM?: number
+  totalM?: number
+  pace?: number
+}
+
+/** Mesafe çalışma setlerinden en iyi tempo (sn/km); sayılabilecek set yoksa undefined. */
+export function bestPace(sets: readonly SetEntry[]): number | undefined {
+  const paces = sets.filter(countsForPace).map((s) => paceSecPerKm(setMeters(s), s.r) as number)
+  return paces.length > 0 ? Math.min(...paces) : undefined
 }
 
 /** Egzersizin seans bazlı en iyi set geçmişi (grafik için), eski→yeni. */
@@ -209,6 +237,19 @@ export function exerciseHistory(workouts: Workout[], exId: string): ExercisePoin
     if (!entry) continue
     const sets = workSets(entry.sets)
     if (sets.length === 0) continue
+    if (entry.distance) {
+      const pace = bestPace(sets)
+      points.push({
+        d: wk.d,
+        topW: 0,
+        e1rm: 0,
+        distance: true,
+        topM: Math.max(...sets.map(setMeters)),
+        totalM: sets.reduce((n, s) => n + setMeters(s), 0),
+        ...(pace !== undefined ? { pace } : {}),
+      })
+      continue
+    }
     if (entry.timed) {
       points.push({
         d: wk.d,
@@ -230,15 +271,25 @@ export function exerciseHistory(workouts: Workout[], exId: string): ExercisePoin
 
 /**
  * Bu seansın bir egzersizinde tahmini 1RM, önceki tüm seansları geçti mi? Süreli egzersizde ölçü en
- * uzun tutuştur (sn, ek yüke bakılmaz); yalnız önceki süreli seanslarla karşılaştırılır.
+ * uzun tutuştur (sn, ek yüke bakılmaz); yalnız önceki süreli seanslarla karşılaştırılır. Mesafe egzersizinde
+ * en uzun set (m) ya da en iyi tempo (bkz. PACE_MIN_M) önceki mesafe seanslarını geçerse rekordur.
  */
 export function isPR(previous: Workout[], entry: WorkoutEntry): boolean {
+  if (entry.distance) {
+    const before = exerciseHistory(previous, entry.exId).filter((p) => p.distance)
+    const sets = workSets(entry.sets)
+    const longest = Math.max(0, ...sets.map(setMeters))
+    if (longest > 0 && longest > Math.max(0, ...before.map((p) => p.topM ?? 0))) return true
+    const pace = bestPace(sets)
+    const paces = before.flatMap((p) => (p.pace !== undefined ? [p.pace] : []))
+    return pace !== undefined && (paces.length === 0 || pace < Math.min(...paces))
+  }
   if (entry.timed) {
-    const bestHold = Math.max(0, ...exerciseHistory(previous, entry.exId).map((p) => p.topSec ?? 0))
+    const bestHold = Math.max(0, ...exerciseHistory(previous, entry.exId).filter((p) => !p.distance).map((p) => p.topSec ?? 0))
     const hold = Math.max(0, ...workSets(entry.sets).map((s) => s.r))
     return hold > 0 && hold > bestHold
   }
-  const best = Math.max(0, ...exerciseHistory(previous, entry.exId).map((p) => p.e1rm))
+  const best = Math.max(0, ...exerciseHistory(previous, entry.exId).filter((p) => !p.distance).map((p) => p.e1rm))
   const now = Math.max(0, ...workSets(entry.sets).map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r)))
   return now > 0 && now > best
 }

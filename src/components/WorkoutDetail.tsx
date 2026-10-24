@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
+import { formatDistanceSet } from '../lib/distance.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatLoad, formatTimedLoad } from '../lib/load.ts'
 import { nameLang } from '../lib/exercises.ts'
@@ -68,7 +69,9 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
                     .map(({ s, si }, i) => (
                       <span key={si}>
                         {i > 0 && ' · '}
-                        {e.timed
+                        {e.distance
+                          ? formatDistanceSet(s)
+                          : e.timed
                           ? formatSet(s, formatTimedLoad(e.bw, s.w, unit), true)
                           : formatSet(s, formatLoad(e.bw, s.w, unit))}
                         {zero[si] && <span className="zeromark"> {formatWeight(0, unit)} {unit}?</span>}

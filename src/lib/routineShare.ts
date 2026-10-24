@@ -1,4 +1,5 @@
 import type { CustomExercise, ExCfg, ProgressionMode, Routine } from '../store/schema.ts'
+import { MAX_DISTANCE_M, MAX_DISTANCE_SEC } from './distance.ts'
 import { MAX_ROUTINE_SETS } from './intensity.ts'
 import { sanitizeRoutine } from './mergeRoutines.ts'
 import { MAX_TIMED_SEC } from './timed.ts'
@@ -9,8 +10,10 @@ import { MAX_TIMED_SEC } from './timed.ts'
  * `sanitizeRoutine` ile yapılır. Veri hash'te kaldığı için hiçbir sunucuya gitmez.
  *
  * Biçim (v1): `{ v: 1, n: ad, e: [egzersiz…], c?: [özel egzersiz…] }`. Link kısa kalsın (QR'a sığsın) diye
- * egzersizler sıralı dizidir: `[exId, sets, reps, repsMax, weight, prog, inc, bayraklar, warmups, drops, restSec]`.
- * Olmayan isteğe bağlı alan `null` yazılır; sondaki boş alanlar (ve sıfır bayrak) hiç yazılmaz. Bayraklar: 1 tek taraflı, 2 süperset, 4 vücut ağırlığı, 8 süreli.
+ * egzersizler sıralı dizidir: `[exId, sets, reps, repsMax, weight, prog, inc, bayraklar, warmups, drops, restSec, meters]`.
+ * Olmayan isteğe bağlı alan `null` yazılır; sondaki boş alanlar (ve sıfır bayrak) hiç yazılmaz. Bayraklar: 1 tek taraflı, 2 süperset, 4 vücut ağırlığı, 8 süreli, 16 mesafe.
+ * Mesafe egzersizinde `reps` hedef süredir (sn) ve `meters` hedef mesafedir (m). Eski sürüm bu bayrağı tanımaz,
+ * egzersizi sıradan hareket olarak ekler; biçim bu yüzden v1'de kalır.
  * Özel egzersiz: `[id, ad, birincil kaslar, ekipman]`; yalnız rutinde geçenler eklenir.
  */
 export const SHARE_VERSION = 1
@@ -26,8 +29,22 @@ const FLAG_SIDE = 1
 const FLAG_SUPERSET = 2
 const FLAG_BW = 4
 const FLAG_TIMED = 8
+const FLAG_DISTANCE = 16
 
-type ShareEx = [string, number, number, number, number, number, number, number?, (number | null)?, (number | null)?, (number | null)?]
+type ShareEx = [
+  string,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number?,
+  (number | null)?,
+  (number | null)?,
+  (number | null)?,
+  (number | null)?,
+]
 type ShareCustom = [string, string, string[], string]
 
 interface SharePayload {
@@ -51,9 +68,19 @@ export interface SharedRoutine {
 
 function toShareEx(cfg: ExCfg): ShareEx {
   const flags =
-    (cfg.side ? FLAG_SIDE : 0) | (cfg.superset ? FLAG_SUPERSET : 0) | (cfg.bw ? FLAG_BW : 0) | (cfg.timed ? FLAG_TIMED : 0)
+    (cfg.side ? FLAG_SIDE : 0) |
+    (cfg.superset ? FLAG_SUPERSET : 0) |
+    (cfg.bw ? FLAG_BW : 0) |
+    (cfg.timed ? FLAG_TIMED : 0) |
+    (cfg.distance ? FLAG_DISTANCE : 0)
   const row: ShareEx = [cfg.exId, cfg.sets, cfg.reps, cfg.repsMax, cfg.weight, PROGS.indexOf(cfg.prog), cfg.inc]
-  const tail: (number | null)[] = [flags, cfg.warmups ?? null, cfg.drops ?? null, cfg.restSec ?? null]
+  const tail: (number | null)[] = [
+    flags,
+    cfg.warmups ?? null,
+    cfg.drops ?? null,
+    cfg.restSec ?? null,
+    cfg.distance ? (cfg.meters ?? null) : null,
+  ]
   while (tail.length > 0 && (tail[tail.length - 1] === null || (tail.length === 1 && tail[0] === 0))) tail.pop()
   return [...row, ...tail] as ShareEx
 }
@@ -66,7 +93,8 @@ function fromShareEx(raw: unknown): Record<string, unknown> | null {
   if (!Array.isArray(raw) || typeof raw[0] !== 'string' || raw[0].length > 200) return null
   const flags = finite(raw[7]) ?? 0
   const timed = (flags & FLAG_TIMED) !== 0
-  const repLimit = timed ? MAX_TIMED_SEC : 1000
+  const distance = (flags & FLAG_DISTANCE) !== 0
+  const repLimit = distance ? MAX_DISTANCE_SEC : timed ? MAX_TIMED_SEC : 1000
   const weight = finite(raw[4])
   return {
     exId: raw[0],
@@ -80,9 +108,11 @@ function fromShareEx(raw: unknown): Record<string, unknown> | null {
     superset: (flags & FLAG_SUPERSET) !== 0,
     bw: (flags & FLAG_BW) !== 0,
     timed,
+    distance,
     warmups: finite(raw[8]),
     drops: finite(raw[9]),
     restSec: clamp(finite(raw[10]), MAX_TIMED_SEC),
+    meters: clamp(finite(raw[11]), MAX_DISTANCE_M),
   }
 }
 

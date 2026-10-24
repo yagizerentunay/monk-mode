@@ -1,4 +1,5 @@
 import type { SetKind } from '../lib/intensity.ts'
+import { formatPace, kmToMeters, metersToKm, setMeters } from '../lib/distance.ts'
 import { SIDES, type Side } from '../lib/sets.ts'
 import { effectiveLoad } from '../lib/load.ts'
 import { RIR_CHOICES, rirLabel } from '../lib/rir.ts'
@@ -27,6 +28,11 @@ interface Props {
   bwKg?: number
   /** Süreli egzersiz: tekrar yerine saniye girilir (`set.r` saniyedir) ve kronometre düğmesi çıkar. */
   timed?: boolean
+  /**
+   * Mesafe egzersizi (bkz. lib/distance.ts): ağırlık ve tekrar yerine mesafe (km alanı, metre saklanır) ve
+   * süre ("dk" ya da "d:ss") girilir; tempo satırın altında gösterilir. RIR, drop ve sol/sağ yoktur.
+   */
+  distance?: boolean
   /** "↓ Drop" düğmesi gösterilsin mi (yalnız tamamlanmış ve zincirin son setinde). */
   canDrop: boolean
   onChange: (patch: Partial<SetEntry>) => void
@@ -64,6 +70,7 @@ export function SetRow({
   bw = false,
   bwKg,
   timed = false,
+  distance = false,
   canDrop,
   onChange,
   onSide,
@@ -89,6 +96,41 @@ export function SetRow({
       onChange={(v) => onChange({ w: v })}
     />
   )
+
+  if (distance) {
+    const pace = formatPace(setMeters(set), set.r)
+    return (
+      <div className={`set${set.done ? ' done' : ''}${active && !set.done ? ' active' : ''}`}>
+        <div className="setrow">
+          <span className="setno">{badge}</span>
+          <NumberField
+            className="grow"
+            label={`${name} mesafe`}
+            value={setMeters(set)}
+            toDisplay={metersToKm}
+            fromDisplay={kmToMeters}
+            step={0.1}
+            onChange={(v) => onChange({ m: v })}
+          />
+          <DurationField className="grow" long label={`${name} süre`} value={set.r} onChange={(v) => onChange({ r: v })} />
+          <CheckButton
+            on={set.done}
+            label={set.done ? 'Seti geri al' : 'Seti tamamla'}
+            onClick={() => {
+              onChange({ done: !set.done })
+              if (!set.done) onCompleted()
+            }}
+          />
+        </div>
+        {pace && <div className="sub bwhint">Tempo {pace}</div>}
+        {set.done && (
+          <div className="rirrow">
+            <button className="chip" onClick={onRemove} aria-label={`${name} sil`}>Sil</button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className={`set${set.done ? ' done' : ''}${active && !set.done ? ' active' : ''}${kind === 'work' ? '' : ` ${kind}`}`}>

@@ -147,6 +147,21 @@ export function isTimedName(name: string): boolean {
 }
 
 /**
+ * Mesafe + süreyle yapılan kardiyo (koşu, bisiklet, kürek ergometresi, yürüyüş, eliptik, yüzme). Aynı
+ * kelimeleri taşıyan kuvvet hareketleri hariç: "Walking Lunge", "Bicycle Crunch", "Farmer's Walk", "Monster
+ * Walk", "Bent Over Row", "Air Bike" (eski kütüphanedeki karın hareketi) ve "Runner's Stretch" mesafe değildir.
+ */
+const DISTANCE_NAME =
+  /\b(running|run|jogging|jog|treadmill|walking|walk|hiking|hike|cycling|bicycling|bike|biking|spinning|rowing|rower|ergometer|elliptical|swimming|swim)\b/i
+const NOT_DISTANCE_NAME =
+  /lunge|crunch|walkout|monster|band|farmer|yoke|sled|carry|squat|stretch|air bike|bear|plank|\b(upright|cable|barbell|dumbbell|kettlebell|bent|seated|inverted|t-bar|pendlay|renegade|landmine)\b/i
+
+/** Adından mesafe egzersizi olduğu anlaşılan kardiyo için varsayılan öneri (kullanıcı "Mesafe" ile değiştirebilir). */
+export function isDistanceName(name: string): boolean {
+  return DISTANCE_NAME.test(name) && !NOT_DISTANCE_NAME.test(name)
+}
+
+/**
  * Adından tek taraflı olduğu anlaşılan egzersizler için varsayılan öneri (kullanıcı değiştirebilir).
  * "Alternating" egzersizler dahil değil: kollar aynı set içinde dönüşümlü çalışır.
  */

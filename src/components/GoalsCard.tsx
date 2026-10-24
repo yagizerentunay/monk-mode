@@ -31,7 +31,7 @@ export function GoalsCard() {
   const exIds = useMemo(() => {
     const counts = new Map<string, number>()
     for (const w of workouts) {
-      for (const e of w.entries) if (!e.timed) counts.set(e.exId, (counts.get(e.exId) ?? 0) + 1)
+      for (const e of w.entries) if (!e.timed && !e.distance) counts.set(e.exId, (counts.get(e.exId) ?? 0) + 1)
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1])

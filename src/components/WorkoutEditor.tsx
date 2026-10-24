@@ -10,6 +10,7 @@ import {
   setEntryNoteIn,
   setWorkoutNoteIn,
 } from '../lib/editWorkout.ts'
+import { kmToMeters, metersToKm, setMeters } from '../lib/distance.ts'
 import { describeSets } from '../lib/intensity.ts'
 import { NOTE_MAX } from '../lib/notes.ts'
 import { kgToUnit, unitToKg } from '../lib/units.ts'
@@ -108,7 +109,37 @@ export function WorkoutEditor({ workout, onSave, onCancel }: Props) {
               </div>
             )}
 
-            {entry.sets.map((set, si) => (
+            {entry.distance && entry.sets.map((set, si) => (
+              <div key={si} className="setrow">
+                <span className="setno">{meta[si].badge}</span>
+                <NumberField
+                  className="grow"
+                  label={`${name} ${meta[si].name} mesafe`}
+                  value={setMeters(set)}
+                  toDisplay={metersToKm}
+                  fromDisplay={kmToMeters}
+                  step={0.1}
+                  onChange={(v) => setDraft((d) => editSet(d, ei, si, { m: v }))}
+                />
+                <span className="sub">km</span>
+                <DurationField
+                  className="grow"
+                  long
+                  label={`${name} ${meta[si].name} süre`}
+                  value={set.r}
+                  onChange={(v) => setDraft((d) => editSet(d, ei, si, { r: v }))}
+                />
+                <button
+                  className="btn small"
+                  aria-label={`${name} ${meta[si].name} sil`}
+                  onClick={() => setDraft((d) => removeSetAt(d, ei, si))}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            {!entry.distance && entry.sets.map((set, si) => (
               <div key={si} className="setrow">
                 <span className="setno">{meta[si].badge}</span>
                 <NumberField

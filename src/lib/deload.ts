@@ -58,11 +58,11 @@ function dayStart(d: string): number {
 /**
  * Egzersiz kaydından seans özeti. Isınma, dropset ve tamamlanmamış/yarım setler sayılmaz (dropset hafif
  * ve çok tekrarlı olduğundan tahmini 1RM'i bozabilir). Vücut ağırlığı egzersizinde yük etkin yüktür
- * (`effectiveLoad`). Süreli egzersiz (`timed`) ve geçerli set yoksa undefined.
+ * (`effectiveLoad`). Süreli (`timed`) ve mesafe (`distance`) egzersizi ve geçerli set yoksa undefined.
  */
 function sessionOf(workout: Workout, entry: WorkoutEntry): Session | undefined {
-  // Süreli egzersiz 1RM'siz ölçülür; düşüş sinyali olarak sayılmaz.
-  if (entry.timed) return undefined
+  // Süreli ve mesafe egzersizi 1RM'siz ölçülür; düşüş sinyali olarak sayılmaz.
+  if (entry.timed || entry.distance) return undefined
   const sets = entry.sets.filter((s) => s.done && !s.warmup && !s.drop)
   if (sets.length === 0) return undefined
   const e1rm = Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r)))
