@@ -61,12 +61,12 @@
 
 | | |
 |---|---|
-| **[Planla](docs/features.md#planla)** | Rutin oluşturucu ve haftalık program · başlangıç şablonları (Full Body, Upper/Lower, PPL) · rutin kopyalama · kas ve ekipman filtreli resimli kütüphane · özel egzersiz ve kas düzeltme |
-| **[Antrenman yap](docs/features.md#antrenman)** | Son seanstan dolan setler · hızlı RIR girişi · ısınma rampası, dropset ve süperset · tek taraflı (sol/sağ) ve süreli setler · egzersize özel dinlenme · plaka hesaplayıcı · serbest antrenman · notlar · ekran açık kalır |
-| **[İlerlemeni gör](docs/features.md#ilerleme)** | Doğrusal ve çift ilerleme, RIR'e dayalı temkinli artış kuralı · tahmini 1RM grafiği · kişisel rekorlar · haftalık hacim · sıklık ısı haritası · haftalık hedefli kas haritası · hedef hızlı kilo trendi · toparlanma önerisi · takvim, geçmişe kayıt ve geçmişi düzenleme |
+| **[Planla](docs/features.md#planla)** | Rutin oluşturucu ve haftalık program · başlangıç şablonları (Full Body, Upper/Lower, PPL) · rutin kopyalama · link ya da QR ile sunucusuz rutin paylaşımı · planlı deload haftalı 4–6 haftalık antrenman bloğu · kas ve ekipman filtreli resimli kütüphane · özel egzersiz ve kas düzeltme |
+| **[Antrenman yap](docs/features.md#antrenman)** | Son seanstan dolan setler · hızlı RIR girişi · ısınma rampası, dropset ve süperset · tek taraflı (sol/sağ), süreli ve mesafe (kardiyo) setleri · egzersize özel dinlenme · plaka hesaplayıcı · serbest antrenman · notlar · paylaşılabilir özet kartı (PNG) · ekran açık kalır |
+| **[İlerlemeni gör](docs/features.md#ilerleme)** | Doğrusal ve çift ilerleme, RIR'e dayalı temkinli artış kuralı · tahmini 1RM grafiği · tahmini varışlı 1RM hedefleri · kişisel rekorlar · haftalık hacim · sıklık ısı haritası · haftalık hedefli kas haritası · hedef hızlı kilo trendi · vücut ölçüleri (bel, göğüs, kol, kalça, yağ %) · toparlanma önerisi · takvim, geçmişe kayıt ve geçmişi düzenleme |
 | **[Veri güvenliği](docs/features.md#veri-guvenligi)** | JSON yedek ve geri yükleme · yedek hatırlatması · IndexedDB'de otomatik kopyalar · klasöre günlük yedek (masaüstü Chrome/Edge) · başka cihazın yedeğiyle birleştirme · silmeyi geri alma · bozuk veride kurtarma ekranı |
-| **[İçe / dışa aktarma](docs/features.md#ice-disa-aktarma)** | Strong ve Hevy CSV içe aktarma (Türkçe Hevy dahil) · Excel için CSV |
-| **[Uygulama](docs/features.md#uygulama)** | Ana ekrana eklenebilir PWA · çevrimdışı çalışma · yeni sürüm bandı · tanılama kartı |
+| **[İçe / dışa aktarma](docs/features.md#ice-disa-aktarma)** | Strong ve Hevy CSV içe aktarma (Türkçe Hevy dahil) · Excel için CSV (mesafe setleri ve vücut ölçüleri dahil) |
+| **[Uygulama](docs/features.md#uygulama)** | Ana ekrana eklenebilir PWA · çevrimdışı çalışma · açık, koyu ya da sistem teması · yeni sürüm bandı · tanılama kartı |
 
 Her özelliğin ayrıntısı: [docs/features.md](docs/features.md).
 

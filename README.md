@@ -61,12 +61,12 @@
 
 | | |
 |---|---|
-| **[Plan](docs/features.md#planla)** | Routine builder and weekly schedule · beginner templates (Full Body, Upper/Lower, PPL) · copy routines · illustrated exercise library with muscle and equipment filters · custom exercises and muscle corrections |
-| **[Train](docs/features.md#antrenman)** | Sets pre-filled from last session · quick RIR entry · warm-up ramps, drop sets and supersets · unilateral (L/R) and timed sets · per-exercise rest timer · plate calculator · free workouts · notes · screen stays awake |
-| **[Progress](docs/features.md#ilerleme)** | Linear and double progression with a cautious RIR-based rule · estimated 1RM chart · personal records · weekly volume · frequency heatmap · muscle map with weekly targets · bodyweight trend with a goal rate · deload hint · calendar with backdated logging and history editing |
+| **[Plan](docs/features.md#planla)** | Routine builder and weekly schedule · beginner templates (Full Body, Upper/Lower, PPL) · copy routines · share routines by link or QR (no server) · 4–6 week training blocks with a planned deload week · illustrated exercise library with muscle and equipment filters · custom exercises and muscle corrections |
+| **[Train](docs/features.md#antrenman)** | Sets pre-filled from last session · quick RIR entry · warm-up ramps, drop sets and supersets · unilateral (L/R), timed and distance (cardio) sets · per-exercise rest timer · plate calculator · free workouts · notes · shareable summary card (PNG) · screen stays awake |
+| **[Progress](docs/features.md#ilerleme)** | Linear and double progression with a cautious RIR-based rule · estimated 1RM chart · 1RM goals with a projected arrival date · personal records · weekly volume · frequency heatmap · muscle map with weekly targets · bodyweight trend with a goal rate · body measurements (waist, chest, arm, hip, body fat %) · deload hint · calendar with backdated logging and history editing |
 | **[Data safety](docs/features.md#veri-guvenligi)** | JSON backup and restore · backup reminders · automatic snapshots in IndexedDB · daily backups to a folder (desktop Chrome/Edge) · merge a backup from another device · undo delete · recovery screen for corrupted data |
-| **[Import & export](docs/features.md#ice-disa-aktarma)** | Strong and Hevy CSV import (including Turkish Hevy exports) · CSV export for Excel |
-| **[App](docs/features.md#uygulama)** | Installable PWA · works offline · new-version banner · diagnostics card |
+| **[Import & export](docs/features.md#ice-disa-aktarma)** | Strong and Hevy CSV import (including Turkish Hevy exports) · CSV export for Excel, including distance sets and body measurements |
+| **[App](docs/features.md#uygulama)** | Installable PWA · works offline · light, dark or system theme · new-version banner · diagnostics card |
 
 The full, detailed guide is in [docs/features.md](docs/features.md) (Turkish).
 
