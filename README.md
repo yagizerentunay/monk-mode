@@ -35,7 +35,7 @@
 
 <table>
   <tr>
-    <td align="center"><img src="public/screenshots/home.png" alt="Home: weekly strip, today's routine, streak and bodyweight trend" width="240" /><br /><sub><b>Home</b> · today's routine and streak</sub></td>
+    <td align="center"><img src="public/screenshots/home.png" alt="Home: training block, weekly strip, today's routine, streak and bodyweight trend" width="240" /><br /><sub><b>Home</b> · today's routine and streak</sub></td>
     <td align="center"><img src="public/screenshots/workout.png" alt="Workout: warm-up sets, target weight, RIR and rest timer" width="240" /><br /><sub><b>Workout</b> · warm-ups, RIR, rest timer</sub></td>
     <td align="center"><img src="public/screenshots/records.png" alt="Personal records list with estimated 1RM" width="240" /><br /><sub><b>Records</b> · best e1RM and longest holds</sub></td>
   </tr>
@@ -51,7 +51,16 @@
 <br />
 <table>
   <tr>
-    <td align="center"><img src="public/screenshots/stats.png" alt="Analysis: estimated 1RM progress chart" width="240" /><br /><sub><b>Analysis</b> · e1RM over time</sub></td>
+    <td align="center"><img src="public/screenshots/home-light.png" alt="Home in the light theme" width="240" /><br /><sub><b>Light theme</b> · system, dark or light</sub></td>
+    <td align="center"><img src="public/screenshots/goals.png" alt="Strength goals with progress and projected arrival date" width="240" /><br /><sub><b>Goals</b> · 1RM target and ETA</sub></td>
+    <td align="center"><img src="public/screenshots/measurements.png" alt="Body measurements: waist trend and change since last entry" width="240" /><br /><sub><b>Measurements</b> · waist, chest, arm, hip, fat %</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/screenshots/block.png" alt="Training block card: week 3 of 5 with a planned deload week" width="240" /><br /><sub><b>Training block</b> · planned deload week</sub></td>
+    <td align="center"><img src="public/screenshots/routine-share.png" alt="Share a routine by link or QR code" width="240" /><br /><sub><b>Share</b> · routine as link or QR</sub></td>
+    <td align="center"><img src="public/screenshots/stats.png" alt="Analysis: estimated 1RM progress chart with a goal line" width="240" /><br /><sub><b>Analysis</b> · e1RM over time</sub></td>
+  </tr>
+  <tr>
     <td align="center"><img src="public/screenshots/templates.png" alt="Beginner routine templates: Full Body, Upper/Lower, Push/Pull/Legs" width="240" /><br /><sub><b>Templates</b> · beginner programs</sub></td>
   </tr>
 </table>

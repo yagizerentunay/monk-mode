@@ -51,13 +51,14 @@ function stopPreview(server: ChildProcess): void {
   else server.kill()
 }
 
-async function newContext(browser: Browser, video?: string): Promise<BrowserContext> {
+async function newContext(browser: Browser, video?: string, colorScheme: 'dark' | 'light' = 'dark'): Promise<BrowserContext> {
   return browser.newContext({
     viewport: VIEWPORT,
     deviceScaleFactor: 2,
     isMobile: true,
     hasTouch: true,
-    colorScheme: 'dark',
+    // Demo verisinde tema "Sistem"; görüntünün teması bu renk şemasından gelir.
+    colorScheme,
     locale: 'tr-TR',
     timezoneId: 'Europe/Istanbul',
     // Service worker önbelleği eski paketi göstermesin.
@@ -128,15 +129,31 @@ async function screenshots(browser: Browser): Promise<void> {
   await shot(page, 'heatmap')
   await scrollToCard(page, 'Kas haritası')
   await shot(page, 'muscles')
+  await scrollToCard(page, 'Hedefler')
+  await shot(page, 'goals')
+  await scrollToCard(page, 'Ölçüler')
+  await shot(page, 'measurements')
 
   await go(page, '/library')
   await shot(page, 'exercise-library')
 
   await go(page, '/plan')
+  await page.getByRole('region', { name: 'Antrenman bloğu' }).evaluate((el) => {
+    el.scrollIntoView({ block: 'start' })
+    window.scrollBy(0, -16)
+  })
+  await shot(page, 'block')
+
   await page.getByRole('tab', { name: 'Rutinler' }).click()
   await page.getByRole('button', { name: 'Başlangıç şablonları' }).click()
   await page.getByRole('dialog').waitFor()
   await shot(page, 'templates')
+  await page.keyboard.press('Escape')
+
+  await go(page, '/plan/r/demo-push')
+  await page.getByRole('button', { name: 'Rutini paylaş' }).click()
+  await page.getByRole('img', { name: /QR kodu/ }).waitFor()
+  await shot(page, 'routine-share')
   await page.keyboard.press('Escape')
 
   await startPushWithFirstSet(page)
@@ -144,6 +161,12 @@ async function screenshots(browser: Browser): Promise<void> {
   await shot(page, 'workout')
 
   await context.close()
+
+  const light = await newContext(browser, undefined, 'light')
+  const lightPage = await openWithDemo(light)
+  await go(lightPage, '/')
+  await shot(lightPage, 'home-light')
+  await light.close()
 }
 
 /** Antrenman akışını kaydedip GIF'e çevirir: set tamamla → RIR → sayaç → bitir → özet. */
