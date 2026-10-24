@@ -35,7 +35,7 @@
 
 <table>
   <tr>
-    <td align="center"><img src="public/screenshots/home.png" alt="Ana ekran: haftalık şerit, bugünün rutini, seri ve kilo trendi" width="240" /><br /><sub><b>Ana ekran</b> · bugünün rutini ve seri</sub></td>
+    <td align="center"><img src="public/screenshots/home.png" alt="Ana ekran: antrenman bloğu, haftalık şerit, bugünün rutini, seri ve kilo trendi" width="240" /><br /><sub><b>Ana ekran</b> · bugünün rutini ve seri</sub></td>
     <td align="center"><img src="public/screenshots/workout.png" alt="Antrenman: ısınma setleri, hedef ağırlık, RIR ve dinlenme sayacı" width="240" /><br /><sub><b>Antrenman</b> · ısınma, RIR, dinlenme</sub></td>
     <td align="center"><img src="public/screenshots/records.png" alt="Tahmini 1RM ile kişisel rekorlar listesi" width="240" /><br /><sub><b>Rekorlar</b> · en iyi 1RM ve en uzun tutuş</sub></td>
   </tr>
@@ -51,7 +51,16 @@
 <br />
 <table>
   <tr>
-    <td align="center"><img src="public/screenshots/stats.png" alt="Analiz: tahmini 1RM ilerleme grafiği" width="240" /><br /><sub><b>Analiz</b> · zamanla tahmini 1RM</sub></td>
+    <td align="center"><img src="public/screenshots/home-light.png" alt="Açık temada ana ekran" width="240" /><br /><sub><b>Açık tema</b> · sistem, koyu ya da açık</sub></td>
+    <td align="center"><img src="public/screenshots/goals.png" alt="İlerleme ve tahmini varış tarihiyle kuvvet hedefleri" width="240" /><br /><sub><b>Hedefler</b> · 1RM hedefi ve tahmini varış</sub></td>
+    <td align="center"><img src="public/screenshots/measurements.png" alt="Vücut ölçüleri: bel seyri ve önceki ölçüme göre değişim" width="240" /><br /><sub><b>Ölçüler</b> · bel, göğüs, kol, kalça, yağ %</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/screenshots/block.png" alt="Antrenman bloğu kartı: 5 haftanın 3.'sü, planlı deload haftası" width="240" /><br /><sub><b>Blok</b> · planlı deload haftası</sub></td>
+    <td align="center"><img src="public/screenshots/routine-share.png" alt="Rutini link ya da QR kodla paylaşma" width="240" /><br /><sub><b>Paylaşım</b> · link ya da QR ile rutin</sub></td>
+    <td align="center"><img src="public/screenshots/stats.png" alt="Analiz: hedef çizgili tahmini 1RM ilerleme grafiği" width="240" /><br /><sub><b>Analiz</b> · zamanla tahmini 1RM</sub></td>
+  </tr>
+  <tr>
     <td align="center"><img src="public/screenshots/templates.png" alt="Başlangıç şablonları: Full Body, Upper/Lower, Push/Pull/Legs" width="240" /><br /><sub><b>Şablonlar</b> · başlangıç programları</sub></td>
   </tr>
 </table>

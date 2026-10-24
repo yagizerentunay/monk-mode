@@ -173,6 +173,20 @@ export function demoState(today = DEMO_TODAY): Record<string, unknown> {
     bodyweight.push({ d: isoDay(n), w: Math.round(w * 10) / 10 })
   }
 
+  // İki haftada bir ölçü: bel ve yağ oranı yavaşça iner, kol hafifçe artar.
+  const measurements: Record<string, unknown>[] = []
+  for (let k = 0; k * 14 <= WEEKS * 7; k++) {
+    const d = isoDay(todayN - WEEKS * 7 + k * 14)
+    measurements.push({
+      d,
+      waist: Math.round((88.4 - k * 0.4) * 10) / 10,
+      chest: 104,
+      arm: Math.round((37 + k * 0.1) * 10) / 10,
+      hip: 99,
+      fat: Math.round((18.2 - k * 0.25) * 10) / 10,
+    })
+  }
+
   return {
     version: 1,
     settings: {
@@ -209,7 +223,16 @@ export function demoState(today = DEMO_TODAY): Record<string, unknown> {
     workouts,
     active: null,
     bodyweight,
+    measurements,
     customEx: [],
     muscleFix: {},
+    // Bench ve squat için ulaşılmamış hedefler: kart ilerleme ve tahmini varış gösterir.
+    goals: [
+      { id: 'demo-goal-bench', exId: 'Barbell_Bench_Press_-_Medium_Grip', target: 130, by: '2027-03-01', created: isoDay(todayN - 30) },
+      { id: 'demo-goal-squat', exId: 'Barbell_Squat', target: 160, by: '2027-02-01', created: isoDay(todayN - 30) },
+    ],
+    // 5 haftalık blok, 3. haftada; son hafta deload.
+    block: { id: 'demo-block', start: isoDay(thisMonday - 14), weeks: 5, deload: 5 },
+    pastBlocks: [],
   }
 }
