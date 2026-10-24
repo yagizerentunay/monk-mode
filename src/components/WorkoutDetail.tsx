@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
 import { formatSet } from '../lib/sets.ts'
 import { formatLoad, formatTimedLoad } from '../lib/load.ts'
+import { nameLang } from '../lib/exercises.ts'
+import { prExIds } from '../lib/summaryCard.ts'
 import { formatWeight } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
@@ -10,6 +12,7 @@ import { hasVolume, workoutVolume } from '../lib/workout.ts'
 import type { Workout } from '../store/schema.ts'
 import { deleteWorkoutWithUndo } from '../store/undoDelete.ts'
 import { useStore } from '../store/useStore.ts'
+import { ShareCardButton } from './ShareCardButton.tsx'
 import { WorkoutEditor } from './WorkoutEditor.tsx'
 
 interface Props {
@@ -25,12 +28,14 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
   const { byId } = useExercises()
   const unit = useStore((s) => s.settings.unit)
   const routines = useStore((s) => s.routines)
+  const workouts = useStore((s) => s.workouts)
   const hasActive = useStore((s) => s.active !== null)
   const startWorkout = useStore((s) => s.startWorkout)
   const updateWorkout = useStore((s) => s.updateWorkout)
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const canRepeat = !hasActive && routines.some((r) => r.id === workout.routineId)
+  const prs = useMemo(() => prExIds(workouts, workout).map((id) => ({ name: byId.get(id)?.name ?? id, lang: nameLang(byId.get(id)) })), [workouts, workout, byId])
 
   if (editing) {
     return (
@@ -74,6 +79,7 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
           </div>
         )
       })}
+      <ShareCardButton workout={workout} prs={prs} />
       <div className="row">
         {canRepeat && (
           <button
