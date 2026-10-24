@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { SetEntry, SideSet } from '../store/schema.ts'
 import { formatDuration } from './timed.ts'
 
@@ -43,7 +44,7 @@ export function toBilateral(sets: SetEntry[]): SetEntry[] {
  * tek taraflıda `L45 sn/R40 sn`.
  */
 export function formatSet(set: SetEntry, weight: string, timed = false): string {
-  const half = set.partial ? ' (yarım)' : ''
+  const half = set.partial ? t('set.partialSuffix') : ''
   if (timed) {
     const time = set.sides
       ? `L${formatDuration(set.sides.L.r)}/R${formatDuration(set.sides.R.r)}`

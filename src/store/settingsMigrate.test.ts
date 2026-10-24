@@ -33,3 +33,19 @@ describe('migrate: tema', () => {
     }
   })
 })
+
+describe('migrate: arayüz dili', () => {
+  it("ayar yoksa (eski veri) 'system' olur", () => {
+    expect(withSettings({}).settings.language).toBe('system')
+  })
+
+  it("'system', 'tr' ve 'en' korunur", () => {
+    for (const language of ['system', 'tr', 'en']) expect(withSettings({ language }).settings.language).toBe(language)
+  })
+
+  it("geçersiz değer 'system'e düşer", () => {
+    for (const language of ['TR', 'en-US', 'de', '', 0, null, true, { v: 'en' }]) {
+      expect(withSettings({ language }).settings.language).toBe('system')
+    }
+  })
+})

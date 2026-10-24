@@ -5,6 +5,7 @@ import { StorageWarnings } from './components/StorageWarnings.tsx'
 import { TabBar } from './components/TabBar.tsx'
 import { Toast } from './components/Toast.tsx'
 import { UpdateBanner } from './components/UpdateBanner.tsx'
+import { t, useLang } from './i18n/index.ts'
 import { useThemeSync } from './lib/theme.ts'
 import { useOnline } from './lib/useOnline.ts'
 import { autoFolderBackup } from './store/folderBackup.ts'
@@ -24,6 +25,8 @@ const ShareImport = lazy(() => import('./views/ShareImport.tsx').then((m) => ({ 
 export default function App() {
   const online = useOnline()
   useThemeSync()
+  // Dil değişince kök yeniden çizilir; alt bileşenler (memo yok) onunla birlikte yeni dilde çizilir.
+  useLang()
   // Klasöre otomatik yedek (Ayarlar'da açıksa): açılışta ve sekme arka plana geçerken, veri değiştiyse.
   useEffect(() => {
     autoFolderBackup()
@@ -37,7 +40,7 @@ export default function App() {
     <HashRouter>
       {!online && (
         <div className="offline" role="status">
-          Çevrimdışı · veriler cihazında güvende, görseller yalnız daha önce gezdiklerin
+          {t('app.offline')}
         </div>
       )}
       <main className="app">

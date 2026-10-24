@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { formatClock } from './alert.ts'
 
 /**
@@ -24,10 +25,10 @@ export function clampSec(v: number): number {
   return Number.isFinite(v) ? Math.min(MAX_TIMED_SEC, Math.max(0, Math.round(v))) : 0
 }
 
-/** "45 sn" (bir dakikanın altı) ya da "1:30" (bir dakika ve üstü). */
+/** "45 sn" / "45 s" (bir dakikanın altı) ya da "1:30" (bir dakika ve üstü). */
 export function formatDuration(sec: number): string {
   const s = clampSec(sec)
-  return s < 60 ? `${s} sn` : formatClock(s)
+  return s < 60 ? t('unit.secValue', { n: s }) : formatClock(s)
 }
 
 /** Alanlarda gösterilen süre: her zaman "d:ss" ("0:45", "1:30"). */

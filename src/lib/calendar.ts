@@ -1,10 +1,11 @@
+import { labels, locale, t, type MessageKey } from '../i18n/index.ts'
 import { DAY_NAMES } from './dates.ts'
 import { dayString } from './workout.ts'
 
-export const MONTH_NAMES = [
-  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
-]
+/** Ay adları (0 = Ocak), geçerli arayüz dilinde. */
+export const MONTH_NAMES = labels(
+  Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i, `month.${i}` as MessageKey])),
+) as Readonly<Record<number, string>>
 
 export interface CalendarCell {
   /** YYYY-MM-DD, yerel gün. */
@@ -60,22 +61,35 @@ export function weekdayOrder(weekStart: number): number[] {
   return Array.from({ length: 7 }, (_, i) => (weekStart + i) % 7)
 }
 
-/** "6 Ekim"; yıl `today`ın yılından farklıysa "6 Ekim 2025". Varsayılan `today` render dışında değerlendirilir. */
+function dayMonth(date: Date, month: string, today: Date): string {
+  const params = { day: date.getDate(), month, year: date.getFullYear() }
+  return date.getFullYear() === today.getFullYear() ? t('date.short', params) : t('date.shortYear', params)
+}
+
+/** "6 Ekim" / "October 6"; yıl `today`ın yılından farklıysa "6 Ekim 2025". Varsayılan `today` render dışında değerlendirilir. */
 export function formatShortDay(d: string, today: Date = new Date()): string {
   const date = parseDay(d)
-  const base = `${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`
-  return date.getFullYear() === today.getFullYear() ? base : `${base} ${date.getFullYear()}`
+  return dayMonth(date, MONTH_NAMES[date.getMonth()], today)
 }
 
-/** Grafik ekseni için dar biçim: "6 Eki"; yıl `today`ın yılından farklıysa "30 Ara 2025". */
+/** Grafik ekseni için dar biçim: "6 Eki" / "Oct 6"; yıl `today`ın yılından farklıysa "30 Ara 2025". */
 export function formatAxisDay(d: string, today: Date = new Date()): string {
   const date = parseDay(d)
-  const base = `${date.getDate()} ${MONTH_NAMES[date.getMonth()].slice(0, 3)}`
-  return date.getFullYear() === today.getFullYear() ? base : `${base} ${date.getFullYear()}`
+  return dayMonth(date, MONTH_NAMES[date.getMonth()].slice(0, 3), today)
 }
 
-/** "Salı, 6 Ekim 2026" */
+/** Zaman damgası, tarih ve saatle: "24 Eki 2026 11:30" / "Oct 24, 2026, 11:30 AM". */
+export function formatDateTime(at: number): string {
+  return new Date(at).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+/** "Salı, 6 Ekim 2026" / "Tuesday, October 6, 2026" */
 export function formatDayTitle(d: string): string {
   const date = parseDay(d)
-  return `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`
+  return t('date.title', {
+    weekday: DAY_NAMES[date.getDay()],
+    day: date.getDate(),
+    month: MONTH_NAMES[date.getMonth()],
+    year: date.getFullYear(),
+  })
 }

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { setLanguageSetting } from '../i18n/index.ts'
 import { insertWorkout } from '../lib/backdate.ts'
 import { addPastBlock, closeBlock, editBlock, newBlock, planDeloadThisWeek } from '../lib/block.ts'
 import { fingerprint, SNOOZE_DAYS } from '../lib/backupReminder.ts'
@@ -558,6 +559,12 @@ const saver = createSaveScheduler(() => save(snapshot(useStore.getState())), SAV
 export const flushSave = (): void => saver.flush()
 
 useStore.subscribe(() => saver.notify())
+
+// Arayüz dili ayardan gelir: açılışta ve ayar (ya da yedekten yükleme) değiştikçe i18n modülüne bildirilir.
+setLanguageSetting(useStore.getState().settings.language)
+useStore.subscribe((s, prev) => {
+  if (s.settings.language !== prev.settings.language) setLanguageSetting(s.settings.language)
+})
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   // Telefonda uygulama arka plana atılıp sistemce kapatılabilir: gizlenirken bekleyen kayıt yazılsın.

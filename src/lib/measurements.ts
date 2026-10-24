@@ -1,16 +1,17 @@
+import { labels } from '../i18n/index.ts'
 import type { MeasurementEntry } from '../store/schema.ts'
 
 /** Ölçü alanları; kayıt, grafik çipleri ve CSV sütunları bu sırayı izler. */
 export const MEASURE_KEYS = ['waist', 'chest', 'arm', 'hip', 'fat'] as const
 export type MeasureKey = (typeof MEASURE_KEYS)[number]
 
-export const MEASURE_LABEL: Record<MeasureKey, string> = {
-  waist: 'Bel',
-  chest: 'Göğüs',
-  arm: 'Kol',
-  hip: 'Kalça',
-  fat: 'Yağ',
-}
+export const MEASURE_LABEL: Readonly<Record<MeasureKey, string>> = labels({
+  waist: 'measure.waist',
+  chest: 'measure.chest',
+  arm: 'measure.arm',
+  hip: 'measure.hip',
+  fat: 'measure.fat',
+})
 
 /** Çevreler cm, yağ oranı yüzde; kg/lb ayarı ölçülere uygulanmaz. */
 export const MEASURE_UNIT: Record<MeasureKey, string> = { waist: 'cm', chest: 'cm', arm: 'cm', hip: 'cm', fat: '%' }

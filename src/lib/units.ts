@@ -1,3 +1,5 @@
+import { getLang } from '../i18n/index.ts'
+
 export type Unit = 'kg' | 'lb'
 
 const LB_PER_KG = 2.20462
@@ -15,9 +17,17 @@ export function roundTo(value: number, step: number): number {
   return Math.round(value / step) * step
 }
 
-/** Sayıyı Türkçe ondalık ayracıyla (virgül) yazar: 62.5 → "62,5". Arayüzdeki tüm ağırlık gösterimleri bunu kullanır. */
+/**
+ * Sayıyı arayüz dilinin ondalık ayracıyla yazar: Türkçede virgül (62.5 → "62,5"), İngilizcede nokta
+ * ("62.5"). Arayüzdeki tüm ağırlık ve ondalık gösterimleri bunu kullanır.
+ */
 export function formatDecimal(n: number): string {
-  return String(n).replace('.', ',')
+  return localizeDecimal(String(n))
+}
+
+/** Noktalı ondalık metni ("5.0") arayüz dilinin ayracına çevirir: Türkçede "5,0". */
+export function localizeDecimal(text: string): string {
+  return getLang() === 'tr' ? text.replace('.', ',') : text
 }
 
 /** Gösterim için en fazla bir ondalık (virgülle); tam sayılarda ondalık yok. */

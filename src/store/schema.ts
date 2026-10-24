@@ -1,3 +1,4 @@
+import type { LanguageSetting } from '../i18n/index.ts'
 import type { MuscleFix } from '../lib/muscleFix.ts'
 import type { MuscleTargets } from '../lib/muscles.ts'
 import { DEFAULT_KITS, type PlateKit } from '../lib/plates.ts'
@@ -222,6 +223,8 @@ export interface Settings {
   deloadSnoozedUntil?: number
   /** Renk teması; varsayılan 'system'. */
   theme: Theme
+  /** Arayüz dili; varsayılan 'system' (cihaz dili `tr` ile başlıyorsa Türkçe, değilse İngilizce; bkz. i18n). */
+  language: LanguageSetting
 }
 
 export interface State {
@@ -249,7 +252,7 @@ export interface State {
 export function defaultState(): State {
   return {
     version: SCHEMA_VERSION,
-    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14, theme: 'system' },
+    settings: { unit: 'kg', restSec: 90, weekStart: 1, plateKit: structuredClone(DEFAULT_KITS), backupRemindDays: 14, theme: 'system', language: 'system' },
     routines: [],
     week: {},
     workouts: [],

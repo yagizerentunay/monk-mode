@@ -130,6 +130,7 @@ export function migrateWithReport(raw: unknown): MigrateResult {
       muscleTargets: migrateMuscleTargets(settings.muscleTargets),
       progressionRule: settings.progressionRule === 'fast' ? 'fast' : undefined,
       theme: settings.theme === 'dark' || settings.theme === 'light' ? settings.theme : 'system',
+      language: settings.language === 'tr' || settings.language === 'en' ? settings.language : 'system',
       deloadSnoozedUntil: positive(settings.deloadSnoozedUntil),
     },
     ...records,

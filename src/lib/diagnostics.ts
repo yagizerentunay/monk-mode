@@ -1,3 +1,4 @@
+import { localizeDecimal } from './units.ts'
 import { STORAGE_KEY } from '../store/persist.ts'
 import { listSnapshots } from '../store/snapshots.ts'
 import { audioState } from './alert.ts'
@@ -23,9 +24,9 @@ const MB = 1024 * KB
 
 const GB = 1024 * MB
 
-/** Türkçe ondalık virgüllü boyut. */
+/** Arayüz dilinin ondalık ayracıyla boyut. */
 export function formatBytes(n: number): string {
-  const one = (v: number) => v.toFixed(1).replace('.', ',')
+  const one = (v: number) => localizeDecimal(v.toFixed(1))
   if (n >= GB) return `${one(n / GB)} GB`
   if (n >= MB) return `${one(n / MB)} MB`
   if (n >= KB) return `${Math.round(n / KB)} KB`
