@@ -72,6 +72,7 @@ kilitte `commit` `null`, tablolar boştur; `src/lib/atlasLock.test.ts` bu durumd
 | `id` | `legacyIds[0]`, yoksa `atlas:<id>` |
 | `name` | `name.en` |
 | `instructions` | `instructions.tr` doluysa o, yoksa `instructions.en` |
+| `instructionsEn` | Yalnız `instructions` Türkçeyken ve `instructions.en` doluyken: `instructions.en` (İngilizce arayüz bunu gösterir; yoksa `instructions`) |
 | `aliases` | `aliases` (yalnız içe aktarma eşleştirmesinde kullanılır) |
 | `level` | `difficulty`; `advanced` -> `expert` |
 | `category` | `category`; `mobility` -> `stretching` |

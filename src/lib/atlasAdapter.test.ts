@@ -55,6 +55,26 @@ describe('atlasToCatalog: kayıt alanları', () => {
     expect(library.map((e) => e.instructions)).toEqual([['Birinci adım.', 'İkinci adım.'], ['Only English.'], ['Empty tr falls back.']])
   })
 
+  it('Türkçe seçildiyse İngilizce yönergeler instructionsEn olarak da yazılır; Türkçe yoksa kopya yok', () => {
+    const { library } = atlasToCatalog(
+      [
+        atlas({ id: 'a', name: { en: 'A' }, instructions: { en: ['Step one.', 'Step two.'], tr: ['Birinci adım.'] } }),
+        atlas({ id: 'b', name: { en: 'B' }, instructions: { en: ['Only English.'] } }),
+        atlas({ id: 'c', name: { en: 'C' }, instructions: { en: ['Empty tr falls back.'], tr: [] } }),
+      ],
+      [],
+    )
+    expect(library.map((e) => e.instructionsEn)).toEqual([['Step one.', 'Step two.'], undefined, undefined])
+    expect('instructionsEn' in library[1]).toBe(false)
+    expect(Object.keys(library[0]).slice(-2)).toEqual(['instructions', 'instructionsEn'])
+  })
+
+  it('İngilizce yönerge satırı boşsa hata verir', () => {
+    expect(() =>
+      atlasToCatalog([atlas({ id: 'a', instructions: { en: ['Ok.', ' '], tr: ['Tamam.'] } })], []),
+    ).toThrow(/instructions\.en/)
+  })
+
   it('seviye ve kategori eşlemesi', () => {
     const { library } = atlasToCatalog(
       [

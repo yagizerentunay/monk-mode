@@ -20,6 +20,7 @@ describe('egzersiz kütüphanesi (public/data/exercises.json, Atlas verisinden �
     for (const e of library) {
       expect(e.instructions.length, e.id).toBeGreaterThan(0)
       expect(e.instructions.every((line) => typeof line === 'string' && line.trim() !== ''), e.id).toBe(true)
+      if (e.instructionsEn) expect(e.instructionsEn.every((line) => typeof line === 'string' && line.trim() !== ''), e.id).toBe(true)
     }
   })
 
@@ -55,6 +56,8 @@ describe('egzersiz kütüphanesi (public/data/exercises.json, Atlas verisinden �
     expect(libraryProblems([{ ...base, illustration: 'exercises/x.png' }])).toEqual([])
     expect(libraryProblems([{ ...base, illustration: 'exercises/X.gif' }])).toEqual(['atlas:x: görsel yolu geçersiz (exercises/X.gif)'])
     expect(libraryProblems([{ ...base, instructions: ['ok', ' '] }])).toEqual(['atlas:x: boş yönerge satırı'])
+    expect(libraryProblems([{ ...base, instructionsEn: ['ok', ''] }])).toEqual(['atlas:x: boş İngilizce yönerge'])
+    expect(libraryProblems([{ ...base, instructionsEn: [] }])).toEqual(['atlas:x: boş İngilizce yönerge'])
   })
 })
 
