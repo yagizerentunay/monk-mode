@@ -2,6 +2,7 @@ import type {
   BodyweightEntry,
   CustomExercise,
   ExCfg,
+  MeasurementEntry,
   ProgressionMode,
   Routine,
   SetEntry,
@@ -9,6 +10,7 @@ import type {
   Workout,
   WorkoutEntry,
 } from './schema.ts'
+import { cleanMeasure, hasMeasure, MEASURE_KEYS, type MeasureKey } from '../lib/measurements.ts'
 import { clampSec, MAX_TIMED_SEC } from '../lib/timed.ts'
 
 /**
@@ -35,6 +37,7 @@ export const KINDS = [
   'routineEx',
   'week',
   'bodyweight',
+  'measurement',
   'customEx',
   'muscleFix',
 ] as const
@@ -334,6 +337,29 @@ function sanitizeBodyweight(raw: unknown): BodyweightEntry | null {
   return Object.hasOwn(out, 'd') && Object.hasOwn(out, 'w') ? (out as unknown as BodyweightEntry) : null
 }
 
+const MEASURE_SET: ReadonlySet<string> = new Set(MEASURE_KEYS)
+
+/**
+ * Ölçü kaydı: gün gerekli, ölçüler isteğe bağlı. Geçersiz ölçü alanı atılır, fazla ondalık bire yuvarlanır
+ * (ikisi de onarım sayılır). Geçerli günü ya da hiç geçerli ölçüsü kalmayan kayıt atılır.
+ */
+function sanitizeMeasurement(raw: unknown, rep: SanitizeReport): MeasurementEntry | null {
+  if (!isRecord(raw) || !isDay(raw.d)) return null
+  const out: Record<string, unknown> = {}
+  let fixed = false
+  for (const key of Object.keys(raw)) {
+    if (key === 'd') out.d = raw.d
+    else if (MEASURE_SET.has(key)) {
+      const v = cleanMeasure(key as MeasureKey, raw[key])
+      if (v !== raw[key]) fixed = true
+      if (v !== undefined) out[key] = v
+    }
+  }
+  if (!hasMeasure(out)) return null
+  if (fixed) rep.repaired.measurement++
+  return out as unknown as MeasurementEntry
+}
+
 function sanitizeCustom(raw: unknown, rep: SanitizeReport): CustomExercise | null {
   if (!isRecord(raw) || id(raw.id) === BAD || str(raw.name) === BAD) return null
   const { out, bad } = pick(raw, {
@@ -382,6 +408,7 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
   const routines = list(raw, 'routines', 'routine', rep, (v) => sanitizeRoutine(v, rep))
   const workouts = list(raw, 'workouts', 'workout', rep, (v) => sanitizeWorkout(v, rep))
   const bodyweight = list(raw, 'bodyweight', 'bodyweight', rep, sanitizeBodyweight)
+  const measurements = list(raw, 'measurements', 'measurement', rep, (v) => sanitizeMeasurement(v, rep))
   const customEx = list(raw, 'customEx', 'customEx', rep, (v) => sanitizeCustom(v, rep))
 
   let week: Record<number, string> = {}
@@ -394,5 +421,5 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
     if (!active) rep.dropped.active++
   }
 
-  return { routines, week, workouts, active, bodyweight, customEx }
+  return { routines, week, workouts, active, bodyweight, measurements, customEx }
 }

@@ -1,5 +1,5 @@
 import { fingerprint } from '../lib/backupReminder.ts'
-import { workoutsToCsv } from '../lib/exportCsv.ts'
+import { measurementsToCsv, workoutsToCsv } from '../lib/exportCsv.ts'
 import { loadExercises } from '../lib/exercises.ts'
 import { dayString } from '../lib/workout.ts'
 import { exportBackup } from './backup.ts'
@@ -101,6 +101,18 @@ export async function exportCsv(now: Date = new Date()): Promise<SaveResult> {
     return 'downloaded'
   }
   return shareFile(file, 'monk-mode antrenmanları')
+}
+
+/** Vücut ölçülerini ayrı bir CSV olarak kaydeder (bkz. lib/exportCsv.ts); telefonda paylaşım menüsü, yoksa indirme. */
+export async function exportMeasurementsCsv(now: Date = new Date()): Promise<SaveResult> {
+  const csv = measurementsToCsv(useStore.getState().measurements)
+  const name = `monk-mode-olculer-${dayString(now)}.csv`
+  const file = new File([csv], name, { type: 'text/csv' })
+  if (!canShareFile(file)) {
+    saveFile(name, csv, 'text/csv')
+    return 'downloaded'
+  }
+  return shareFile(file, 'monk-mode ölçüleri')
 }
 
 /** Okunamayan kayıtlı verinin ham metnini olduğu gibi indirir (kurtarma ya da inceleme için). */

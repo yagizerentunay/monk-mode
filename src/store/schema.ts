@@ -118,6 +118,19 @@ export interface BodyweightEntry {
   w: number
 }
 
+/**
+ * Bir günün vücut ölçüleri. Çevreler cm, yağ oranı yüzdedir; alanlar isteğe bağlıdır ama en az biri
+ * bulunur (bkz. lib/measurements.ts). Birim ayarı (kg/lb) ölçülere uygulanmaz.
+ */
+export interface MeasurementEntry {
+  d: string
+  waist?: number
+  chest?: number
+  arm?: number
+  hip?: number
+  fat?: number
+}
+
 export interface CustomExercise {
   id: string
   name: string
@@ -166,6 +179,8 @@ export interface State {
   workouts: Workout[]
   active: Workout | null
   bodyweight: BodyweightEntry[]
+  /** Vücut ölçüleri, tarih sırasında; her güne en çok bir kayıt. */
+  measurements: MeasurementEntry[]
   customEx: CustomExercise[]
   /** Egzersiz kimliği → kullanıcının kas düzeltmesi (bkz. lib/muscleFix.ts); yoksa kütüphane verisi geçerli. */
   muscleFix: Record<string, MuscleFix>
@@ -180,6 +195,7 @@ export function defaultState(): State {
     workouts: [],
     active: null,
     bodyweight: [],
+    measurements: [],
     customEx: [],
     muscleFix: {},
   }

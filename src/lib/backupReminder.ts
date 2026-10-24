@@ -14,17 +14,20 @@ export const FIRST_BACKUP_DAYS = 3
 /** Yedeğe giren veri alanları; ayarlar ve devam eden antrenman (`active`) yedeğin parçası sayılmaz. */
 type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'> & {
   muscleFix?: State['muscleFix']
+  measurements?: State['measurements']
 }
 
 /**
  * Verinin kısa parmak izi (cyrb53, 53 bit; kriptografik değil). "Yedekten sonra bir şey değişti mi"
  * sorusu için yeter: aynı veri aynı izi verir, bir antrenman eklemek/silmek izi değiştirir.
  * Kas düzeltmeleri yalnız varsa ize girer: hiç düzeltmesi olmayanın izi sürüm güncellemesiyle değişmez
- * (aksi halde herkese bir kez yanlış "yedekten beri değişti" hatırlatması çıkardı).
+ * (aksi halde herkese bir kez yanlış "yedekten beri değişti" hatırlatması çıkardı). Vücut ölçüleri de
+ * aynı nedenle yalnız varsa girer; etiketli eklenir ki kas düzeltmesi olmayan ölçüler onunla karışmasın.
  */
 export function fingerprint(data: Backed): string {
   const parts: unknown[] = [data.workouts, data.routines, data.week, data.bodyweight, data.customEx]
   if (data.muscleFix && Object.keys(data.muscleFix).length > 0) parts.push(data.muscleFix)
+  if (data.measurements && data.measurements.length > 0) parts.push({ measurements: data.measurements })
   const text = JSON.stringify(parts)
   let h1 = 0xdeadbeef
   let h2 = 0x41c6ce57
@@ -53,6 +56,7 @@ function firstRecordAt(data: Backed): number | null {
   const times = [
     ...data.workouts.map((w) => w.start),
     ...data.bodyweight.map((b) => Date.parse(b.d)),
+    ...(data.measurements ?? []).map((m) => Date.parse(m.d)),
   ].filter((t) => Number.isFinite(t))
   return times.length > 0 ? Math.min(...times) : null
 }
@@ -65,7 +69,7 @@ function firstRecordAt(data: Backed): number | null {
  */
 export function backupStatus(data: Backed & { settings: Settings }, now: number): BackupStatus {
   const { settings } = data
-  const hasData = data.workouts.length > 0 || data.bodyweight.length > 0
+  const hasData = data.workouts.length > 0 || data.bodyweight.length > 0 || (data.measurements?.length ?? 0) > 0
   const never = settings.lastBackupAt === undefined
   const reference = settings.lastBackupAt ?? firstRecordAt(data)
   if (!hasData || reference === null) return { due: false, dirty: false, never, days: null }
