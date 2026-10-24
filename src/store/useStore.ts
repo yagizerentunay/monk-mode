@@ -5,6 +5,7 @@ import { bodyweightOn } from '../lib/load.ts'
 import { dropSet, MAX_DROPS, MAX_WARMUPS, retargetWarmups, warmupSet } from '../lib/intensity.ts'
 import { MAX_SETS } from './sanitize.ts'
 import { cleanMeasurement } from '../lib/measurements.ts'
+import { newlyReached } from '../lib/goals.ts'
 import { mergeState, totalAdded, type MergeReport } from '../lib/mergeBackup.ts'
 import { mergeRoutines, type RoutineMerge } from '../lib/mergeRoutines.ts'
 import { normalizeMuscleFix, type MuscleFix } from '../lib/muscleFix.ts'
@@ -27,6 +28,7 @@ import {
   type Settings,
   type SideSet,
   type State,
+  type StrengthGoal,
   type Workout,
 } from './schema.ts'
 
@@ -117,6 +119,16 @@ export interface Actions {
   setMuscleFix(exId: string, fix: MuscleFix): void
   /** Düzeltmeyi kaldırır; egzersiz kütüphanedeki kaslarına döner. */
   clearMuscleFix(exId: string): void
+  /** Hedefi ekler ya da aynı kimlikliyi değiştirir (sıra korunur). */
+  saveGoal(goal: StrengthGoal): void
+  deleteGoal(id: string): void
+  /** Silinen hedefi eski sırasına koyar (silme geri alma); aynı kimlik varsa dokunmaz. */
+  restoreGoal(goal: StrengthGoal, index: number): void
+  /**
+   * Geçmişe göre ulaşılmış ama henüz işaretlenmemiş hedeflere ulaşma gününü yazar ve yalnız bu çağrıda
+   * işaretlenenleri döner: kutlama bir kez gösterilsin diye.
+   */
+  settleGoals(): StrengthGoal[]
   replaceAll(state: State): void
   /** Şu anki verinin yedeklendiğini işaretler (yedek indirilince ya da yedekten yüklenince). */
   markBackedUp(now: number): void
@@ -414,6 +426,7 @@ export const useStore = create<Store>((set, get) => ({
         measurements: state.measurements,
         customEx: state.customEx,
         muscleFix: state.muscleFix,
+        goals: state.goals,
       }))
     }
     return report
@@ -452,6 +465,30 @@ export const useStore = create<Store>((set, get) => ({
       return { muscleFix: Object.fromEntries(Object.entries(s.muscleFix).filter(([id]) => id !== exId)) }
     }),
 
+  saveGoal: (goal) =>
+    set((s) => ({
+      goals: s.goals.some((g) => g.id === goal.id) ? s.goals.map((g) => (g.id === goal.id ? goal : g)) : [...s.goals, goal],
+    })),
+
+  deleteGoal: (id) => set((s) => ({ goals: s.goals.filter((g) => g.id !== id) })),
+
+  restoreGoal: (goal, index) =>
+    set((s) => {
+      if (s.goals.some((g) => g.id === goal.id)) return {}
+      const goals = [...s.goals]
+      goals.splice(Math.min(Math.max(index, 0), goals.length), 0, goal)
+      return { goals }
+    }),
+
+  settleGoals: () => {
+    const { goals, workouts } = get()
+    const reached = new Map(newlyReached(goals, workouts).map((r) => [r.id, r.d]))
+    if (reached.size === 0) return []
+    const next = goals.map((g) => (reached.has(g.id) ? { ...g, done: reached.get(g.id) } : g))
+    set(() => ({ goals: next }))
+    return next.filter((g) => reached.has(g.id))
+  },
+
   replaceAll: (state) => set(() => ({ ...state })),
 
   markBackedUp: (now) =>
@@ -476,6 +513,7 @@ export function snapshot(s: Store): State {
     measurements: s.measurements,
     customEx: s.customEx,
     muscleFix: s.muscleFix,
+    goals: s.goals,
   }
 }
 

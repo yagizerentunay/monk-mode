@@ -43,6 +43,8 @@ import { useStore } from '../store/useStore.ts'
 interface Summary {
   workout: WorkoutT
   prs: { name: string; lang?: 'en' }[]
+  /** Bu antrenmanla ulaşılan kuvvet hedefleri (kutlama bir kez, burada). */
+  goals: { name: string; lang?: 'en'; target: number }[]
 }
 
 /** Kayıtlı dinlenme sayacının bitişi (süresi dolduysa null). */
@@ -116,6 +118,7 @@ export function Workout() {
     swapExercise,
     moveEntry,
     finishWorkout,
+    settleGoals,
     updateWorkout,
   } = useStore.getState()
   const { byId } = useExercises()
@@ -167,7 +170,7 @@ export function Workout() {
   }, [routines, routineId, exIds, workouts, rule])
 
   if (summary) {
-    const { workout, prs } = summary
+    const { workout, prs, goals } = summary
     const mins = Math.max(1, Math.round(((workout.end ?? workout.start) - workout.start) / 60000))
     return (
       <div className="stack wk">
@@ -197,10 +200,20 @@ export function Workout() {
             const next = applyRirToEntry(workout, entryIdx, rir)
             if (next === workout) return
             updateWorkout(next)
-            setSummary({ workout: next, prs })
+            setSummary({ ...summary, workout: next })
           }}
           onSkip={() => setRirSkipped(true)}
         />
+        {goals.length > 0 && (
+          <div className="card stack wk-pr wk-goal">
+            <div className="eyebrow">🎯 Hedefe ulaştın</div>
+            {goals.map((g) => (
+              <div key={g.name} className="wk-pr-item" lang={g.lang}>
+                {g.name} <span className="sub">· 1RM {formatWeight(g.target, unit)} {unit}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {prs.length > 0 && (
           <div className="card stack wk-pr">
             <div className="eyebrow">Yeni rekorlar</div>
@@ -249,7 +262,11 @@ export function Workout() {
     if (finished) autoFolderBackup()
     setRestEnds(null)
     setRirSkipped(false)
-    if (finished) setSummary({ workout: finished, prs })
+    // Bu antrenmanla ulaşılan hedefler işaretlenir; Analiz'deki kart aynı hedefi ikinci kez kutlamaz.
+    const goals = finished
+      ? settleGoals().map((g) => ({ name: byId.get(g.exId)?.name ?? g.exId, lang: nameLang(byId.get(g.exId)), target: g.target }))
+      : []
+    if (finished) setSummary({ workout: finished, prs, goals })
     else navigate('/')
   }
 

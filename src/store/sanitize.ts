@@ -7,6 +7,7 @@ import type {
   Routine,
   SetEntry,
   SideSet,
+  StrengthGoal,
   Workout,
   WorkoutEntry,
 } from './schema.ts'
@@ -41,6 +42,7 @@ export const KINDS = [
   'measurement',
   'customEx',
   'muscleFix',
+  'goal',
 ] as const
 export type Kind = (typeof KINDS)[number]
 
@@ -433,6 +435,25 @@ function sanitizeCustom(raw: unknown, rep: SanitizeReport): CustomExercise | nul
   return out as unknown as CustomExercise
 }
 
+/** Hedef 1RM'in makul üst sınırı (kg); üstü yazım hatası sayılır. */
+export const MAX_GOAL_KG = 1000
+
+/** Kimlik, egzersiz, hedef, hedef gün ve oluşturma günü zorunludur; biri kullanılamazsa hedef atılır. */
+function sanitizeGoal(raw: unknown): StrengthGoal | null {
+  if (!isRecord(raw)) return null
+  const { out } = pick(raw, {
+    id,
+    exId: id,
+    target: (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= MAX_GOAL_KG ? v : BAD),
+    by: day,
+    created: day,
+    done: day,
+  })
+  return ['id', 'exId', 'target', 'by', 'created'].every((k) => Object.hasOwn(out, k))
+    ? (out as unknown as StrengthGoal)
+    : null
+}
+
 /** Gün (0-6) → rutin kimliği; geçersiz çiftler atılır. */
 function sanitizeWeek(raw: Record<string, unknown>, rep: SanitizeReport): Record<number, string> {
   const week: Record<number, string> = {}
@@ -468,6 +489,7 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
   const bodyweight = list(raw, 'bodyweight', 'bodyweight', rep, sanitizeBodyweight)
   const measurements = list(raw, 'measurements', 'measurement', rep, (v) => sanitizeMeasurement(v, rep))
   const customEx = list(raw, 'customEx', 'customEx', rep, (v) => sanitizeCustom(v, rep))
+  const goals = list(raw, 'goals', 'goal', rep, sanitizeGoal)
 
   let week: Record<number, string> = {}
   if (isRecord(raw.week)) week = sanitizeWeek(raw.week, rep)
@@ -479,5 +501,5 @@ export function sanitizeRecords(raw: Record<string, unknown>, rep: SanitizeRepor
     if (!active) rep.dropped.active++
   }
 
-  return { routines, week, workouts, active, bodyweight, measurements, customEx }
+  return { routines, week, workouts, active, bodyweight, measurements, customEx, goals }
 }

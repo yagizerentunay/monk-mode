@@ -15,6 +15,7 @@ export const FIRST_BACKUP_DAYS = 3
 type Backed = Pick<State, 'workouts' | 'routines' | 'week' | 'bodyweight' | 'customEx'> & {
   muscleFix?: State['muscleFix']
   measurements?: State['measurements']
+  goals?: State['goals']
 }
 
 /**
@@ -28,6 +29,8 @@ export function fingerprint(data: Backed): string {
   const parts: unknown[] = [data.workouts, data.routines, data.week, data.bodyweight, data.customEx]
   if (data.muscleFix && Object.keys(data.muscleFix).length > 0) parts.push(data.muscleFix)
   if (data.measurements && data.measurements.length > 0) parts.push({ measurements: data.measurements })
+  // Hedefler de yalnız varsa (aynı gerekçe); etiketli dizi olarak girer, kas düzeltmesiyle karışmaz.
+  if (data.goals && data.goals.length > 0) parts.push(['goals', data.goals])
   const text = JSON.stringify(parts)
   let h1 = 0xdeadbeef
   let h2 = 0x41c6ce57

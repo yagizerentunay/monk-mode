@@ -4,12 +4,14 @@ import { BottomSheet } from '../components/BottomSheet.tsx'
 import { LineChart } from '../components/LineChart.tsx'
 import { FrequencyCard } from '../components/FrequencyCard.tsx'
 import { MeasurementsCard } from '../components/MeasurementsCard.tsx'
+import { GoalsCard } from '../components/GoalsCard.tsx'
 import { MuscleCard } from '../components/MuscleCard.tsx'
 import { RecordsCard } from '../components/RecordsCard.tsx'
 import { WeeklyTrendCard } from '../components/WeeklyTrendCard.tsx'
 import { WorkoutDetail } from '../components/WorkoutDetail.tsx'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { formatLongClock } from '../lib/distance.ts'
+import { goalFor } from '../lib/goals.ts'
 import { formatWeight, kgToUnit } from '../lib/units.ts'
 import { useExercises } from '../lib/useExercises.ts'
 import { doneSetCount, exerciseHistory, hasVolume, workoutVolume } from '../lib/workout.ts'
@@ -25,6 +27,7 @@ function fmtNum(n: number): string {
 export function Stats() {
   const workouts = useStore((s) => s.workouts)
   const unit = useStore((s) => s.settings.unit)
+  const goals = useStore((s) => s.goals)
   const { byId } = useExercises()
   const [metric, setMetric] = useState<Metric>('e1rm')
   const [chosen, setChosen] = useState<string | null>(null)
@@ -54,6 +57,8 @@ export function Stats() {
           ? (p.topSec ?? 0)
           : Math.round(kgToUnit(metric === 'e1rm' ? p.e1rm : p.topW, unit) * 10) / 10,
     }))
+  // Hedef çizgisi yalnız tahmini 1RM grafiğinde: en ağır set başka bir ölçüdür.
+  const goal = selected && !timedSel && !distSel && metric === 'e1rm' ? goalFor(goals, selected) : undefined
   const open = workouts.find((w) => w.id === openId) ?? null
   const recent = [...workouts].reverse().slice(0, 30)
 
@@ -103,7 +108,11 @@ export function Stats() {
                 )}
               </div>
             )}
-            <LineChart points={points} unit={valueUnit} />
+            <LineChart
+              points={points}
+              unit={valueUnit}
+              target={goal ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: `Hedef ${formatWeight(goal.target, unit)} ${unit}` } : undefined}
+            />
             {!timedSel && !distSel && (
               <div className="chips statseg" role="group" aria-label="Ölçü">
                 <button className={`chip${metric === 'e1rm' ? ' on' : ''}`} aria-pressed={metric === 'e1rm'} onClick={() => setMetric('e1rm')}>Tahmini 1RM</button>
@@ -113,6 +122,8 @@ export function Stats() {
           </>
         )}
       </div>
+
+      <GoalsCard />
 
       <RecordsCard />
 
