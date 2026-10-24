@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SetEntry, Workout } from '../store/schema.ts'
-import { deloadSnoozeUntil, detectDeload, isDeloadSnoozed } from './deload.ts'
+import { withoutDeloadWeeks } from './block.ts'
+import { deloadCutText, deloadRirText, deloadSetCount, deloadSnoozeUntil, detectDeload, isDeloadSnoozed } from './deload.ts'
 
 const DAY = 24 * 60 * 60 * 1000
 /** Sabit "şimdi": 2026-10-11 öğle. */
@@ -138,5 +139,27 @@ describe('susturma', () => {
 
   it('"Şimdi değil" 7 gün susturur', () => {
     expect(deloadSnoozeUntil(NOW)).toBe(NOW + 7 * DAY)
+  })
+})
+
+describe('deload haftası önerisi', () => {
+  it('setler en çok %50 azalır, en az 1 kalır', () => {
+    expect([0, 1, 2, 3, 4, 5, 6, 8].map(deloadSetCount)).toEqual([0, 1, 1, 2, 2, 3, 3, 4])
+  })
+
+  it('metinler sabitlerden gelir', () => {
+    expect(deloadCutText()).toBe('%40–50')
+    expect(deloadRirText()).toBe('4–5')
+  })
+})
+
+describe('planlı deload haftası', () => {
+  it('deload haftasındaki bilinçli hafif seanslar düşüş sayılmaz', () => {
+    // Son iki seans 6 ve 9 Ekim: 14 Eylül'de başlayan 4 haftalık bloğun deload haftası (5–11 Ekim).
+    const wk = sessions(declining(['a', 'b']))
+    const block = { id: 'b', start: '2026-09-14', weeks: 4, deload: 4 }
+    expect(detectDeload(withoutDeloadWeeks(wk, [block], 1), NOW)).toBeUndefined()
+    // Deload başka haftadaysa düşüş yine görülür.
+    expect(detectDeload(withoutDeloadWeeks(wk, [{ ...block, deload: 2 }], 1), NOW)?.exercises).toHaveLength(2)
   })
 })

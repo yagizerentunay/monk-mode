@@ -755,3 +755,35 @@ describe('seansta egzersiz taşıma', () => {
     expect(useStore.getState().active?.entries).toEqual(before?.entries)
   })
 })
+
+describe('antrenman bloğu', () => {
+  it('başlatır, düzenler, bitirir; süren blok varken ikincisini başlatmaz', () => {
+    const s = useStore.getState()
+    s.startBlock('2026-10-05', 5)
+    const first = useStore.getState().block
+    expect(first).toMatchObject({ start: '2026-10-05', weeks: 5, deload: 5 })
+    useStore.getState().startBlock('2026-11-02', 4)
+    expect(useStore.getState().block).toBe(first)
+    useStore.getState().editBlock({ weeks: 6 })
+    expect(useStore.getState().block).toMatchObject({ weeks: 6, deload: 6 })
+    useStore.getState().endBlock('done', '2026-11-15')
+    expect(useStore.getState().block).toBeNull()
+    expect(useStore.getState().pastBlocks).toEqual([{ ...first, weeks: 6, deload: 6, end: '2026-11-15', outcome: 'done' }])
+    expect(snapshot(useStore.getState()).pastBlocks).toHaveLength(1)
+  })
+
+  it('iptal edilen blok da geçmişe "cancelled" olarak geçer', () => {
+    useStore.getState().startBlock('2026-10-05', 4)
+    useStore.getState().endBlock('cancelled', '2026-10-08')
+    expect(useStore.getState().pastBlocks[0]).toMatchObject({ outcome: 'cancelled', end: '2026-10-08' })
+  })
+
+  it("deload'u bu haftaya planlar ve deload susturmasına dokunmaz", () => {
+    useStore.getState().setSettings({ deloadSnoozedUntil: 123 })
+    useStore.getState().startBlock('2026-10-05', 5)
+    useStore.getState().planDeloadThisWeek(new Date(2026, 9, 21))
+    expect(useStore.getState().block).toMatchObject({ deload: 3 })
+    expect(useStore.getState().settings.deloadSnoozedUntil).toBe(123)
+    expect(snapshot(useStore.getState()).block).toMatchObject({ deload: 3 })
+  })
+})
