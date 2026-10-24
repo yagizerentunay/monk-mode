@@ -1,3 +1,4 @@
+import { t, tNodes } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { nameLang, type Exercise } from '../lib/exercises.ts'
 import { ExerciseThumb } from './ExerciseThumb.tsx'
@@ -28,20 +29,25 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
   if (browse) {
     return (
       <div className="stack">
-        <button className="btn small" onClick={() => setBrowse(false)}>← Önerilere dön</button>
-        <ExerciseBrowser actionLabel="Seç" onSelect={onSelect} />
+        <button className="btn small" onClick={() => setBrowse(false)}>← {t('swap.backToSuggestions')}</button>
+        <ExerciseBrowser actionLabel={t('swap.select')} onSelect={onSelect} />
       </div>
     )
   }
 
-  if (error) return <p className="sub">Egzersizler yüklenemedi: {error}</p>
+  if (error) return <p className="sub">{t('exercises.loadFailed', { error })}</p>
 
   return (
     <div className="stack">
       <p className="sub resultcount">
-        {loading ? 'Yükleniyor…' : `${current.primaryMuscles[0] ? muscleLabel(current.primaryMuscles[0]) : 'Aynı kas'} için ${alternatives.length} alternatif`}
+        {loading
+          ? t('common.loading')
+          : t('swap.alternatives', {
+              muscle: current.primaryMuscles[0] ? muscleLabel(current.primaryMuscles[0]) : t('swap.sameMuscle'),
+              n: alternatives.length,
+            })}
         {' · '}
-        <span lang={nameLang(current)}>{current.name}</span> yerine
+        {tNodes('swap.insteadOf', { name: <span lang={nameLang(current)}>{current.name}</span> })}
       </p>
       <div className="card" style={{ padding: '4px 14px' }}>
         {alternatives.map((e) => (
@@ -51,12 +57,12 @@ export function SwapSheet({ current, excludeIds, onSelect }: Props) {
               <div className="exname" lang={nameLang(e)}>{e.name}</div>
               <div className="sub">{equipmentLabel(e.equipment)}</div>
             </div>
-            <span className="exaction">Seç</span>
+            <span className="exaction">{t('swap.select')}</span>
           </button>
         ))}
-        {!loading && alternatives.length === 0 && <p className="sub">Aynı kası çalıştıran başka egzersiz bulunamadı.</p>}
+        {!loading && alternatives.length === 0 && <p className="sub">{t('swap.none')}</p>}
       </div>
-      <button className="btn block" onClick={() => setBrowse(true)}>Tüm egzersizlerde ara</button>
+      <button className="btn block" onClick={() => setBrowse(true)}>{t('swap.searchAll')}</button>
     </div>
   )
 }

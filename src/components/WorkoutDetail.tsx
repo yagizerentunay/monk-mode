@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDayTitle } from '../lib/calendar.ts'
@@ -53,7 +54,10 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
 
   return (
     <div className="stack">
-      <div className="eyebrow muted">{hideDate ? '' : formatDayTitle(workout.d)}{hasVolume(workout) && <>{hideDate ? '' : ' · '}{formatWeight(workoutVolume(workout), unit)} {unit} hacim</>}</div>
+      <div className="eyebrow muted">
+        {hideDate ? '' : formatDayTitle(workout.d)}
+        {hasVolume(workout) && <>{hideDate ? '' : ' · '}{t('detail.volume', { volume: `${formatWeight(workoutVolume(workout), unit)} ${unit}` })}</>}
+      </div>
       {workout.note && <div className="note">{workout.note}</div>}
       {workout.entries.map((e, i) => {
         const zero = zeroWeightFlags(e, byId.get(e.exId)?.equipment)
@@ -62,7 +66,7 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
             <div className="exname">{byId.get(e.exId)?.name ?? e.exId}</div>
             <div className="sub">
               {e.sets.length === 0
-                ? 'Set yapılmadı'
+                ? t('card.noSets')
                 : e.sets
                     .map((s, si) => ({ s, si }))
                     .filter(({ s }) => !s.warmup)
@@ -92,20 +96,20 @@ export function WorkoutDetail({ workout, onClose, hideDate }: Props) {
               navigate('/workout')
             }}
           >
-            Rutini tekrarla
+            {t('detail.repeat')}
           </button>
         )}
-        <button className="btn grow" onClick={() => setEditing(true)}>Düzenle</button>
+        <button className="btn grow" onClick={() => setEditing(true)}>{t('common.edit')}</button>
         <button
           className="btn danger grow"
           onClick={() => {
-            if (confirm('Bu antrenman geçmişten silinsin mi?')) {
+            if (confirm(t('detail.deleteConfirm'))) {
               deleteWorkoutWithUndo(workout.id)
               onClose()
             }
           }}
         >
-          Sil
+          {t('set.delete')}
         </button>
       </div>
     </div>

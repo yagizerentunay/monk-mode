@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { BodyweightEntry, ProgressionRule, Routine, SetEntry, Workout, WorkoutEntry } from '../store/schema.ts'
 import { countsForPace, paceSecPerKm, setMeters } from './distance.ts'
 import { dropChain, warmupSets } from './intensity.ts'
@@ -109,12 +110,15 @@ export function buildWorkout(
   }
 }
 
-/** Rutinsiz, egzersizleri seans sırasında seçilen antrenmanın adı. */
-export const FREE_WORKOUT_NAME = 'Serbest antrenman'
+/**
+ * Rutinsiz, egzersizleri seans sırasında seçilen antrenmanın adı, geçerli arayüz dilinde. Ad kayda
+ * yazılır; dil sonradan değişse de eski kayıtların adı değişmez (kullanıcı verisi).
+ */
+export const freeWorkoutName = (): string => t('workout.freeName')
 
 /** Rutinsiz boş bir seans kurar; egzersizler seans sırasında eklenir (`addExerciseToActive`). */
 export function buildFreeWorkout(now: number): Workout {
-  return { id: newId(), d: dayString(new Date(now)), start: now, name: FREE_WORKOUT_NAME, entries: [] }
+  return { id: newId(), d: dayString(new Date(now)), start: now, name: freeWorkoutName(), entries: [] }
 }
 
 /** Sonradan eklenen bir egzersizin kaç set kurulacağının üst sınırı (uzun bir geçmiş seansı şişirmesin). */

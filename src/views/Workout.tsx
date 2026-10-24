@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { t } from '../i18n/index.ts'
 import { BottomSheet } from '../components/BottomSheet.tsx'
 import { ExerciseBrowser } from '../components/ExerciseBrowser.tsx'
 import { PlateauNote } from '../components/PlateauNote.tsx'
@@ -64,13 +65,13 @@ function Starter() {
   return (
     <div className="stack wk">
       <div>
-        <div className="eyebrow">Antrenmanı başlat</div>
-        <h1 className="display">Bir rutin seç<span className="hl">ve başla.</span></h1>
+        <div className="eyebrow">{t('workout.startEyebrow')}</div>
+        <h1 className="display">{t('workout.pickA')}<span className="hl">{t('workout.pickB')}</span></h1>
       </div>
       {routines.length === 0 && (
         <div className="card stack">
-          <p className="sub" style={{ margin: 0 }}>Henüz rutinin yok.</p>
-          <button className="btn primary" onClick={() => navigate('/plan')}>Rutin oluştur</button>
+          <p className="sub" style={{ margin: 0 }}>{t('workout.noRoutines')}</p>
+          <button className="btn primary" onClick={() => navigate('/plan')}>{t('home.createRoutine')}</button>
         </div>
       )}
       {routines.map((r) => (
@@ -80,19 +81,19 @@ function Starter() {
           onClick={() => start(r.id)}
         >
           <div>
-            {r.id === todayId && <div className="eyebrow">Bugün · {DAY_NAMES[today]}</div>}
+            {r.id === todayId && <div className="eyebrow">{t('calendar.today')} · {DAY_NAMES[today]}</div>}
             <div className="exname">{r.name}</div>
-            <div className="sub">{r.ex.length} egzersiz</div>
+            <div className="sub">{t('count.exercises', { n: r.ex.length })}</div>
           </div>
-          <span className={r.id === todayId ? 'badge on' : 'badge'}>Başla ▶</span>
+          <span className={r.id === todayId ? 'badge on' : 'badge'}>{t('home.start')} ▶</span>
         </button>
       ))}
       <button className="card tap row between starter" onClick={startFree}>
         <div>
-          <div className="exname">Serbest antrenman</div>
-          <div className="sub">Rutin olmadan, egzersizleri sen seç</div>
+          <div className="exname">{t('workout.freeName')}</div>
+          <div className="sub">{t('workout.freeHint')}</div>
         </div>
-        <span className="badge">Başla ▶</span>
+        <span className="badge">{t('home.start')} ▶</span>
       </button>
     </div>
   )
@@ -107,7 +108,10 @@ function DeloadSetHint({ sets }: { sets: number }) {
   const keep = deloadSetCount(sets)
   return (
     <div className="warntext exhint">
-      Deload haftası: {keep < sets ? `${keep} çalışma seti yeter (${sets} yerine), ` : ''}ağırlık aynı, RIR {deloadRirText()}
+      {t('workout.deloadHint', {
+        sets: keep < sets ? t('workout.deloadSets', { n: keep, from: sets }) : '',
+        rir: deloadRirText(),
+      })}
     </div>
   )
 }
@@ -197,18 +201,18 @@ export function Workout() {
         <div className="wk-done-head">
           <Seal size={44} />
           <div>
-            <div className="eyebrow done">Antrenman bitti</div>
-            <h1 className="display">Tamamlandı<span className="hl">Bugün güçlendin.</span></h1>
+            <div className="eyebrow done">{t('workout.finished')}</div>
+            <h1 className="display">{t('workout.doneA')}<span className="hl">{t('workout.doneB')}</span></h1>
           </div>
         </div>
         <div className="card stack wk-stats">
-          <div className="row between"><span className="sub">Süre</span><b>{mins} dk</b></div>
-          <div className="row between"><span className="sub">Tamamlanan set</span><b>{doneSetCount(workout).done}</b></div>
+          <div className="row between"><span className="sub">{t('workout.duration')}</span><b>{t('unit.minValue', { n: mins })}</b></div>
+          <div className="row between"><span className="sub">{t('workout.setsDone')}</span><b>{doneSetCount(workout).done}</b></div>
           {partialSetCount(workout) > 0 && (
-            <div className="row between"><span className="sub">Yarım set (tek taraf)</span><b>{partialSetCount(workout)}</b></div>
+            <div className="row between"><span className="sub">{t('workout.partialSets')}</span><b>{partialSetCount(workout)}</b></div>
           )}
           {hasVolume(workout) && (
-            <div className="row between"><span className="sub">Toplam hacim</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
+            <div className="row between"><span className="sub">{t('workout.totalVolume')}</span><b>{formatWeight(workoutVolume(workout), unit)} {unit}</b></div>
           )}
         </div>
         <RirSummary
@@ -226,7 +230,7 @@ export function Workout() {
         />
         {goals.length > 0 && (
           <div className="card stack wk-pr wk-goal">
-            <div className="eyebrow">🎯 Hedefe ulaştın</div>
+            <div className="eyebrow">🎯 {t('workout.goalReached')}</div>
             {goals.map((g) => (
               <div key={g.name} className="wk-pr-item" lang={g.lang}>
                 {g.name} <span className="sub">· 1RM {formatWeight(g.target, unit)} {unit}</span>
@@ -236,13 +240,13 @@ export function Workout() {
         )}
         {prs.length > 0 && (
           <div className="card stack wk-pr">
-            <div className="eyebrow">Yeni rekorlar</div>
+            <div className="eyebrow">{t('workout.newRecords')}</div>
             {prs.map((p) => <div key={p.name} className="wk-pr-item" lang={p.lang}>{p.name}</div>)}
           </div>
         )}
         <ShareCardButton workout={workout} prs={prs} />
         <BackupNudge />
-        <button className="btn primary block" onClick={() => navigate('/')}>Ana sayfaya dön</button>
+        <button className="btn primary block" onClick={() => navigate('/')}>{t('workout.backHome')}</button>
       </div>
     )
   }
@@ -269,7 +273,7 @@ export function Workout() {
 
   const finish = () => {
     const unfinished = total - done
-    if (unfinished > 0 && !confirm(`${unfinished} set tamamlanmadı. Yine de bitirilsin mi?`)) return
+    if (unfinished > 0 && !confirm(t('workout.finishConfirm', { sets: t('count.sets', { n: unfinished }) }))) return
     const prs = active.entries
       .filter((e) => isPR(workouts, { ...e, sets: e.sets.filter((x) => x.done) }))
       .map((e) => ({ name: byId.get(e.exId)?.name ?? e.exId, lang: nameLang(byId.get(e.exId)) }))
@@ -277,7 +281,7 @@ export function Workout() {
     // Veri artık değerli: tarayıcıdan kalıcı depolama iste (bu tıklama kullanıcı jesti sayılır). Sonucu beklemeyiz.
     if (finished) void requestPersistOnce()
     // Otomatik iç kopya: tarayıcı içinde, sessizce (bkz. store/snapshots.ts).
-    if (finished) void snapshotNow('Antrenman bitti')
+    if (finished) void snapshotNow(t('workout.finished'))
     // Ayarlar'da klasöre yedek açıksa antrenman verisi hemen klasöre de yazılır (izin yoksa sessizce atlanır).
     if (finished) autoFolderBackup()
     setRestEnds(null)
@@ -293,16 +297,16 @@ export function Workout() {
   return (
     <div className={`stack wk${restEnds ? ' resting' : ''}`}>
       <div className="row between wk-top">
-        <button className="wk-back" onClick={() => navigate('/')}>← Antrenmana dön</button>
+        <button className="wk-back" onClick={() => navigate('/')}>← {t('workout.back')}</button>
         <div className="row">
-          <span className="wk-live"><i aria-hidden="true">●</i> Aktif</span>
-          <button className="btn small" onClick={() => setMenu(true)} aria-label="Menü">⋯</button>
+          <span className="wk-live"><i aria-hidden="true">●</i> {t('workout.live')}</span>
+          <button className="btn small" onClick={() => setMenu(true)} aria-label={t('workout.menu')}>⋯</button>
         </div>
       </div>
       <h1 className="wk-title">{active.name}</h1>
       <div className="row between wk-meta">
         <WorkoutClock start={active.start} />
-        <span className="sub"><b>{done} / {total}</b> çalışma seti</span>
+        <span className="sub"><b>{done} / {total}</b> {t('workout.workSetsLabel')}</span>
       </div>
       <div className="progress"><div style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
 
@@ -327,51 +331,53 @@ export function Workout() {
               {ex && thumbSource(ex) && <ExerciseThumb ex={ex} />}
               <div className="grow">
                 <div className="eyebrow">
-                  Egzersiz {String(ei + 1).padStart(2, '0')} / {String(active.entries.length).padStart(2, '0')}
-                  {groups[ei] && <> · Süperset {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</>}
+                  {t('workout.exerciseOf', { i: String(ei + 1).padStart(2, '0'), n: String(active.entries.length).padStart(2, '0') })}
+                  {groups[ei] && <> · {t('workout.superset')} {groupLetter(groups[ei].group)}{groups[ei].pos + 1}</>}
                 </div>
                 <div className="exname exhead" lang={nameLang(ex)}>{ex?.name ?? entry.exId}</div>
                 <div className="sub">
                   {lastTop
-                    ? `Önceki seans: ${
-                        last?.distance
+                    ? t('workout.previous', {
+                        set: last?.distance
                           ? formatDistanceSet(lastTop)
                           : last?.timed
                           ? formatSet(lastTop, formatTimedLoad(last.bw, lastTop.w, unit), true)
-                          : formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit))
-                      }`
-                    : 'İlk kez'}
+                          : formatSet(lastTop, formatLoadWithUnit(last?.bw, lastTop.w, unit)),
+                      })
+                    : t('workout.firstTime')}
                 </div>
                 {targetSet && lastTop && (
                   <div className="extarget">
                     {entry.distance
-                      ? `Hedef ${formatDistanceSet(targetSet)}`
+                      ? t('workout.target', { set: formatDistanceSet(targetSet) })
                       : entry.timed
-                      ? `Hedef ${[
+                      ? t('workout.target', { set: [
                           formatTimedLoad(entry.bw, targetSet.w, unit),
                           targetSet.sides
                             ? `${formatDuration(targetSet.sides.L.r)} / ${formatDuration(targetSet.sides.R.r)}`
                             : formatDuration(targetSet.r),
                         ]
                           .filter(Boolean)
-                          .join(' · ')}`
-                      : `Hedef ${formatLoadWithUnit(entry.bw, targetSet.w, unit)} × ${targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}`}
+                          .join(' · ') })
+                      : t('workout.target', {
+                          set: `${formatLoadWithUnit(entry.bw, targetSet.w, unit)} × ${targetSet.sides ? `${targetSet.sides.L.r}/${targetSet.sides.R.r}` : targetSet.r}`,
+                        })}
                   </div>
                 )}
                 {hints[ei] && <div className="sub exhint">{hints[ei]}</div>}
                 {deloadWeek && <DeloadSetHint sets={entry.sets.filter((s) => !s.warmup && !s.drop).length} />}
                 <PlateauNote exId={entry.exId} />
                 {entry.bw && entry.bwKg === undefined && (
-                  <div className="warntext">Vücut ağırlığı kaydı yok: hacim ve 1RM yalnız ek yükle hesaplanır</div>
+                  <div className="warntext">{t('workout.noBodyweight')}</div>
                 )}
-                {lastNote && <div className="warntext">Not ({formatShortDay(lastNote.d)}): {lastNote.note}</div>}
+                {lastNote && <div className="warntext">{t('workout.lastNote', { date: formatShortDay(lastNote.d) })} {lastNote.note}</div>}
               </div>
             </div>
             {(noteOpen.has(ei) || !!entry.note) && (
               <input
                 className="input"
-                aria-label={`${ex?.name ?? entry.exId} notu`}
-                placeholder="Not: ağrı, takılma, enerji…"
+                aria-label={t('workout.noteAria', { name: ex?.name ?? entry.exId })}
+                placeholder={t('workout.notePlaceholder')}
                 maxLength={NOTE_MAX}
                 value={entry.note ?? ''}
                 onChange={(e) => setEntryNote(ei, e.target.value)}
@@ -380,26 +386,26 @@ export function Workout() {
 
             {entry.distance ? (
               <div className="setcols" aria-hidden="true">
-                <span>Set</span>
-                <span>Mesafe (km)</span>
-                <span>Süre</span>
-                <span>Sonuç</span>
+                <span>{t('workout.col.set')}</span>
+                <span>{t('workout.col.distanceKm')}</span>
+                <span>{t('workout.col.time')}</span>
+                <span>{t('workout.col.result')}</span>
               </div>
             ) : entry.unilateral ? (
               <div className="setcols side" aria-hidden="true">
-                <span>Set</span>
+                <span>{t('workout.col.set')}</span>
                 <span>
-                  {entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()} ·{' '}
-                  {entry.timed ? 'Süre (taraf başına)' : 'Tekrar (taraf başına)'}
+                  {entry.bw ? t('workout.col.addedLoad', { unit }) : unit.toUpperCase()} ·{' '}
+                  {entry.timed ? t('workout.col.timePerSide') : t('workout.col.repsPerSide')}
                 </span>
-                <span>Sonuç</span>
+                <span>{t('workout.col.result')}</span>
               </div>
             ) : (
               <div className="setcols" aria-hidden="true">
-                <span>Set</span>
-                <span>{entry.bw ? `Ek yük (${unit})` : unit === 'kg' ? 'KG' : unit.toUpperCase()}</span>
-                <span>{entry.timed ? 'Süre' : 'Tekrar'}</span>
-                <span>Sonuç</span>
+                <span>{t('workout.col.set')}</span>
+                <span>{entry.bw ? t('workout.col.addedLoad', { unit }) : unit.toUpperCase()}</span>
+                <span>{entry.timed ? t('workout.col.time') : t('workout.col.reps')}</span>
+                <span>{t('workout.col.result')}</span>
               </div>
             )}
             {(() => {
@@ -435,33 +441,33 @@ export function Workout() {
             })()}
 
             <div className="row wrap exactions">
-              <button className="btn small" onClick={() => addSet(ei)}>+ Set ekle</button>
+              <button className="btn small" onClick={() => addSet(ei)}>+ {t('workout.addSet')}</button>
               <button
                 className="btn small"
                 disabled={entry.timed || entry.distance || entry.sets.filter((s) => s.warmup).length >= MAX_WARMUPS}
                 onClick={() => addWarmup(ei)}
               >
-                + Isınma
+                + {t('workout.warmup')}
               </button>
-              {!entry.distance && <button className="btn small" onClick={() => setPlateEntry(ei)}>Plakalar</button>}
+              {!entry.distance && <button className="btn small" onClick={() => setPlateEntry(ei)}>{t('workout.plates')}</button>}
               {ex && !hasCompletedWork(entry) && (
-                <button className="btn small" onClick={() => setSwapEntryIdx(ei)}>Değiştir</button>
+                <button className="btn small" onClick={() => setSwapEntryIdx(ei)}>{t('workout.swap')}</button>
               )}
               <button
                 className="btn small"
-                aria-label={`${ex?.name ?? entry.exId} yukarı taşı`}
+                aria-label={t('workout.moveUpAria', { name: ex?.name ?? entry.exId })}
                 disabled={ei === 0}
                 onClick={() => moveCard(ei, -1)}
               >
-                <span aria-hidden="true">↑ </span>Yukarı taşı
+                <span aria-hidden="true">↑ </span>{t('workout.moveUp')}
               </button>
               <button
                 className="btn small"
-                aria-label={`${ex?.name ?? entry.exId} aşağı taşı`}
+                aria-label={t('workout.moveDownAria', { name: ex?.name ?? entry.exId })}
                 disabled={ei === active.entries.length - 1}
                 onClick={() => moveCard(ei, 1)}
               >
-                <span aria-hidden="true">↓ </span>Aşağı taşı
+                <span aria-hidden="true">↓ </span>{t('workout.moveDown')}
               </button>
               {ei > 0 && (
                 <button
@@ -469,7 +475,7 @@ export function Workout() {
                   aria-pressed={!!entry.linked}
                   onClick={() => toggleSuperset(ei)}
                 >
-                  Süperset (öncekiyle)
+                  {t('workout.supersetWithPrev')}
                 </button>
               )}
               <button
@@ -478,7 +484,7 @@ export function Workout() {
                 disabled={!!entry.distance}
                 onClick={() => toggleUnilateral(ei)}
               >
-                Tek taraflı (sol/sağ)
+                {t('workout.unilateral')}
               </button>
               <button
                 className={`chip${entry.timed ? ' on' : ''}`}
@@ -486,7 +492,7 @@ export function Workout() {
                 disabled={hasCompletedWork(entry) || !!entry.distance}
                 onClick={() => toggleTimed(ei)}
               >
-                Süreli (sn)
+                {t('workout.timed')}
               </button>
               <button
                 className={`chip${entry.distance ? ' on' : ''}`}
@@ -494,7 +500,7 @@ export function Workout() {
                 disabled={hasCompletedWork(entry)}
                 onClick={() => toggleDistance(ei)}
               >
-                Mesafe (km)
+                {t('workout.distance')}
               </button>
               <button
                 className={`chip${entry.note ? ' on' : ''}`}
@@ -508,11 +514,11 @@ export function Workout() {
                   })
                 }
               >
-                Not
+                {t('workout.note')}
               </button>
             </div>
             {hasCompletedWork(entry) && (
-              <div className="sub exswaphint">Tamamlanmış set var; egzersizi değiştirmek için önce setlerin işaretini geri al.</div>
+              <div className="sub exswaphint">{t('workout.swapLocked')}</div>
             )}
           </div>
         )
@@ -520,17 +526,17 @@ export function Workout() {
 
       {active.entries.length === 0 && (
         <div className="card">
-          <p className="sub" style={{ margin: 0 }}>Henüz egzersiz yok. Aşağıdan ekleyerek başla; daha önce yaptığın egzersiz son seansındaki ağırlık ve tekrarla gelir.</p>
+          <p className="sub" style={{ margin: 0 }}>{t('workout.empty')}</p>
         </div>
       )}
-      <button className={`btn block${active.entries.length === 0 ? ' primary' : ''}`} onClick={() => setPicking(true)}>+ Egzersiz ekle</button>
-      <button className="btn primary block wk-finish" onClick={finish}>Bitir ✓</button>
+      <button className={`btn block${active.entries.length === 0 ? ' primary' : ''}`} onClick={() => setPicking(true)}>+ {t('workout.addExercise')}</button>
+      <button className="btn primary block wk-finish" onClick={finish}>{t('workout.finish')} ✓</button>
 
       {restEnds && <RestTimer endsAt={restEnds} onChange={setRestEnds} />}
 
-      <BottomSheet open={picking} onClose={() => setPicking(false)} title="Egzersiz ekle">
+      <BottomSheet open={picking} onClose={() => setPicking(false)} title={t('workout.addExercise')}>
         <ExerciseBrowser
-          actionLabel="Ekle"
+          actionLabel={t('workout.add')}
           onSelect={(ex) => {
             addExerciseToActive(ex.id, {
               side: isUnilateralName(ex.name),
@@ -545,7 +551,7 @@ export function Workout() {
         />
       </BottomSheet>
 
-      <BottomSheet open={swapEntryIdx !== null} onClose={() => setSwapEntryIdx(null)} title="Egzersizi değiştir">
+      <BottomSheet open={swapEntryIdx !== null} onClose={() => setSwapEntryIdx(null)} title={t('workout.swapTitle')}>
         {swapEntryIdx !== null && active.entries[swapEntryIdx] && byId.get(active.entries[swapEntryIdx].exId) && (
           <SwapSheet
             current={byId.get(active.entries[swapEntryIdx].exId)!}
@@ -565,7 +571,7 @@ export function Workout() {
         )}
       </BottomSheet>
 
-      <BottomSheet open={plateEntry !== null} onClose={() => setPlateEntry(null)} title="Plaka hesaplayıcı">
+      <BottomSheet open={plateEntry !== null} onClose={() => setPlateEntry(null)} title={t('workout.plateCalc')}>
         {plateEntry !== null && active.entries[plateEntry] && (
           <PlateCalculator
             initialKg={plateTargets(active.entries[plateEntry].sets).initial}
@@ -574,10 +580,10 @@ export function Workout() {
         )}
       </BottomSheet>
 
-      <BottomSheet open={menu} onClose={() => setMenu(false)} title="Antrenman">
+      <BottomSheet open={menu} onClose={() => setMenu(false)} title={t('workout.menuTitle')}>
         <div className="stack">
           <label className="field">
-            <span className="sub">Antrenman notu (enerji, uyku, belirti…)</span>
+            <span className="sub">{t('workout.workoutNote')}</span>
             <textarea
               className="input"
               rows={3}
@@ -589,14 +595,14 @@ export function Workout() {
           <button
             className="btn danger block"
             onClick={() => {
-              if (confirm('Bu antrenman silinsin mi? Kaydedilmeyecek.')) {
+              if (confirm(t('workout.discardConfirm'))) {
                 discardActiveWithUndo(restEnds)
                 setRestEnds(null)
                 setMenu(false)
               }
             }}
           >
-            Antrenmanı at
+            {t('workout.discard')}
           </button>
         </div>
       </BottomSheet>

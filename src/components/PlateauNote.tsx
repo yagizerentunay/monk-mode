@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo } from 'react'
 import { detectPlateau } from '../lib/plateau.ts'
 import { useStore } from '../store/useStore.ts'
@@ -9,7 +10,7 @@ export function PlateauNote({ exId }: { exId: string }) {
   if (!plateau) return null
   return (
     <div className="warntext" role="note">
-      Plato: {plateau.sessions} seanstır yeni rekor yok. Ağırlığı ~%10 düşürüp toparlan ya da tekrar aralığını değiştir.
+      {t('plateau.note', { sessions: t('count.sessions', { n: plateau.sessions }) })}
     </div>
   )
 }

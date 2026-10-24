@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { ExCfg, ProgressionRule, SetEntry, WorkoutEntry } from '../store/schema.ts'
 import { MAX_TIMED_SEC, TIMED_STEP_SEC } from './timed.ts'
 
@@ -19,13 +20,13 @@ export interface Prescription {
 export function prescriptionHint(reason: Prescription['reason'], rule?: ProgressionRule): string | null {
   switch (reason) {
     case 'increase':
-      return rule === 'fast' ? 'Ağırlık artırıldı: geçen seans üst sınırdaydın' : 'Ağırlık artırıldı: iki seans üst sınırda kaldın'
+      return rule === 'fast' ? t('progression.increasedFast') : t('progression.increased')
     case 'confirm':
-      return 'Bir seans daha üst sınırda kalırsan ağırlık artar'
+      return t('progression.confirm')
     case 'need-rir':
-      return 'Ağırlık artışı için setlere RIR gir (en az 2)'
+      return t('progression.needRir')
     case 'assist-rep':
-      return 'Asistli hareket: asist aynı kalır, bir tekrar ekle'
+      return t('progression.assistRep')
     default:
       return null
   }

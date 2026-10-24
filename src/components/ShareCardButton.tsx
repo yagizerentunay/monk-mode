@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { shareSummaryCard, type CardName } from '../lib/summaryCard.ts'
 import { useExercises } from '../lib/useExercises.ts'
@@ -23,9 +24,9 @@ export function ShareCardButton({ workout, prs, className = 'btn block' }: Props
     setMessage(null)
     try {
       const r = await shareSummaryCard(workout, { unit, prs, names: (id) => byId.get(id)?.name ?? id })
-      if (r === 'downloaded') setMessage('Özet kartı indirildi.')
+      if (r === 'downloaded') setMessage(t('shareCard.downloaded'))
     } catch {
-      setMessage('Özet kartı hazırlanamadı.')
+      setMessage(t('shareCard.failed'))
     } finally {
       setBusy(false)
     }
@@ -34,7 +35,7 @@ export function ShareCardButton({ workout, prs, className = 'btn block' }: Props
   return (
     <>
       <button className={className} onClick={() => void share()} disabled={busy}>
-        {busy ? 'Hazırlanıyor…' : 'Paylaş'}
+        {busy ? t('shareCard.preparing') : t('shareCard.share')}
       </button>
       {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}
     </>

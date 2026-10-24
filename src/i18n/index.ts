@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { createElement, Fragment, useSyncExternalStore, type ReactNode } from 'react'
 import { en, type Plural } from './en.ts'
 import { tr, type MessageKey } from './tr.ts'
 
@@ -109,4 +109,19 @@ export function labels<K extends string>(keys: Record<K, MessageKey>): Readonly<
   const out = {} as Record<K, string>
   for (const k of Object.keys(keys) as K[]) Object.defineProperty(out, k, { get: () => t(keys[k]), enumerable: true })
   return out
+}
+
+/**
+ * Metnin içine React öğesi yerleştirir: `tNodes('swap.insteadOf', { name: <span lang="en">…</span> })`.
+ * `nodes` içindeki yer tutucular öğeyle, `params` içindekiler metinle doldurulur. Sözcük sırası dile göre
+ * değiştiği için cümle parçalara bölünmeden tek anahtarda kalır.
+ */
+export function tNodes(key: MessageKey, nodes: Record<string, ReactNode>, params?: Params): ReactNode[] {
+  return t(key, params)
+    .split(/(\{\w+\})/)
+    .filter((part) => part !== '')
+    .map((part, i) => {
+      const name = /^\{(\w+)\}$/.exec(part)?.[1]
+      return name !== undefined && Object.hasOwn(nodes, name) ? createElement(Fragment, { key: i }, nodes[name]) : part
+    })
 }
