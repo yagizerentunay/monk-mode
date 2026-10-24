@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { migrateWithReport, type MigrateResult } from './migrate.ts'
 import type { State } from './schema.ts'
 
@@ -25,10 +26,10 @@ export function importBackupWithReport(text: string): MigrateResult {
   try {
     parsed = JSON.parse(text)
   } catch {
-    throw new Error('Dosya geçerli bir JSON değil.')
+    throw new Error(t('backupFile.notJson'))
   }
   if (typeof parsed !== 'object' || parsed === null || (parsed as { app?: unknown }).app !== APP_MARK) {
-    throw new Error('Bu dosya bir monk-mode yedeği değil.')
+    throw new Error(t('backupFile.notBackup'))
   }
   return migrateWithReport((parsed as { state?: unknown }).state)
 }

@@ -1,3 +1,5 @@
+import { t, type MessageKey } from '../i18n/index.ts'
+import { formatDateTime } from './calendar.ts'
 import { localizeDecimal } from './units.ts'
 import { STORAGE_KEY } from '../store/persist.ts'
 import { listSnapshots } from '../store/snapshots.ts'
@@ -41,12 +43,12 @@ async function safe<T>(fn: () => T | Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-const AUDIO_TEXT: Record<string, [string, DiagStatus]> = {
-  running: ['hazır', 'ok'],
-  none: ['henüz açılmadı (ekrana bir kez dokun)', 'info'],
-  suspended: ['askıda (ekrana dokununca açılır)', 'warn'],
-  interrupted: ['kesintiye uğradı (ekrana dokununca açılır)', 'warn'],
-  closed: ['kapalı', 'warn'],
+const AUDIO_TEXT: Record<string, [MessageKey, DiagStatus]> = {
+  running: ['diag.audio.running', 'ok'],
+  none: ['diag.audio.none', 'info'],
+  suspended: ['diag.audio.suspended', 'warn'],
+  interrupted: ['diag.audio.interrupted', 'warn'],
+  closed: ['diag.audio.closed', 'warn'],
 }
 
 /** Tarayıcıdan tanılama satırlarını toplar. */
@@ -54,17 +56,17 @@ export async function collectDiagnostics(version: string, lastBackupAt?: number)
   const rows: DiagRow[] = []
   const add = (label: string, value: string, status: DiagStatus = 'info') => rows.push({ label, value, status })
 
-  add('Sürüm', `v${version} · ${currentEntry()?.split('/').pop() ?? 'geliştirme'}`)
-  add('Açılış', isStandalone() ? 'ana ekrandan (uygulama)' : 'tarayıcı sekmesi', isStandalone() ? 'ok' : 'info')
-  add('Bağlantı', navigator.onLine ? 'çevrimiçi' : 'çevrimdışı')
+  add(t('diag.version'), `v${version} · ${currentEntry()?.split('/').pop() ?? t('diag.dev')}`)
+  add(t('diag.launch'), isStandalone() ? t('diag.launch.standalone') : t('diag.launch.tab'), isStandalone() ? 'ok' : 'info')
+  add(t('diag.connection'), navigator.onLine ? t('diag.online') : t('diag.offline'))
 
   const sw = await safe<readonly [string, DiagStatus]>(async () => {
-    if (!('serviceWorker' in navigator)) return ['desteklenmiyor', 'warn'] as const
+    if (!('serviceWorker' in navigator)) return [t('common.unsupported'), 'warn'] as const
     const reg = await navigator.serviceWorker.getRegistration()
-    if (!reg) return ['kayıtlı değil', 'warn'] as const
-    return [navigator.serviceWorker.controller ? 'etkin, sayfayı kontrol ediyor' : 'kayıtlı, bir sonraki açılışta etkin', 'ok'] as const
-  }, ['okunamadı', 'warn'] as const)
-  add('Çevrimdışı çalışma', sw[0], sw[1])
+    if (!reg) return [t('diag.sw.none'), 'warn'] as const
+    return [navigator.serviceWorker.controller ? t('diag.sw.active') : t('diag.sw.next'), 'ok'] as const
+  }, [t('diag.unreadable'), 'warn'] as const)
+  add(t('diag.offlineMode'), sw[0], sw[1])
 
   const cached = await safe(async () => {
     if (typeof caches === 'undefined') return null
@@ -74,35 +76,35 @@ export async function collectDiagnostics(version: string, lastBackupAt?: number)
     }
     return false
   }, null)
-  if (cached !== null) add('Egzersiz verisi önbellekte', cached ? 'evet' : 'hayır', cached ? 'ok' : 'warn')
+  if (cached !== null) add(t('diag.cached'), cached ? t('diag.yes') : t('diag.no'), cached ? 'ok' : 'warn')
 
   const persist = await safe(getPersistStatus, 'unsupported' as const)
   add(
-    'Kalıcı depolama',
-    persist === 'persisted' ? 'açık' : persist === 'not-persisted' ? 'kapalı' : 'desteklenmiyor',
+    t('settings.persist'),
+    persist === 'persisted' ? t('common.on') : persist === 'not-persisted' ? t('common.off') : t('common.unsupported'),
     persist === 'persisted' ? 'ok' : 'warn',
   )
 
   const estimate = await safe(async () => (navigator.storage?.estimate ? navigator.storage.estimate() : null), null)
   if (estimate?.usage !== undefined && estimate.quota) {
-    add('Depolama', `${formatBytes(estimate.usage)} kullanılıyor / ${formatBytes(estimate.quota)} sınır`)
+    add(t('diag.storage'), t('diag.storageValue', { used: formatBytes(estimate.usage), quota: formatBytes(estimate.quota) }))
   }
   const dataSize = await safe(() => localStorage.getItem(STORAGE_KEY)?.length ?? 0, -1)
-  add('Kayıtlı veri', dataSize < 0 ? 'okunamadı' : dataSize === 0 ? 'henüz yok' : formatBytes(dataSize), dataSize >= 0 ? 'info' : 'warn')
+  add(t('diag.data'), dataSize < 0 ? t('diag.unreadable') : dataSize === 0 ? t('folder.notYet') : formatBytes(dataSize), dataSize >= 0 ? 'info' : 'warn')
 
   const snaps = await safe(async () => (typeof indexedDB === 'undefined' ? null : await listSnapshots()), null)
   add(
-    'Otomatik kopyalar',
+    t('snapshots.title'),
     snaps === null
-      ? 'desteklenmiyor'
+      ? t('common.unsupported')
       : snaps.length === 0
-        ? 'henüz yok'
-        : `${snaps.length} kopya, son: ${new Date(snaps[0].at).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })}`,
+        ? t('folder.notYet')
+        : t('diag.snapshots', { n: snaps.length, last: formatDateTime(snaps[0].at) }),
     snaps === null ? 'warn' : snaps.length > 0 ? 'ok' : 'info',
   )
   add(
-    'Son dışa yedek',
-    lastBackupAt ? new Date(lastBackupAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : 'hiç alınmadı',
+    t('diag.lastBackup'),
+    lastBackupAt ? formatDateTime(lastBackupAt) : t('settings.never'),
     lastBackupAt ? 'ok' : 'warn',
   )
 
@@ -110,12 +112,13 @@ export async function collectDiagnostics(version: string, lastBackupAt?: number)
     () => typeof navigator.canShare === 'function' && navigator.canShare({ files: [new File(['{}'], 'x.json', { type: 'application/json' })] }),
     false,
   )
-  add('Dosya paylaşımı', share ? 'destekleniyor (yedek paylaşım menüsüyle)' : 'yok (yedek indirilir)', share ? 'ok' : 'info')
+  add(t('diag.share'), share ? t('diag.share.yes') : t('diag.share.no'), share ? 'ok' : 'info')
 
-  const audio = AUDIO_TEXT[audioState()] ?? [audioState(), 'info']
-  add('Dinlenme sesi', audio[0], audio[1])
-  add('Titreşim', 'vibrate' in navigator ? 'destekleniyor' : 'yok (iPhone desteklemez)', 'vibrate' in navigator ? 'ok' : 'info')
-  add('Ekranı açık tutma', 'wakeLock' in navigator ? 'destekleniyor' : 'yok', 'wakeLock' in navigator ? 'ok' : 'warn')
+  const audioKnown = AUDIO_TEXT[audioState()]
+  const audio: [string, DiagStatus] = audioKnown ? [t(audioKnown[0]), audioKnown[1]] : [audioState(), 'info']
+  add(t('diag.restSound'), audio[0], audio[1])
+  add(t('diag.vibration'), 'vibrate' in navigator ? t('diag.supported') : t('diag.vibration.no'), 'vibrate' in navigator ? 'ok' : 'info')
+  add(t('diag.wakeLock'), 'wakeLock' in navigator ? t('diag.supported') : t('diag.none'), 'wakeLock' in navigator ? 'ok' : 'warn')
 
   return rows
 }
@@ -123,8 +126,8 @@ export async function collectDiagnostics(version: string, lastBackupAt?: number)
 /** Kopyalanacak düz metin rapor. */
 export function diagnosticsReport(rows: DiagRow[], userAgent: string, now: Date = new Date()): string {
   return [
-    `monk-mode tanılama · ${now.toISOString()}`,
+    t('diag.reportTitle', { at: now.toISOString() }),
     ...rows.map((r) => `${r.label}: ${r.value}`),
-    `Tarayıcı: ${userAgent}`,
+    t('diag.browser', { ua: userAgent }),
   ].join('\n')
 }

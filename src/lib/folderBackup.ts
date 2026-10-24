@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { dayString } from './workout.ts'
 
 /**
@@ -82,7 +83,7 @@ export async function writeBackupFile(dir: DirLike, text: string, now: Date): Pr
   await writable.write(text)
   await writable.close()
   const expected = new TextEncoder().encode(text).length
-  if ((await file.getFile()).size !== expected) throw new Error('Yedek dosyası eksik yazıldı.')
+  if ((await file.getFile()).size !== expected) throw new Error(t('folder.incomplete'))
 
   try {
     const names: string[] = []

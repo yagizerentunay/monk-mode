@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { t } from '../i18n/index.ts'
 import { useUpdateAvailable } from '../lib/updateCheck.ts'
 
 /**
@@ -13,15 +14,15 @@ export function UpdateBanner() {
   return (
     <div className="card banner stack update-banner" role="status">
       <div>
-        <b className="banner-title">Yeni sürüm hazır{update.version ? ` (v${update.version})` : ''}</b>
-        <div className="sub">Yenileyince güncellenir; kayıtların ve devam eden antrenmanın yerinde kalır.</div>
+        <b className="banner-title">{t('update.title')}{update.version ? ` (v${update.version})` : ''}</b>
+        <div className="sub">{t('update.body')}</div>
       </div>
       <div className="row">
         <button className="btn primary small grow" onClick={() => location.reload()}>
-          Yenile
+          {t('diag.refresh')}
         </button>
         <button className="btn small grow" onClick={() => setLater(true)}>
-          Sonra
+          {t('update.later')}
         </button>
       </div>
     </div>

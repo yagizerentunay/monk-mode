@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { labels, t } from '../i18n/index.ts'
+import { formatDateTime } from '../lib/calendar.ts'
 import { KEEP_FILES } from '../lib/folderBackup.ts'
 import {
   backupToFolder,
@@ -10,13 +12,14 @@ import {
   type FolderStatus,
 } from '../store/folderBackup.ts'
 
-const RESULT_TEXT: Record<FolderResult | 'cancelled', string | null> = {
-  saved: '✓ Klasöre yedeklendi.',
-  skipped: null,
-  cancelled: null,
-  'needs-permission': 'Klasöre yazma izni verilmedi.',
-  failed: 'Klasöre yazılamadı. Klasör silinmiş ya da taşınmış olabilir; yeniden seçmeyi dene.',
-}
+const RESULT_TEXT = labels<Exclude<FolderResult, 'skipped'>>({
+  saved: 'folder.saved',
+  'needs-permission': 'folder.noPermission',
+  failed: 'folder.failed',
+})
+
+const resultText = (r: FolderResult | 'cancelled'): string | null =>
+  r === 'skipped' || r === 'cancelled' ? null : r === 'saved' ? `✓ ${RESULT_TEXT[r]}` : RESULT_TEXT[r]
 
 /**
  * Ayarlar'da klasöre otomatik yedek (yalnız masaüstü Chromium). Seçilen klasöre günde bir dosya yazılır;
@@ -41,57 +44,53 @@ export function FolderBackupCard() {
     setBusy(true)
     const result = await action()
     setBusy(false)
-    setMessage(RESULT_TEXT[result])
+    setMessage(resultText(result))
     await refresh()
   }
 
   return (
     <div className="card stack">
-      <div className="eyebrow">Klasöre otomatik yedek</div>
+      <div className="eyebrow">{t('folder.title')}</div>
       <p className="sub" style={{ margin: 0 }}>
-        Bir klasör seç; veri her değiştiğinde (antrenman bitince, uygulamadan çıkınca, açılışta) günde bir dosya
-        olarak oraya yazılır, son {KEEP_FILES} gün tutulur. Klasör OneDrive, Drive ya da Dropbox ile eşitleniyorsa
-        yedeğin buluta da gider. Tarayıcı yeniden başladığında izin istenebilir.
+        {t('folder.hint', { n: KEEP_FILES })}
       </p>
       {status ? (
         <>
           <div className="row between">
-            <span>Klasör</span>
+            <span>{t('folder.folder')}</span>
             <span className="sub" style={{ margin: 0 }}>{status.name}</span>
           </div>
           <div className="row between">
-            <span>Son klasör yedeği</span>
+            <span>{t('folder.last')}</span>
             <span className="sub" style={{ margin: 0 }}>
-              {status.lastAt
-                ? new Date(status.lastAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' })
-                : 'henüz yok'}
+              {status.lastAt ? formatDateTime(status.lastAt) : t('folder.notYet')}
             </span>
           </div>
           <div className="row between">
-            <span>Yazma izni</span>
+            <span>{t('folder.permission')}</span>
             <span className="sub" style={{ margin: 0 }}>
-              {status.permission === 'granted' ? 'var' : 'gerekli (Şimdi yedekle ile ver)'}
+              {status.permission === 'granted' ? t('folder.granted') : t('folder.needed')}
             </span>
           </div>
           <button className="btn block" disabled={busy} onClick={() => void run(() => backupToFolder({ ask: true }))}>
-            Şimdi yedekle
+            {t('folder.backupNow')}
           </button>
           <div className="row">
             <button className="btn small grow" disabled={busy} onClick={() => void run(chooseFolder)}>
-              Klasörü değiştir
+              {t('folder.change')}
             </button>
             <button
               className="btn small grow"
               disabled={busy}
-              onClick={() => void removeFolder().then(() => { setMessage('Klasör yedeği kapatıldı. Klasördeki dosyalar silinmedi.'); return refresh() })}
+              onClick={() => void removeFolder().then(() => { setMessage(t('folder.removed')); return refresh() })}
             >
-              Kapat
+              {t('common.close')}
             </button>
           </div>
         </>
       ) : (
         <button className="btn block" disabled={busy} onClick={() => void run(chooseFolder)}>
-          Klasör seç
+          {t('folder.choose')}
         </button>
       )}
       {message && <p className="sub" role="status" style={{ margin: 0 }}>{message}</p>}

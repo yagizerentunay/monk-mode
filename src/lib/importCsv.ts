@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { Unit } from './units.ts'
 import type { DistanceUnit, ImportedEntry, ImportedSet, ImportedWorkout, ParsedImport } from './importTypes.ts'
 import { clampDistanceSec } from './distance.ts'
@@ -231,7 +232,7 @@ function finish(
   skippedRows: number,
 ): ParsedImport {
   const warnings: string[] = []
-  if (skippedRows > 0) warnings.push(`${skippedRows} satır atlandı (tekrarı, set süresi ve mesafesi olmayan ya da türü karışık setler)`)
+  if (skippedRows > 0) warnings.push(t('importCsv.skippedRows', { n: skippedRows }))
   return { format, unit, ...(distanceUnit ? { distanceUnit } : {}), workouts: builder.result(), skippedRows, warnings }
 }
 
@@ -346,13 +347,13 @@ function parseHevy(header: string[], rows: string[][]): ParsedImport {
 export function parseImport(text: string): ParsedImport {
   const all = parseCsv(text)
   if (all.length === 0 || all.every(isBlankRow)) {
-    throw new Error('Dosya boş görünüyor. Strong veya Hevy dışa aktarımı olan bir CSV seç.')
+    throw new Error(t('importCsv.empty'))
   }
   const header = all[0].map((h) => h.trim().toLowerCase())
   const rows = all.slice(1)
   if (header.includes('exercise_title') && header.includes('start_time')) return parseHevy(header, rows)
   if (header.includes('exercise name') && header.includes('set order')) return parseStrong(header, rows)
   throw new Error(
-    'Bu dosya bir Strong veya Hevy dışa aktarımı gibi görünmüyor. Strong dışa aktarımı İngilizce olmalı (uygulama dilini İngilizce yapıp yeniden dışa aktar).',
+    t('importCsv.unknown'),
   )
 }
