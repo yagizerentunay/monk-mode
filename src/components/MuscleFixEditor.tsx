@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { t } from '../i18n/index.ts'
 import type { Exercise } from '../lib/exercises.ts'
 import { muscleLabel } from '../lib/labels.ts'
 import { normalizeMuscleFix, sameMuscleFix, selectionOf, toggleMuscle, type MuscleFix } from '../lib/muscleFix.ts'
@@ -51,13 +52,13 @@ export function MuscleFixEditor({ ex, onClose }: Props) {
 
   return (
     <div className="stack musclefix">
-      <div className="exname">Kasları düzelt</div>
-      <div className="sub">Birincil kaslar kas haritasında tam set, yardımcı kaslar {SECONDARY_WEIGHT} set sayılır.</div>
-      <div className="eyebrow">Birincil</div>
+      <div className="exname">{t('fix.title')}</div>
+      <div className="sub">{t('fix.hint', { w: SECONDARY_WEIGHT })}</div>
+      <div className="eyebrow">{t('fix.primary')}</div>
       <MuscleChips group="primary" sel={sel} onToggle={toggle} />
-      <div className="eyebrow">Yardımcı</div>
+      <div className="eyebrow">{t('fix.secondary')}</div>
       <MuscleChips group="secondary" sel={sel} onToggle={toggle} />
-      {!fix && <div className="sub" role="note">En az bir birincil kas seç.</div>}
+      {!fix && <div className="sub" role="note">{t('fix.needPrimary')}</div>}
       <div className="row">
         <button
           type="button"
@@ -70,9 +71,9 @@ export function MuscleFixEditor({ ex, onClose }: Props) {
             onClose()
           }}
         >
-          Kaydet
+          {t('common.save')}
         </button>
-        <button type="button" className="btn" onClick={onClose}>Vazgeç</button>
+        <button type="button" className="btn" onClick={onClose}>{t('common.cancel')}</button>
       </div>
       {ex.original && (
         <button
@@ -83,7 +84,7 @@ export function MuscleFixEditor({ ex, onClose }: Props) {
             onClose()
           }}
         >
-          Orijinale dön
+          {t('fix.revert')}
         </button>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { t } from '../i18n/index.ts'
 import { fmt } from '../lib/muscleWeek.ts'
 import {
   MUSCLE_LABEL,
@@ -66,17 +67,17 @@ export function MuscleCard() {
   return (
     <div className="card stack">
       <div>
-        <div className="eyebrow">Kas dağılımı</div>
-        <h2 style={{ margin: 0 }}>Kas haritası</h2>
+        <div className="eyebrow">{t('muscleCard.eyebrow')}</div>
+        <h2 style={{ margin: 0 }}>{t('muscleCard.title')}</h2>
       </div>
       <div className="chips statseg">
         {PERIODS.map((p) => (
           <button key={p} className={`chip${period === p ? ' on' : ''}`} onClick={() => setPeriod(p)}>
-            Son {p} gün
+            {t('muscleCard.lastDays', { n: p })}
           </button>
         ))}
         <button className={`chip${isWeek ? ' on' : ''}`} onClick={() => setPeriod('week')}>
-          Bu hafta
+          {t('trend.thisWeekAxis')}
         </button>
       </div>
 
@@ -84,9 +85,9 @@ export function MuscleCard() {
 
       {selected && (
         <div className="musclesel" role="status">
-          <b>{MUSCLE_LABEL[selected]}</b>: {fmt(sets[selected])} set (
-          {selTarget > 0 ? `hedef ${fmt((selTarget * days) / 7)}` : 'hedef yok'})
-          {cmp && <>, geçen hafta {fmt(cmp.lastWeek[selected])}</>}
+          <b>{MUSCLE_LABEL[selected]}</b>: {t('muscleCard.selSets', { n: fmt(sets[selected]) })} (
+          {selTarget > 0 ? t('muscleCard.target', { n: fmt((selTarget * days) / 7) }) : t('muscleCard.noTarget')})
+          {cmp && <>, {t('muscleCard.lastWeek', { n: fmt(cmp.lastWeek[selected]) })}</>}
         </div>
       )}
 
@@ -105,7 +106,7 @@ export function MuscleCard() {
         <>
           {worked.length === 0 ? (
             <p className="sub" style={{ margin: 0 }}>
-              Bu dönemde tamamlanmış set yok. İlk antrenmanını bitirince dağılım burada görünür.
+              {t('muscleCard.empty')}
             </p>
           ) : (
             <div className="stack">
@@ -122,13 +123,13 @@ export function MuscleCard() {
               ))}
             </div>
           )}
-          {idle.length > 0 && worked.length > 0 && <div className="sub">Çalışmayan: {idle.map((m) => MUSCLE_LABEL[m]).join(', ')}</div>}
+          {idle.length > 0 && worked.length > 0 && <div className="sub">{t('muscleCard.idle', { list: idle.map((m) => MUSCLE_LABEL[m]).join(', ') })}</div>}
         </>
       )}
 
       <div className="sub">
-        Birincil kas 1, yardımcı kas 0,5 set sayılır; ısınma seti sayılmaz. Hedef, varsayılan olarak haftada kas başına {WEEKLY_TARGET_SETS} settir; kesin bilimsel bir hedef değil, ayarlanabilir bir kılavuzdur. Bir kasa dokununca o kas için egzersiz önerisi çıkar.{isWeek && ' Hafta, ayarlardaki hafta başlangıcına göre hesaplanır.'}{' '}
-        <Link to="/settings">Hedefleri ayarla</Link>
+        {t('muscleCard.explain', { n: WEEKLY_TARGET_SETS })}{isWeek && ` ${t('muscleCard.weekNote')}`}{' '}
+        <Link to="/settings">{t('muscleCard.setTargets')}</Link>
       </div>
     </div>
   )

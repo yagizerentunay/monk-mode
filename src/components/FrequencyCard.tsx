@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo, useState } from 'react'
 import { heatmapGrid, HEATMAP_WEEKS, monthSummary } from '../lib/frequency.ts'
 import { useStore } from '../store/useStore.ts'
@@ -16,9 +17,9 @@ export function FrequencyCard() {
   return (
     <div className="card stack">
       <div>
-        <div className="eyebrow">Son {HEATMAP_WEEKS} hafta</div>
-        <h2 style={{ margin: 0 }}>Antrenman sıklığı</h2>
-        <div className="sub">Bu ay {thisMonth} antrenman · geçen ay {lastMonth}</div>
+        <div className="eyebrow">{t('stats.lastWeeks', { weeks: t('count.weeks', { n: HEATMAP_WEEKS }) })}</div>
+        <h2 style={{ margin: 0 }}>{t('freq.title')}</h2>
+        <div className="sub">{t('freq.months', { thisMonth: t('count.workouts', { n: thisMonth }), lastMonth })}</div>
       </div>
       <FrequencyHeatmap grid={grid} weekStart={weekStart} />
     </div>

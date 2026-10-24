@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import type { Workout } from '../store/schema.ts'
 import { formatDayTitle, MONTH_NAMES, parseDay } from './calendar.ts'
 import { weekRanges } from './muscles.ts'
@@ -38,7 +39,7 @@ export interface HeatDay {
 
 /** "Salı, 6 Ekim 2026: 12 set" / "…: antrenman yok" (hücrenin erişilebilir adı ve ipucu). */
 export function cellLabel(day: HeatDay): string {
-  return `${formatDayTitle(day.date)}: ${day.sets > 0 ? `${day.sets} set` : 'antrenman yok'}`
+  return `${formatDayTitle(day.date)}: ${day.sets > 0 ? t('count.sets', { n: day.sets }) : t('freq.noWorkout')}`
 }
 
 export interface HeatmapGrid {

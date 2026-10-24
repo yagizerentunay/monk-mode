@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { fmt, fmtDelta, weekRows } from '../lib/muscleWeek.ts'
 import {
   MUSCLE_LABEL,
@@ -35,11 +36,11 @@ export function MuscleWeekList({ cmp, targets, selected, onSelect, showAll, onTo
     <>
       <div className="stack">
         <div className="sub">
-          Hafta devam ediyor (gün {cmp.ranges.daysElapsed}/7). Fark, geçen tam haftayla karşılaştırılır.
+          {t('muscleWeek.ongoing', { day: cmp.ranges.daysElapsed })}
         </div>
         {!anyWork && (
           <div className="sub">
-            Bu hafta ve geçen hafta tamamlanmış set yok. Antrenman bitirince karşılaştırma burada görünür.
+            {t('muscleWeek.empty')}
           </div>
         )}
         {rows.map((r) => (
@@ -52,18 +53,18 @@ export function MuscleWeekList({ cmp, targets, selected, onSelect, showAll, onTo
           >
             <span className="mrname">
               {MUSCLE_LABEL[r.muscle]}
-              {r.below && <span className="sr-only"> hedefe doğru, hafta sürüyor</span>}
+              {r.below && <span className="sr-only"> {t('muscleWeek.towardTarget')}</span>}
             </span>
             <span className="mrbar" aria-hidden="true">
               <span style={{ width: `${muscleLevel(r.sets, 7, r.target) * 100}%` }} />
             </span>
             <span className="mrval mrweek">
               {fmt(r.sets)}
-              {r.target > 0 ? <small>/{fmt(r.target)}</small> : <small className="tgt-none">hedef yok</small>}
+              {r.target > 0 ? <small>/{fmt(r.target)}</small> : <small className="tgt-none">{t('muscleCard.noTarget')}</small>}
             </span>
-            <span className={`mrdelta${r.delta > 0 ? ' up' : ''}`} title={`Geçen hafta ${fmt(r.lastWeek)} set`}>
+            <span className={`mrdelta${r.delta > 0 ? ' up' : ''}`} title={t('muscleWeek.lastWeekTitle', { n: fmt(r.lastWeek) })}>
               {fmtDelta(r.delta)}
-              <span className="sr-only"> geçen haftaya göre</span>
+              <span className="sr-only"> {t('muscleWeek.vsLastWeek')}</span>
             </span>
           </button>
         ))}
@@ -71,14 +72,14 @@ export function MuscleWeekList({ cmp, targets, selected, onSelect, showAll, onTo
 
       {behind.length > 0 && (
         <div className="underweek">
-          <b>Bu hafta hedefin altında</b>
+          <b>{t('muscleWeek.below')}</b>
           <div className="tgt-chips">
             {shown.map((u) => (
               <button
                 key={u.muscle}
                 type="button"
                 className="tgt-chip"
-                aria-label={`${MUSCLE_LABEL[u.muscle]} ${fmt(u.sets)}/${fmt(u.target)} set`}
+                aria-label={`${MUSCLE_LABEL[u.muscle]} ${fmt(u.sets)}/${fmt(u.target)} ${t('trend.sets')}`}
                 onClick={() => onSelect(u.muscle)}
               >
                 {MUSCLE_LABEL[u.muscle]} {fmt(u.sets)}/{fmt(u.target)}
@@ -87,15 +88,15 @@ export function MuscleWeekList({ cmp, targets, selected, onSelect, showAll, onTo
           </div>
           {behind.length > UNDER_TARGET_LIMIT && (
             <button type="button" className="tgt-more" aria-expanded={showAll} onClick={onToggleAll}>
-              {showAll ? 'Daha az göster' : `Tümünü gör (${behind.length})`}
+              {showAll ? t('records.showLess') : t('records.showAll', { n: behind.length })}
             </button>
           )}
-          <div className="sub">Hafta bitmedi; bunlar ilerleme göstergesidir, eksik değil.</div>
+          <div className="sub">{t('muscleWeek.progressNote')}</div>
         </div>
       )}
 
       {hidden.length > 0 && (
-        <div className="sub">Hedefi olmayan ve çalışılmayan: {hidden.map((m) => MUSCLE_LABEL[m]).join(', ')}</div>
+        <div className="sub">{t('muscleWeek.hidden', { list: hidden.map((m) => MUSCLE_LABEL[m]).join(', ') })}</div>
       )}
     </>
   )

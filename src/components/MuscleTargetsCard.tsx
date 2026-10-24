@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import {
   MAX_MUSCLE_TARGET,
   MUSCLE_LABEL,
@@ -27,11 +28,10 @@ export function MuscleTargetsEditor({ targets, onChange }: EditorProps) {
 
   return (
     <div className="card stack tgt-card">
-      <div className="eyebrow">Kas haritası</div>
-      <h2>Haftalık kas hedefleri</h2>
+      <div className="eyebrow">{t('muscleCard.title')}</div>
+      <h2>{t('targets.title')}</h2>
       <p className="sub" style={{ margin: 0 }}>
-        Kas başına haftalık set hedefi. Kesin bilimsel bir hedef değil, ayarlanabilir bir kılavuz: varsayılan {WEEKLY_TARGET_SETS} set,
-        0–{MAX_MUSCLE_TARGET} arası değiştirebilirsin. 0 yaparsan o kasa hedef konmaz ve eksik sayılmaz.
+        {t('targets.hint', { n: WEEKLY_TARGET_SETS, max: MAX_MUSCLE_TARGET })}
       </p>
       <div className="tgt-list">
         {MUSCLES.map((m) => {
@@ -41,24 +41,24 @@ export function MuscleTargetsEditor({ targets, onChange }: EditorProps) {
             <div key={m} className={`tgt-row${v !== WEEKLY_TARGET_SETS ? ' custom' : ''}`}>
               <span className="tgt-name">
                 {label}
-                {v === 0 && <small className="tgt-none">hedef yok</small>}
+                {v === 0 && <small className="tgt-none">{t('muscleCard.noTarget')}</small>}
               </span>
               <button
                 type="button"
                 className="btn small tgt-btn"
-                aria-label={`${label} hedefini azalt`}
+                aria-label={t('targets.decrease', { muscle: label })}
                 disabled={v <= 0}
                 onClick={() => step(m, -1)}
               >
                 −
               </button>
-              <output className="tgt-val" aria-label={`${label} haftalık hedef (set)`}>
+              <output className="tgt-val" aria-label={t('targets.valueAria', { muscle: label })}>
                 {v}
               </output>
               <button
                 type="button"
                 className="btn small tgt-btn"
-                aria-label={`${label} hedefini artır`}
+                aria-label={t('targets.increase', { muscle: label })}
                 disabled={v >= MAX_MUSCLE_TARGET}
                 onClick={() => step(m, 1)}
               >
@@ -69,7 +69,7 @@ export function MuscleTargetsEditor({ targets, onChange }: EditorProps) {
         })}
       </div>
       <button type="button" className="btn block" disabled={!custom} onClick={() => onChange(undefined)}>
-        Varsayılana dön
+        {t('targets.reset')}
       </button>
     </div>
   )

@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useEffect, useMemo, useState } from 'react'
 import { formatShortDay } from '../lib/calendar.ts'
 import { exerciseSummary } from '../lib/exerciseStats.ts'
@@ -44,7 +45,7 @@ export function GoalsCard() {
   useEffect(() => {
     const reached = useStore.getState().settleGoals()
     if (reached.length > 0) {
-      useToast.getState().show(`🎯 Hedefe ulaştın: ${reached.map((g) => nameOf(g.exId)).join(', ')}`)
+      useToast.getState().show(`🎯 ${t('goals.reachedToast', { names: reached.map((g) => nameOf(g.exId)).join(', ') })}`)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workouts, goals])
@@ -61,14 +62,12 @@ export function GoalsCard() {
   return (
     <div className="card stack goals">
       <div>
-        <div className="eyebrow">Kuvvet hedefleri</div>
-        <h2 style={{ margin: 0 }}>Hedefler</h2>
+        <div className="eyebrow">{t('goals.eyebrow')}</div>
+        <h2 style={{ margin: 0 }}>{t('goals.title')}</h2>
       </div>
       {goals.length === 0 && (
         <p className="sub" style={{ margin: 0 }}>
-          {exIds.length === 0
-            ? 'Hedef koymak için önce bir egzersizi ağırlık ve tekrarla kaydet.'
-            : 'Bir egzersiz için tahmini 1RM hedefi ve tarih koy; bu gidişle ne zaman ulaşacağını gör.'}
+          {exIds.length === 0 ? t('goals.needHistory') : t('goals.intro')}
         </p>
       )}
       {goals.map((g) => {
@@ -81,15 +80,15 @@ export function GoalsCard() {
               <div className="grow">
                 <div className="exname">{nameOf(g.exId)}</div>
                 <div className="sub">
-                  Hedef 1RM {formatWeight(g.target, unit)} {unit} · {formatShortDay(g.by, today)}
+                  {t('goals.target1rm', { value: `${formatWeight(g.target, unit)} ${unit}` })} · {formatShortDay(g.by, today)}
                 </div>
               </div>
-              {f.kind === 'reached' && <span className="badge ok">🎯 Ulaşıldı</span>}
+              {f.kind === 'reached' && <span className="badge ok">🎯 {t('goals.reached')}</span>}
             </div>
             <div
               className="progress"
               role="progressbar"
-              aria-label="Hedefe ilerleme"
+              aria-label={t('goals.progressAria')}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={f.kind === 'reached' ? 100 : pct}
@@ -98,24 +97,24 @@ export function GoalsCard() {
             </div>
             {current !== undefined && (
               <div className="sub">
-                Son 8 haftanın en iyisi {formatWeight(current, unit)} / {formatWeight(g.target, unit)} {unit}
+                {t('goals.best8', { value: `${formatWeight(current, unit)} / ${formatWeight(g.target, unit)} ${unit}` })}
               </div>
             )}
             <div className={`goal-forecast goal-${f.kind === 'eta' ? f.status : f.kind}`}>{describeForecast(f, g, unit, today)}</div>
             <div className="row">
-              <button className="btn small" onClick={() => setEditing(g)}>Düzenle</button>
-              <button className="btn small" onClick={() => deleteGoalWithUndo(g.id)}>Sil</button>
+              <button className="btn small" onClick={() => setEditing(g)}>{t('common.edit')}</button>
+              <button className="btn small" onClick={() => deleteGoalWithUndo(g.id)}>{t('set.delete')}</button>
             </div>
           </div>
         )
       })}
       {exIds.length > 0 && (
-        <button className="btn block" onClick={() => setEditing(newGoal())}>+ Hedef ekle</button>
+        <button className="btn block" onClick={() => setEditing(newGoal())}>+ {t('goals.add')}</button>
       )}
       <BottomSheet
         open={editing !== null}
         onClose={() => setEditing(null)}
-        title={editing && goals.some((g) => g.id === editing.id) ? 'Hedefi düzenle' : 'Yeni hedef'}
+        title={editing && goals.some((g) => g.id === editing.id) ? t('goals.edit') : t('goals.new')}
       >
         {editing && (
           <GoalForm
@@ -163,32 +162,32 @@ function GoalForm({ initial, exIds, nameOf, onSave, onCancel }: FormProps) {
   return (
     <div className="stack">
       <label className="field">
-        <span className="sub">Egzersiz</span>
-        <select className="input" value={exId} onChange={(e) => setExId(e.target.value)} aria-label="Hedef egzersiz">
+        <span className="sub">{t('stats.exerciseAria')}</span>
+        <select className="input" value={exId} onChange={(e) => setExId(e.target.value)} aria-label={t('goals.exerciseAria')}>
           {exIds.map((id) => (
             <option key={id} value={id}>{nameOf(id)}</option>
           ))}
         </select>
       </label>
       <label className="field">
-        <span className="sub">Hedef tahmini 1RM ({unit})</span>
+        <span className="sub">{t('goals.targetE1rm', { unit })}</span>
         <NumberField
           value={target}
-          label="Hedef 1RM"
+          label={t('goals.target1rmAria')}
           step={unit === 'lb' ? 5 : 2.5}
           toDisplay={(kg) => kgToUnit(kg, unit)}
           fromDisplay={(v) => unitToKg(v, unit)}
           onChange={(v) => setTarget(Math.max(0, v))}
         />
       </label>
-      {best !== undefined && <div className="sub">Şu ana kadarki en iyi tahmini 1RM: {formatWeight(best, unit)} {unit}</div>}
+      {best !== undefined && <div className="sub">{t('goals.bestSoFar', { value: `${formatWeight(best, unit)} ${unit}` })}</div>}
       <label className="field">
-        <span className="sub">Hedef tarih</span>
-        <input className="input" type="date" value={by} onChange={(e) => setBy(e.target.value)} aria-label="Hedef tarih" />
+        <span className="sub">{t('goals.targetDate')}</span>
+        <input className="input" type="date" value={by} onChange={(e) => setBy(e.target.value)} aria-label={t('goals.targetDate')} />
       </label>
       <div className="row">
-        <button className="btn small grow" onClick={onCancel}>Vazgeç</button>
-        <button className="btn primary small grow" disabled={!valid} onClick={save}>Kaydet</button>
+        <button className="btn small grow" onClick={onCancel}>{t('common.cancel')}</button>
+        <button className="btn primary small grow" disabled={!valid} onClick={save}>{t('common.save')}</button>
       </div>
     </div>
   )

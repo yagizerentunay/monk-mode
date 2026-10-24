@@ -1,3 +1,4 @@
+import { t } from '../i18n/index.ts'
 import { useMemo } from 'react'
 import { formatAxisDay, formatShortDay } from '../lib/calendar.ts'
 import { formatDistance, formatDistanceSet, formatLongClock } from '../lib/distance.ts'
@@ -41,8 +42,8 @@ export function ExerciseHistory({ exId }: { exId: string }) {
   if (summary.sessions === 0 || !summary.last) {
     return (
       <div className="stack">
-        <div className="eyebrow">Senin geçmişin</div>
-        <p className="sub" style={{ margin: 0 }}>Bu egzersizi henüz kaydetmedin. İlk seanstan sonra son performansın ve rekorun burada görünür.</p>
+        <div className="eyebrow">{t('exHistory.title')}</div>
+        <p className="sub" style={{ margin: 0 }}>{t('exHistory.empty')}</p>
       </div>
     )
   }
@@ -50,12 +51,12 @@ export function ExerciseHistory({ exId }: { exId: string }) {
   const { last, best, bestHold, distance } = summary
   return (
     <div className="stack">
-      <div className="eyebrow">Senin geçmişin · {summary.sessions} seans</div>
+      <div className="eyebrow">{t('exHistory.title')} · {t('count.sessions', { n: summary.sessions })}</div>
       {best && (
         <div>
           <div className="row statbig">
             <span className="bignum">{formatWeight(best.e1rm, unit)}</span>
-            <span className="statunit">{unit} · en iyi tahmini 1RM</span>
+            <span className="statunit">{unit} · {t('exHistory.bestE1rm')}</span>
           </div>
           <div className="sub">{formatSet({ w: best.w, r: best.r, done: true }, formatLoad(best.bw, best.w, unit))} · {formatShortDay(best.d)}</div>
         </div>
@@ -64,7 +65,7 @@ export function ExerciseHistory({ exId }: { exId: string }) {
         <div>
           <div className="row statbig">
             <span className="bignum">{formatDuration(bestHold.sec)}</span>
-            <span className="statunit">en uzun tutuş</span>
+            <span className="statunit">{t('stats.metric.longestHold')}</span>
           </div>
           <div className="sub">
             {formatSet({ w: bestHold.w, r: bestHold.sec, done: true }, formatTimedLoad(bestHold.bw, bestHold.w, unit), true)} · {formatShortDay(bestHold.d)}
@@ -75,20 +76,20 @@ export function ExerciseHistory({ exId }: { exId: string }) {
         <div>
           <div className="row statbig">
             <span className="bignum">{formatDistance(distance.totalM)}</span>
-            <span className="statunit">toplam · {formatLongClock(distance.totalSec)}</span>
+            <span className="statunit">{t('home.total')} · {formatLongClock(distance.totalSec)}</span>
           </div>
           {distance.longest && (
-            <div className="sub">En uzun: {formatDistanceSet({ m: distance.longest.m, r: distance.longest.sec })} · {formatShortDay(distance.longest.d)}</div>
+            <div className="sub">{t('records.longest')}: {formatDistanceSet({ m: distance.longest.m, r: distance.longest.sec })} · {formatShortDay(distance.longest.d)}</div>
           )}
           {distance.bestPace && (
             <div className="sub">
-              En iyi tempo: {formatLongClock(distance.bestPace.pace)} /km ({formatDistance(distance.bestPace.m)}) · {formatShortDay(distance.bestPace.d)}
+              {t('exHistory.bestPace', { pace: `${formatLongClock(distance.bestPace.pace)} /km`, distance: formatDistance(distance.bestPace.m) })} · {formatShortDay(distance.bestPace.d)}
             </div>
           )}
         </div>
       )}
       <div>
-        <div className="eyebrow muted">Son seans · {formatShortDay(last.d)}</div>
+        <div className="eyebrow muted">{t('exHistory.lastSession')} · {formatShortDay(last.d)}</div>
         <div className="sub">
           {last.sets
             .map((s) =>
@@ -105,9 +106,9 @@ export function ExerciseHistory({ exId }: { exId: string }) {
       {points.length >= 2 && (
         <LineChart
           points={points}
-          unit={distanceKind ? 'km' : timedKind ? 'sn' : unit}
+          unit={distanceKind ? 'km' : timedKind ? t('unit.sec') : unit}
           // Hedef tahmini 1RM'dir; süreli (saniye) ve mesafe (km) grafiğinde anlamı yok.
-          target={goal && !timedKind && !distanceKind ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: `Hedef ${formatWeight(goal.target, unit)} ${unit}` } : undefined}
+          target={goal && !timedKind && !distanceKind ? { value: Math.round(kgToUnit(goal.target, unit) * 10) / 10, label: t('workout.target', { set: `${formatWeight(goal.target, unit)} ${unit}` }) } : undefined}
         />
       )}
     </div>

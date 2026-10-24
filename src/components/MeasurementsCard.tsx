@@ -1,3 +1,4 @@
+import { locale, t } from '../i18n/index.ts'
 import { useState } from 'react'
 import { formatAxisDay } from '../lib/calendar.ts'
 import {
@@ -61,16 +62,16 @@ export function MeasurementsCard() {
     <div className="card stack">
       <div className="row between">
         <div>
-          <div className="eyebrow">Vücut ölçüleri</div>
-          <h2 style={{ margin: 0 }}>Ölçüler</h2>
+          <div className="eyebrow">{t('measure.eyebrow')}</div>
+          <h2 style={{ margin: 0 }}>{t('measure.title')}</h2>
         </div>
-        <button className="btn small" onClick={open}>Ölçü ekle</button>
+        <button className="btn small" onClick={open}>{t('measure.add')}</button>
       </div>
       {measurements.length === 0 ? (
-        <p className="sub" style={{ margin: 0 }}>Henüz ölçü yok. Bel, göğüs, kol, kalça ya da yağ oranını kaydedince seyri burada görünür.</p>
+        <p className="sub" style={{ margin: 0 }}>{t('measure.empty')}</p>
       ) : (
         <>
-          <div className="chips statseg" role="group" aria-label="Vücut ölçüsü">
+          <div className="chips statseg" role="group" aria-label={t('measure.chipsAria')}>
             {MEASURE_KEYS.map((k) => (
               <button key={k} className={`chip${selected === k ? ' on' : ''}`} aria-pressed={selected === k} onClick={() => setChosen(k)}>
                 {MEASURE_LABEL[k]}
@@ -81,13 +82,13 @@ export function MeasurementsCard() {
             <div>
               <div className="row statbig">
                 <span className="bignum">{formatDecimal(last.value)}</span>
-                <span className="statunit">{unit} · {MEASURE_LABEL[selected].toLocaleLowerCase('tr-TR')} · {formatAxisDay(last.d)}</span>
+                <span className="statunit">{unit} · {MEASURE_LABEL[selected].toLocaleLowerCase(locale())} · {formatAxisDay(last.d)}</span>
               </div>
               {delta === null ? (
-                <div className="sub">Karşılaştırma için bir ölçüm daha gerekli.</div>
+                <div className="sub">{t('measure.needAnother')}</div>
               ) : (
                 <div className="statdelta">
-                  {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{formatDecimal(delta)} {unit} · önceki ölçüme göre
+                  {delta > 0 ? '↗ +' : delta < 0 ? '↘ ' : '= '}{formatDecimal(delta)} {unit} · {t('measure.vsPrevious')}
                 </div>
               )}
             </div>
@@ -96,10 +97,10 @@ export function MeasurementsCard() {
         </>
       )}
 
-      <BottomSheet open={draft !== null} onClose={() => setDraft(null)} title="Bugünkü ölçüler">
+      <BottomSheet open={draft !== null} onClose={() => setDraft(null)} title={t('measure.today')}>
         {draft && (
           <div className="stack">
-            <p className="sub" style={{ margin: 0 }}>Ölçmediğin alanı boş bırak. Bugün için kayıt varsa yerine geçer.</p>
+            <p className="sub" style={{ margin: 0 }}>{t('measure.formHint')}</p>
             {MEASURE_KEYS.map((k) => (
               <label key={k} className="field">
                 <span className="sub">{fieldLabel(k)}</span>
@@ -111,9 +112,9 @@ export function MeasurementsCard() {
                 />
               </label>
             ))}
-            {invalid && <p className="warntext" role="alert" style={{ margin: 0 }}>Geçersiz değer: çevre 0-300 cm, yağ oranı 0-99,9 % arasında olmalı.</p>}
+            {invalid && <p className="warntext" role="alert" style={{ margin: 0 }}>{t('measure.invalid')}</p>}
             <button className="btn primary block" disabled={invalid || empty} onClick={save}>
-              Ölçüleri kaydet
+              {t('measure.save')}
             </button>
           </div>
         )}
