@@ -1,0 +1,7 @@
+# Warrior Monk visual system
+
+Use one neutral adult athletic character with stable body proportions, facial identity, clothing and skin material across a pair and across later exercises when possible. Premium digital anatomical illustration: semi-realistic sculpted grayscale anatomy between 3D reference and clean technical drawing, not photography. Dark charcoal equipment, neutral gray/ivory body, primary red `#E53935`, lighter muted secondary red. Transparent or dark charcoal background; no scenery, logos, watermarks or baked-in START/END labels. Thin movement arrows are optional if they do not cover anatomy.
+
+Keep camera, crop, apparent body size, light direction, bench/implement dimensions and plate count constant between phases. Select front, side, rear or three-quarter view for the specific movement. Do not force an angle that hides the working muscle or motion. Prefer 1024×1024 PNG masters for each frame and WebP deployment copies; a 2048×1024 combined panel is optional. Preserve alpha if the chosen background is transparent. Check readability at roughly 160 px wide and avoid oversized files for mobile/offline use.
+
+Use references only within their verified rights and role. Existing Monk local artwork may be inspected for palette and composition; upstream `0.jpg`/`1.jpg` can inform pose if accessible but cannot be copied into Atlas. Record the actual image tool/model and date when known. If exact model identity is unavailable, say so rather than inventing it.
