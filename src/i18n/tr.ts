@@ -861,7 +861,7 @@ export const tr = {
   'transfer.privacy': 'AirDrop ve Quick Share dosyayı doğrudan cihazdan cihaza gönderir; e-posta ve bulut dosyayı sunucuda tutar. Dosyada bütün antrenman verin var.',
   'transfer.sent': 'Dosya paylaşıldı. Diğer cihazda Al sekmesinden seç.',
   'transfer.downloaded': 'Dosya indirildi. Diğer cihaza ilet, orada Al sekmesinden seç.',
-  'transfer.receiveHint': 'Diğer cihazdan gelen dosyayı seç. Birleştirmeden önce neyin ekleneceğini gösteririm. iPhone\'da AirDrop ile gelen dosya Dosyalar\'a iner; buradan oradan seç.',
+  'transfer.receiveHint': 'Diğer cihazdan gelen dosyayı seç. Birleştirmeden önce neyin ekleneceğini gösteririm. iPhone\'da AirDrop ile gelen dosya Dosyalar\'a iner; dosyayı oradan seç.',
   'transfer.receiveAndroid': 'Uygulama ana ekrana eklenmişse Android\'de dosyayı paylaşım menüsünden doğrudan monk-mode\'a da gönderebilirsin.',
   'transfer.pick': 'Dosya seç',
   'transfer.preview': '{file}: {merged}{skipped}.',
