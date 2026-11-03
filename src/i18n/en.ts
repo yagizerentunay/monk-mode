@@ -187,6 +187,7 @@ export const en: Messages = {
   'home.doneToday': 'Done for today',
   'home.todaysWorkout': 'Today\'s workout',
   'home.workSets': { one: '{n} working set', other: '{n} working sets' },
+  'home.duration': 'usually ~{n} min',
   'home.startAgain': 'Start again',
   'home.startWorkout': 'Start workout',
   'home.noRoutine': 'No routine',

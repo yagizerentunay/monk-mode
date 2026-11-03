@@ -180,6 +180,7 @@ export const tr = {
   'home.doneToday': 'Bugün tamamlandı',
   'home.todaysWorkout': 'Bugünün antrenmanı',
   'home.workSets': '{n} çalışma seti',
+  'home.duration': 'genelde ~{n} dk',
   'home.startAgain': 'Tekrar başla',
   'home.startWorkout': 'Antrenmana başla',
   'home.noRoutine': 'Rutin yok',
