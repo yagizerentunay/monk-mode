@@ -267,7 +267,7 @@ export function exerciseHistory(workouts: Workout[], exId: string): ExercisePoin
     points.push({
       d: wk.d,
       topW: Math.max(0, ...sets.map((s) => effectiveLoad(entry, s.w))),
-      e1rm: Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r))),
+      e1rm: Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r, s.rir))),
     })
   }
   return points
@@ -294,6 +294,6 @@ export function isPR(previous: Workout[], entry: WorkoutEntry): boolean {
     return hold > 0 && hold > bestHold
   }
   const best = Math.max(0, ...exerciseHistory(previous, entry.exId).filter((p) => !p.distance).map((p) => p.e1rm))
-  const now = Math.max(0, ...workSets(entry.sets).map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r)))
+  const now = Math.max(0, ...workSets(entry.sets).map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r, s.rir)))
   return now > 0 && now > best
 }

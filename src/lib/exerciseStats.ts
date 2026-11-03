@@ -73,7 +73,7 @@ export function exerciseSummary(workouts: Workout[], exId: string): ExerciseSumm
       continue
     }
     for (const s of sets) {
-      const e1rm = estimate1RM(effectiveLoad(entry, s.w), s.r)
+      const e1rm = estimate1RM(effectiveLoad(entry, s.w), s.r, s.rir)
       if (e1rm > (summary.best?.e1rm ?? 0)) summary.best = { d: wk.d, w: s.w, r: s.r, e1rm, ...(entry.bw ? { bw: true } : {}) }
     }
   }

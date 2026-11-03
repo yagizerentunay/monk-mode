@@ -3,7 +3,7 @@ import type { Workout, WorkoutEntry } from '../store/schema.ts'
 import { exerciseSummary } from './exerciseStats.ts'
 import { bodyweightOn, comparableLast, effectiveLoad, formatLoad, formatLoadWithUnit } from './load.ts'
 import { detectPlateau } from './plateau.ts'
-import { epley } from './onerm.ts'
+import { epley, estimate1RM } from './onerm.ts'
 import { exerciseHistory, isPR, workoutVolume } from './workout.ts'
 
 const entry = (extra: Partial<WorkoutEntry>, sets: Array<[number, number]>, exId = 'pullup'): WorkoutEntry => ({
@@ -200,5 +200,27 @@ describe('exerciseSummary', () => {
     const s = exerciseSummary([wk(0, entry({}, [[60, 8]]))], 'pullup')
     expect(s.best).toEqual({ d: '2026-09-01', w: 60, r: 8, e1rm: epley(60, 8) })
     expect(s.last).not.toHaveProperty('bw')
+  })
+})
+
+describe('RIR tahmini 1RM değerine yansır', () => {
+  const rirEntry = (sets: Array<[number, number, number | undefined]>): WorkoutEntry => ({
+    exId: 'bench',
+    sets: sets.map(([w, r, rir]) => ({ w, r, done: true, ...(rir !== undefined ? { rir } : {}) })),
+  })
+
+  it('aynı yük ve tekrarda RIR değeri yüksek seans daha yüksek 1RM verir; RIR girilmemiş seans eskisi gibidir', () => {
+    const h = exerciseHistory([wk(0, rirEntry([[80, 5, undefined]])), wk(1, rirEntry([[80, 5, 3]]))], 'bench')
+    expect(h[0].e1rm).toBeCloseTo(epley(80, 5))
+    expect(h[1].e1rm).toBeCloseTo(estimate1RM(80, 5, 3))
+    expect(h[1].e1rm).toBeGreaterThan(h[0].e1rm)
+  })
+
+  it('özet ve PR aynı RIR hesaplı değeri kullanır', () => {
+    const before = [wk(0, rirEntry([[80, 5, 0]]))]
+    const next = rirEntry([[80, 5, 2]])
+    expect(isPR(before, next)).toBe(true)
+    expect(isPR(before, rirEntry([[80, 5, 0]]))).toBe(false)
+    expect(exerciseSummary([...before, wk(1, next)], 'bench').best?.e1rm).toBeCloseTo(estimate1RM(80, 5, 2))
   })
 })
