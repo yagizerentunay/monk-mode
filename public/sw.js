@@ -5,7 +5,10 @@ const VERSION = 'v8'
 const SHELL = `monk-shell-${VERSION}` // index.html + derlenmiş (hash'li) varlıklar
 const DATA = `monk-data-${VERSION}` // egzersiz veri seti
 const IMAGES = `monk-img-${VERSION}` // gezilen egzersiz referans görselleri
-const KEEP = [SHELL, DATA, IMAGES]
+// Android paylaşım menüsünden gelen yedek dosyası (manifest share_target); sürümden bağımsız, kısa ömürlü.
+// Ad ve anahtar src/lib/sharedFile.ts ile aynı olmalı.
+const SHARE = 'monk-share'
+const KEEP = [SHELL, DATA, IMAGES, SHARE]
 const MAX_IMAGES = 400
 const NAV_TIMEOUT_MS = 3000
 // Sunucular `Vary: Origin` döndürebilir; modül betiği istekleri Origin başlığıyla geldiği için
@@ -20,6 +23,8 @@ const ILLUSTRATIONS = new URL('exercises/', scope).href // egzersiz referans gö
 const MUSCLE_ART = new URL('muscles/', scope).href // kas referans çizimleri (görseli olmayan egzersizler)
 const FONTS = ['600', '700', '800'].flatMap((w) => ['latin', 'latin-ext'].map((r) => `barlow-condensed-${r}-${w}-normal.woff2`))
 const ASSETS = new URL('assets/', scope).href // taban yola (/ veya /monk-mode/) göre hash'li varlıklar
+const SHARE_TARGET = new URL('./?share-target', scope).href // manifest share_target action'ı
+const SHARE_KEY = new URL('shared-backup', scope).href
 
 /** index.html içindeki hash'li js/css adreslerini bulur. */
 function assetUrls(html) {
@@ -161,8 +166,31 @@ async function image(request) {
   return res
 }
 
+/**
+ * Paylaşım menüsünden gelen yedek dosyasını kısa ömürlü önbelleğe koyar ve Ayarlar'ın Al sekmesine yönlendirir;
+ * uygulama dosyayı oradan alıp önizler (src/lib/sharedFile.ts). Dosya yoksa yine de Al sekmesi açılır.
+ * Hiçbir şey birleştirilmez: onay uygulamada.
+ */
+async function receiveShare(request) {
+  try {
+    const file = (await request.formData()).get('backup')
+    if (file instanceof File) {
+      const cache = await caches.open(SHARE)
+      const headers = { 'content-type': file.type || 'application/json', 'x-file-name': encodeURIComponent(file.name) }
+      await cache.put(SHARE_KEY, new Response(file, { headers }))
+    }
+  } catch {
+    // okunamadıysa uygulama boş Al sekmesi gösterir
+  }
+  return Response.redirect(new URL('./#/settings?aktarim=al', scope).href, 303)
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
+  if (request.method === 'POST' && request.url === SHARE_TARGET) {
+    event.respondWith(receiveShare(request))
+    return
+  }
   if (request.method !== 'GET') return
   const url = new URL(request.url)
 

@@ -1,6 +1,7 @@
 # Sunucusuz cihazlar arası veri aktarımı
 
-> Araştırma notu, Ekim 2026, v0.6.0 (`main` = `072ca14`). Bu belge yalnız öneri içerir; uygulamaya özellik eklenmedi.
+> Araştırma notu, Ekim 2026, v0.6.0 (`main` = `072ca14`). Yazıldığında yalnız öneri içeriyordu.
+> **Durum (3 Kasım 2026):** 1. aşama ("Başka cihaza aktar": Gönder/Al sekmeleri, birleştirme önizlemesi, girintisiz aktarım dosyası) ve 1b (Android `share_target`) uygulandı. 2. aşama (animasyonlu QR) ve parola ile şifreleme yapılmadı; gerçek cihaz kamerası gerektiriyor. Aşağıdaki "Bugünkü durum" tablosu araştırma anındaki kodu anlatır: `MergeImportCard` artık `TransferCard`.
 > Prototip `research/transfer-prototype` dalında duruyor, merge edilmeyecek.
 
 ## Özet
