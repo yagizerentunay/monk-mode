@@ -296,6 +296,7 @@ export const tr = {
   'workout.totalVolume': 'Toplam hacim',
   'workout.goalReached': 'Hedefe ulaştın',
   'workout.newRecords': 'Yeni rekorlar',
+  'workout.liveRecord': 'Yeni rekor: {name} · tahmini 1RM {value} {unit}',
   'workout.backHome': 'Ana sayfaya dön',
   'workout.finishConfirm': '{sets} tamamlanmadı. Yine de bitirilsin mi?',
   'workout.back': 'Antrenmana dön',

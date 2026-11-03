@@ -29,6 +29,7 @@ import { autoFolderBackup } from '../store/folderBackup.ts'
 import { discardActiveWithUndo } from '../store/undoDelete.ts'
 import { plateTargets } from '../lib/plates.ts'
 import { nextPrescription, prescriptionHint } from '../lib/progression.ts'
+import { liveRecord } from '../lib/livePr.ts'
 import { loadRest, saveRest } from '../lib/restState.ts'
 import { applyRirToEntry, previousRir } from '../lib/rir.ts'
 import { formatSet } from '../lib/sets.ts'
@@ -41,6 +42,7 @@ import { useWakeLock } from '../lib/useWakeLock.ts'
 import { zeroWeightFlags } from '../lib/zeroWeight.ts'
 import { doneSetCount, hasVolume, isPR, lastEntryFor, lastTwoEntriesFor, partialSetCount, workoutVolume } from '../lib/workout.ts'
 import type { Workout as WorkoutT } from '../store/schema.ts'
+import { useToast } from '../store/toast.ts'
 import { useStore } from '../store/useStore.ts'
 
 interface Summary {
@@ -151,6 +153,15 @@ export function Workout() {
   const setRestEnds = (endsAt: number | null) => {
     setRestEndsState(endsAt)
     if (active) saveRest(active.id, endsAt)
+  }
+  /** Az önce tamamlanan set egzersizin tahmini 1RM rekorunu kırdıysa kısa bir bildirim gösterir (bkz. lib/livePr.ts). */
+  const announceRecord = (ei: number, si: number) => {
+    // Set az önce güncellendi: render'daki `active` bayat, bu yüzden güncel durum store'dan okunur.
+    const { active: current, workouts: finished } = useStore.getState()
+    const entry = current?.entries[ei]
+    const e1rm = entry ? liveRecord(finished, entry, si) : undefined
+    if (!entry || e1rm === undefined) return
+    useToast.getState().show(t('workout.liveRecord', { name: byId.get(entry.exId)?.name ?? entry.exId, value: formatWeight(e1rm, unit), unit }))
   }
   // Atılan antrenman geri alınınca (bkz. undoDelete.ts) dinlenme sayacı yeniden okunur.
   const [seenId, setSeenId] = useState(active?.id)
@@ -435,6 +446,7 @@ export function Workout() {
                   onCompleted={() => {
                     const rest = restAfter(active.entries, ei, si, restSec)
                     if (rest !== null) setRestEnds(Date.now() + rest * 1000)
+                    announceRecord(ei, si)
                   }}
                 />
               ))

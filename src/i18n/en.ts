@@ -303,6 +303,7 @@ export const en: Messages = {
   'workout.totalVolume': 'Total volume',
   'workout.goalReached': 'Goal reached',
   'workout.newRecords': 'New records',
+  'workout.liveRecord': 'New record: {name} · estimated 1RM {value} {unit}',
   'workout.backHome': 'Back to Home',
   'workout.finishConfirm': '{sets} not completed. Finish anyway?',
   'workout.back': 'Back',
