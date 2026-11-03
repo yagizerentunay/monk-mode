@@ -19,5 +19,16 @@ export function brzycki(weight: number, reps: number): number {
   return (weight * 36) / (37 - r)
 }
 
-/** Uygulamanın varsayılan tahmini: Epley. */
-export const estimate1RM = epley
+/** RIR'den en fazla bu kadar tekrar sayılır: sınırdan uzak setlerde RIR tahmini güvenilmez ve şişirir. */
+export const MAX_RIR_CREDIT = 3
+
+/**
+ * Uygulamanın varsayılan tahmini: Epley. RIR girilmişse set, tükenişe kadar yapılabilecek tekrarla
+ * (`reps + rir`, en çok MAX_RIR_CREDIT) hesaplanır; böylece RIR 3'te 5 tekrar, RIR 0'da 5 tekrardan yüksek
+ * sayılır. RIR yoksa ya da geçersizse yalnız yapılan tekrar sayılır (eski hesap).
+ */
+export function estimate1RM(weight: number, reps: number, rir?: number): number {
+  if (Math.floor(reps) <= 0) return 0
+  const credit = rir !== undefined && Number.isFinite(rir) ? Math.min(Math.max(Math.floor(rir), 0), MAX_RIR_CREDIT) : 0
+  return epley(weight, Math.floor(reps) + credit)
+}

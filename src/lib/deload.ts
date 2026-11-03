@@ -66,7 +66,7 @@ function sessionOf(workout: Workout, entry: WorkoutEntry): Session | undefined {
   if (entry.timed || entry.distance) return undefined
   const sets = entry.sets.filter((s) => s.done && !s.warmup && !s.drop)
   if (sets.length === 0) return undefined
-  const e1rm = Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r)))
+  const e1rm = Math.max(...sets.map((s) => estimate1RM(effectiveLoad(entry, s.w), s.r, s.rir)))
   const day = dayStart(workout.d)
   if (!(e1rm > 0) || Number.isNaN(day)) return undefined
   return { day, e1rm, easy: sets.every((s) => s.rir !== undefined && s.rir >= EASY_RIR) }
