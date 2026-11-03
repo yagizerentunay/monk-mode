@@ -66,7 +66,9 @@ test('ölçüler yedekle birleştirilir ve ayrı CSV olarak dışa aktarılır',
 
   const other = { ...defaultState(), measurements: [{ d: '2020-01-05', waist: 90 }, { d: '2020-01-12', waist: 84.5, arm: 36 }] }
   const file = { name: 'baska-cihaz.json', mimeType: 'application/json', buffer: Buffer.from(exportBackup(other)) }
+  await page.getByRole('button', { name: 'Al', exact: true }).click()
   await page.locator('.mergecard input[type=file]').setInputFiles(file)
+  await page.getByRole('button', { name: 'Birleştir', exact: true }).click()
   await expect(page.getByText('Birleştirildi: 1 ölçü kaydı eklendi; 1 kayıt farklı, yereldeki korundu.')).toBeVisible()
   expect((await readState(page)).measurements).toEqual([
     { d: '2020-01-05', waist: 85, fat: 18 },

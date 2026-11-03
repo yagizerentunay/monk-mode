@@ -5,7 +5,7 @@ import { CsvExportCard } from '../components/CsvExportCard.tsx'
 import { DiagnosticsCard } from '../components/DiagnosticsCard.tsx'
 import { FolderBackupCard } from '../components/FolderBackupCard.tsx'
 import { ImportCard } from '../components/ImportCard.tsx'
-import { MergeImportCard } from '../components/MergeImportCard.tsx'
+import { TransferCard } from '../components/TransferCard.tsx'
 import { MuscleTargetsCard } from '../components/MuscleTargetsCard.tsx'
 import { NumberField } from '../components/NumberField.tsx'
 import { ProgressionRuleCard } from '../components/ProgressionRuleCard.tsx'
@@ -333,7 +333,7 @@ export function Settings() {
       </div>
 
       <ImportCard />
-      <MergeImportCard />
+      <TransferCard />
 
       <p className="sub">
         {t('settings.version', { version: __APP_VERSION__ })}
