@@ -14,6 +14,7 @@ import { NumberField } from '../components/NumberField.tsx'
 import { locale, t } from '../i18n/index.ts'
 import { formatAxisDay } from '../lib/calendar.ts'
 import { DAY_NAMES, DAY_SHORT } from '../lib/dates.ts'
+import { typicalDurationMin } from '../lib/duration.ts'
 import { suggestNextRoutine } from '../lib/nextWorkout.ts'
 import { weekStartOf, weekStreak } from '../lib/streak.ts'
 import { formatWeight, kgToUnit, unitToKg } from '../lib/units.ts'
@@ -50,12 +51,15 @@ export function Home() {
   // Sıradaki öneri yalnız dinlenme gününde ya da bugünün planı bittiğinde; bugünün rutiniyle aynıysa gereksiz.
   const suggestion = useMemo(() => suggestNextRoutine(routines, workouts), [routines, workouts])
   const next = suggestion && (!todayRoutine || (doneToday && suggestion.routine.id !== todayRoutine.id)) ? suggestion : undefined
+  const durationMin = useMemo(() => (todayRoutine ? typicalDurationMin(workouts, todayRoutine.id) : undefined), [workouts, todayRoutine])
+  const nextDurationMin = useMemo(() => (next ? typicalDurationMin(workouts, next.routine.id) : undefined), [workouts, next])
   const nextBlock = next && (
     <div className="hero-next stack">
       <div className="eyebrow">{t('home.next')}</div>
       <div className="hero-next-title">{next.routine.name}</div>
       <div className="sub">
         {next.last ? `${t('home.last', { name: next.last.name })} · ` : ''}{t('count.exercises', { n: next.routine.ex.length })}
+        {nextDurationMin !== undefined && ` · ${t('home.duration', { n: nextDurationMin })}`}
       </div>
       <button
         className="btn primary block"
@@ -149,7 +153,7 @@ export function Home() {
         <div className="card hero stack">
           <div className={doneToday ? 'eyebrow ok' : 'eyebrow'}>{doneToday ? `✓ ${t('home.doneToday')}` : t('home.todaysWorkout')}</div>
           <div className="hero-title">{todayRoutine.name}</div>
-          <div className="sub">{t('count.exercises', { n: todayRoutine.ex.length })} · {t('home.workSets', { n: workSets })}</div>
+          <div className="sub">{t('count.exercises', { n: todayRoutine.ex.length })} · {t('home.workSets', { n: workSets })}{durationMin !== undefined && ` · ${t('home.duration', { n: durationMin })}`}</div>
           <button
             className={nextBlock ? 'btn block' : 'btn primary block'}
             onClick={() => {
