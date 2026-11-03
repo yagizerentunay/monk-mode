@@ -10,9 +10,13 @@ interface BackupFile {
   state: State
 }
 
-export function exportBackup(state: State, now: Date = new Date()): string {
+/**
+ * Yedek metni. `compact` girintisiz yazar (aktarım dosyası ~3 kat küçük); biçim aynı kaldığı için
+ * içe aktarma ikisini de okur.
+ */
+export function exportBackup(state: State, now: Date = new Date(), opts: { compact?: boolean } = {}): string {
   const file: BackupFile = { app: APP_MARK, exportedAt: now.toISOString(), state }
-  return JSON.stringify(file, null, 2)
+  return opts.compact ? JSON.stringify(file) : JSON.stringify(file, null, 2)
 }
 
 /** Yedek metnini State'e çevirir; geçersizse anlaşılır bir hata fırlatır. */

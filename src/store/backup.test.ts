@@ -44,6 +44,13 @@ describe('yedek', () => {
     expect(importBackup(exportBackup(state))).toEqual(state)
   })
 
+  it('girintisiz (aktarım) yedek aynı veriyi verir ve çok daha küçüktür', () => {
+    const state = { ...defaultState(), bodyweight: [{ d: '2026-10-08', w: 80.4 }] }
+    const compact = exportBackup(state, new Date(), { compact: true })
+    expect(importBackup(compact)).toEqual(state)
+    expect(compact.length).toBeLessThan(exportBackup(state).length)
+  })
+
   it('JSON olmayan dosyayı reddeder', () => {
     expect(() => importBackup('not json')).toThrow('JSON')
   })

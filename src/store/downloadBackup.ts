@@ -19,9 +19,9 @@ function saveFile(name: string, text: string, type: string): void {
  * Yedeği JSON dosyası olarak indirir. Önce "yedeklendi" işaretlenir ki dosyanın içindeki ayarlar
  * kendi zamanını ve veri parmak izini taşısın: yedek geri yüklenince hatırlatma bozuk görünmez.
  */
-export function downloadBackup(now: Date = new Date()): void {
+export function downloadBackup(now: Date = new Date(), opts: { compact?: boolean } = {}): void {
   useStore.getState().markBackedUp(now.getTime())
-  const text = exportBackup(snapshot(useStore.getState()), now)
+  const text = exportBackup(snapshot(useStore.getState()), now, opts)
   saveFile(t('file.backup', { date: dayString(now) }), text, 'application/json')
 }
 
@@ -52,13 +52,13 @@ async function shareFile(file: File, title: string): Promise<'shared' | 'cancell
  * Şu anki verinin yedek metni; içindeki ayarlar bu yedeğin zamanını ve veri parmak izini taşır, böylece
  * yedek geri yüklenince hatırlatma bozuk görünmez. Store'u değiştirmez: "yedeklendi" işareti başarıdan sonra yazılır.
  */
-export function markedBackupText(now: Date): string {
+export function markedBackupText(now: Date, opts: { compact?: boolean } = {}): string {
   const state = snapshot(useStore.getState())
   const marked = {
     ...state,
     settings: { ...state.settings, lastBackupAt: now.getTime(), lastBackupHash: fingerprint(state), backupSnoozedUntil: undefined },
   }
-  return exportBackup(marked, now)
+  return exportBackup(marked, now, opts)
 }
 
 /**
@@ -67,11 +67,11 @@ export function markedBackupText(now: Date): string {
  * olduğu gibi kendi yedek zamanını ve parmak izini taşır; işaret yalnız başarıdan sonra store'a yazılır.
  * Kullanıcı dokunuşuyla çağrılmalı (paylaşım menüsü jest ister).
  */
-export async function shareBackup(now: Date = new Date()): Promise<SaveResult> {
+export async function shareBackup(now: Date = new Date(), opts: { compact?: boolean } = {}): Promise<SaveResult> {
   const name = t('file.backup', { date: dayString(now) })
-  const file = new File([markedBackupText(now)], name, { type: 'application/json' })
+  const file = new File([markedBackupText(now, opts)], name, { type: 'application/json' })
   if (!canShareFile(file)) {
-    downloadBackup(now)
+    downloadBackup(now, opts)
     return 'downloaded'
   }
   // Kullanıcı vazgeçti (AbortError) ya da paylaşım başarısız: yedek alınmış sayılmaz.
