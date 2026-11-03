@@ -375,6 +375,7 @@ export const tr = {
   'hold.measure': 'Süre ölç',
   'common.loading': 'Yükleniyor…',
   'plateau.note': 'Plato: {sessions}tır yeni rekor yok. Ağırlığı ~%10 düşürüp toparlan ya da tekrar aralığını değiştir.',
+  'plateau.swap': 'Hareketi değiştir',
   'plates.targetUnit': 'Hedef ({unit})',
   'plates.targetWeight': 'Hedef ağırlık',
   'plates.belowBar': 'Hedef bar ağırlığından ({bar}) az.',

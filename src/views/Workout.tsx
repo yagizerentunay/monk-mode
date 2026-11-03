@@ -366,7 +366,7 @@ export function Workout() {
                 )}
                 {hints[ei] && <div className="sub exhint">{hints[ei]}</div>}
                 {deloadWeek && <DeloadSetHint sets={entry.sets.filter((s) => !s.warmup && !s.drop).length} />}
-                <PlateauNote exId={entry.exId} />
+                <PlateauNote exId={entry.exId} onSwap={ex && !hasCompletedWork(entry) ? () => setSwapEntryIdx(ei) : undefined} />
                 {entry.bw && entry.bwKg === undefined && (
                   <div className="warntext">{t('workout.noBodyweight')}</div>
                 )}

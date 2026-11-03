@@ -382,6 +382,7 @@ export const en: Messages = {
   'hold.measure': 'Time it',
   'common.loading': 'Loading…',
   'plateau.note': 'Plateau: no new record in {sessions}. Drop the weight ~10% and rebuild, or change the rep range.',
+  'plateau.swap': 'Swap exercise',
   'plates.targetUnit': 'Target ({unit})',
   'plates.targetWeight': 'Target weight',
   'plates.belowBar': 'The target is below the bar weight ({bar}).',
