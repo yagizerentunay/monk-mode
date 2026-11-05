@@ -142,9 +142,9 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Incline Bench Press (Dumbbell)', 'atlas:incline-dumbbell-press'],
     ['Squat (Barbell)', 'Barbell_Squat'],
     ['Front Squat (Barbell)', 'monk-quadriceps-front-squat'],
-    ['Deadlift (Barbell)', 'Barbell_Deadlift'],
+    ['Deadlift (Barbell)', 'monk-lower-back-conventional-deadlift'],
     ['Romanian Deadlift (Barbell)', 'Romanian_Deadlift'],
-    ['Sumo Deadlift (Barbell)', 'atlas:sumo-deadlift'],
+    ['Sumo Deadlift (Barbell)', 'Sumo_Deadlift'],
     ['Overhead Press (Barbell)', 'Barbell_Shoulder_Press'],
     ['Shoulder Press (Dumbbell)', 'Dumbbell_Shoulder_Press'],
     // Adın birebir karşılığı olan genel Atlas kaydı, daha özel varyanttan önce gelir.
@@ -168,9 +168,9 @@ describe('gerçek egzersiz kütüphanesi', () => {
     ['Squat (Smith Machine)', 'atlas:smith-machine-squat'],
     // Gerçek bir karşılığı olmayan / belirsiz adlar: özel egzersiz oluşmalı.
     ['Squat', null],
-    ['Leg Curl (Machine)', null],
+    ['Leg Curl (Machine)', 'atlas:machine-kneeling-leg-curl'],
     ['Bulgarian Split Squat (Dumbbell)', 'atlas:dumbbell-bulgarian-split-squat'],
-    ['Skullcrusher (Barbell)', null],
+    ['Skullcrusher (Barbell)', 'atlas:barbell-lying-triceps-extension'],
     ['Pec Deck (Machine)', null],
     ['Zumba', null],
   ]
